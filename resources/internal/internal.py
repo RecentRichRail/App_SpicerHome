@@ -66,9 +66,10 @@ def user_search_query(offset, search_query):
             try:
                 script_return = run_funtion(script_path, data)
                 if script_return.get("funtion_triggered"):
+                    logging.info({"internal_search": script_return.get("internal_search", False), "function_data": script_return['funtion_return']})
                     return {"internal_search": script_return.get("internal_search", False), "function_data": script_return['funtion_return']}
             except Exception as e:
-                print(f"Error running {filename}: {e}")
+                logging.error(f"Error running {filename}: {e}")
                 return {"error": str(e)}
             
     print(f"Running 'search.py'")
@@ -77,11 +78,12 @@ def user_search_query(offset, search_query):
         script_return = run_funtion(script_path, data)
         # print(f"script_return: {script_return}")
         if script_return.get("funtion_triggered"):
+            logging.info("internal_search": script_return.get("internal_search", False), "function_data": script_return['funtion_return'])
             return {"internal_search": script_return.get("internal_search", False), "function_data": script_return['funtion_return']}
     except Exception as e:
-                print(f"Error running search.py: {e}")
+                logging.error(f"Error running search.py: {e}")
                 return {"error": str(e)}
-    # print({"redirect_url": run_funtion(os.path.join('resources/functions', 'search.py'), data)['funtion_return']})
+    logging.info({"redirect_url": run_funtion(os.path.join('resources/functions', 'search.py'), data)['funtion_return']})
     return {"internal_search": script_return.get("internal_search", False), "function_data": run_funtion(os.path.join('resources/utils/functions', 'search.py'), data)['funtion_return']}
 
 
