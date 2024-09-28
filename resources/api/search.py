@@ -9,10 +9,11 @@ from tracking_numbers import get_tracking_number
 from flask_login import login_user, login_required, current_user, logout_user
 from sqlalchemy import or_, func
 
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives import padding
-from cryptography.hazmat.backends import default_backend
+import hmac
+import hashlib
 import base64
+
+import importlib
 
 from resources.utils import security, util
 
@@ -131,21 +132,13 @@ def captive_send_email():
                 try:
                     user_data = response.json()
 
-                    uid = user.uid
-                    uid_16_bit = uid & 0xFFFF  # Convert to 16-bit integer
+                    uid = user.uid  # Keep uid as string
 
-                    # Encrypt the 16-bit uid
+                    # Generate HMAC using SECRET_KEY and uid
                     secret_key = current_app.config['SECRET_KEY'].encode('utf-8')
-                    iv = b'\x00' * 16  # Initialization vector
-                    cipher = Cipher(algorithms.AES(secret_key), modes.CBC(iv), backend=default_backend())
-                    encryptor = cipher.encryptor()
-
-                    # Pad the data to be a multiple of the block size
-                    padder = padding.PKCS7(algorithms.AES.block_size).padder()
-                    padded_data = padder.update(uid_16_bit.to_bytes(2, 'big')) + padder.finalize()
-
-                    encrypted_password = encryptor.update(padded_data) + encryptor.finalize()
-                    encrypted_password_b64 = base64.b64encode(encrypted_password).decode('utf-8')
+                    hmac_obj = hmac.new(secret_key, uid.encode('utf-8'), hashlib.sha256)
+                    hashed_uid = hmac_obj.digest()
+                    encrypted_password_b64 = base64.b64encode(hashed_uid).decode('utf-8')
 
 
                     if not user_data and 'data' in user_data and len(user_data['data']) > 0:
