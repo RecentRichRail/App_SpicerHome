@@ -130,18 +130,18 @@ def internal_search():
         #     page_title = "SpicerHome Search"
 
 
-            context = {
-                'user_default_search_id': current_user.default_search_id,
-                'user_theme': current_user.user_theme,
-                'search_index': search_index,
-                'search_commands': current_user.json_user_search_commands(),
-                'commands': current_user.json_user_commands(),
-                'page_title': page_title,
-                'sidebar_links': current_user.json_sidebar_links()
-                # 'cookie_name': current_app.short_session_cookie_name
-            }
+        context = {
+            'user_default_search_id': current_user.default_search_id,
+            'user_theme': current_user.user_theme,
+            'search_index': search_index,
+            'search_commands': current_user.json_user_search_commands(),
+            'commands': current_user.json_user_commands(),
+            'page_title': page_title,
+            'sidebar_links': current_user.json_sidebar_links()
+            # 'cookie_name': current_app.short_session_cookie_name
+        }
 
-            return render_template('internal/search/search_index.html', **context)
+        return render_template('internal/search/search_index.html', **context)
     
     else:        
         page_title = "SpicerHome Search"
