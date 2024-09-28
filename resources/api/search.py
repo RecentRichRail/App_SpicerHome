@@ -7,6 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 from tracking_numbers import get_tracking_number
 from flask_login import login_user, login_required, current_user, logout_user
+from sqlalchemy import or_, func
 
 api_blueprint = Blueprint("apiv1", __name__, template_folder="templates")
 
@@ -94,3 +95,69 @@ def tracking_update_note():
                 print(e)
                 return {"message": "Error"}
     return {"message": "Error"}
+
+@api_blueprint.route('/captive/send_email', methods=['POST'])
+def captive_send_email():
+    username_or_email = request.json.get('username')
+    print(username_or_email)
+    # return {'message': 'success'}, 200
+    user = User.query.filter(
+        or_(
+            func.lower(User.username) == username_or_email,
+            func.lower(User.email) == username_or_email,
+        )
+    ).first()
+    if user:
+        router_API_Key = current_app.router_API_Key
+        CF_Access_Client_Id = current_app.CF_Access_Client_Id
+        CF_Access_Client_Secret = current_app.CF_Access_Client_Secret
+        if not router_API_Key:
+            return {"message": "API key not found"}, 500
+
+        headers = {'x-api-key': router_API_Key, 'accept': 'application/json', 'CF-Access-Client-Secret': CF_Access_Client_Secret, 'CF-Access-Client-Id': CF_Access_Client_Id}
+        response = requests.get("https://router.spicerhome.net/api/v2/users?limit=0&offset=0", headers=headers, allow_redirects=True)
+
+        # Log response details for debugging
+        print(f"Response Status Code: {response.status_code}")
+        print(f"Response Headers: {response.headers}")
+        print(f"Response Content: {response.content}")
+
+        if response.status_code == 200:
+            if response.content:
+                try:
+                    user_data = response.json()
+                    # Process user_data as needed
+                    print(user_data)
+                    return {'message': 'success', 'data': user_data}, 200
+                except ValueError:
+                    return {"message": "Error decoding JSON response"}, 500
+            else:
+                return {"message": "Empty response from router API"}, 500
+        elif response.is_redirect:
+            # Follow the redirect manually
+            redirect_url = response.headers.get('Location')
+            if redirect_url:
+                redirect_response = requests.get(redirect_url, headers=headers)
+                print(f"Redirect Response Status Code: {redirect_response.status_code}")
+                print(f"Redirect Response Headers: {redirect_response.headers}")
+                print(f"Redirect Response Content: {redirect_response.content}")
+
+                if redirect_response.status_code == 200:
+                    if redirect_response.content:
+                        try:
+                            user_data = redirect_response.json()
+                            # Process user_data as needed
+                            print(user_data)
+                            return {'message': 'success', 'data': user_data}, 200
+                        except ValueError:
+                            return {"message": "Error decoding JSON response from redirect"}, 500
+                    else:
+                        return {"message": "Empty response from redirect URL"}, 500
+                else:
+                    return {"message": f"Error fetching data from redirect URL: {redirect_response.status_code}"}, redirect_response.status_code
+            else:
+                return {"message": "Redirect URL not found"}, 500
+        else:
+            return {"message": f"Error fetching data from router API: {response.status_code}"}, response.status_code
+        
+    return {"message": "Error"}, 500
