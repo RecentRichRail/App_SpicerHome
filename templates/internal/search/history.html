@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Search History</title>
+    <link id="theme-stylesheet" rel="stylesheet" href="{{ url_for('static', filename='styles/' + user_theme + '/color.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/pagination_styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/modern_table.css') }}">
+</head>
+<body>
+    {% include 'internal/search/elements/header.html' %}
+    <div class="container">
+        {% include 'internal/search/elements/logo.html' %}
+        <div id="history-section">
+            <h2>{{ page_title }}</h2>
+            {% if history_requests %}
+            <table id="history-table">
+                <tbody>
+                    {% for user_id, user_requests in history_requests.items() %}
+                        {% for request_id, request_info in user_requests.items() %}
+                            <tr class="track-row" data-request-id="{{ request_info.request_id }}">
+                                <td data-label="Original Request">{{ request_info.original_request }}</td>
+                                <td data-label="Redirect URL">
+                                    <a href="{{ request_info.query_url }}" class="quick-fix-data-url" target="_blank">{{ request_info.query_url }}</a>
+                                </td>
+                                <td>
+                                    <span class="dropdown-arrow" onclick="this.closest('tr').nextElementSibling.id = this.closest('tr').nextElementSibling.id === 'closed' ? 'open' : 'closed';">&#9660;</span>
+                                </td>
+                            </tr>
+                            <tr class="detail-row" data-request-id="{{ request_info.request_id }}" id="closed">
+                                <td data-label="ID">{{ request_info.request_id }}</td>
+                                <td data-label="Date and Time">{{ request_info.date_and_time }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination-controls">
+                <button id="prev-page" class="pagination-button" onclick="changePage(-1)">Previous</button>
+                <button id="next-page" class="pagination-button" onclick="changePage(1)">Next</button>
+            </div>
+        {% else %}
+            <p>No search history found.</p>
+        {% endif %}
+        </div>
+    </div>
+    {% include 'internal/search/elements/footer.html' %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const formatDate = (dateStr) => {
+                const date = new Date(dateStr);
+                return date.toLocaleString(); // Convert to client's local timezone and format
+            };
+
+            document.querySelectorAll('#history-table td[data-label="Date and Time"]').forEach(cell => {
+                cell.textContent = formatDate(cell.textContent);
+            });
+
+        });
+
+        let currentPage = 1;
+        const perPage = 50;
+
+        function sortTable() {
+            const table = document.getElementById("history-table");
+            const tbody = table.getElementsByTagName("tbody")[0];
+            const rows = Array.from(tbody.getElementsByTagName("tr"));
+
+            rows.sort((a, b) => {
+                const idA = parseInt(a.getAttribute('data-request-id'), 10);
+                const idB = parseInt(b.getAttribute('data-request-id'), 10);
+                return idB - idA; // Descending order
+            });
+
+            rows.forEach(row => tbody.appendChild(row)); // Reattach rows in sorted order
+        }
+
+        function paginateTable() {
+            const table = document.getElementById("history-table");
+            const tbody = table.getElementsByTagName("tbody")[0];
+            const rows = Array.from(tbody.getElementsByTagName("tr"));
+            const totalRows = rows.length;
+            const totalPages = Math.ceil(totalRows / perPage);
+
+            // Hide all rows
+            rows.forEach(row => row.style.display = "none");
+
+            // Show only the rows for the current page
+            const start = (currentPage - 1) * perPage;
+            const end = start + perPage;
+
+            for (let i = start; i < end && i < totalRows; i++) {
+                rows[i].style.display = "";
+            }
+
+            // Update pagination links
+            const prevPageLink = document.getElementById("prev-page");
+            const nextPageLink = document.getElementById("next-page");
+
+            if (prevPageLink && nextPageLink) {
+                prevPageLink.classList.toggle("disabled", currentPage === 1);
+                nextPageLink.classList.toggle("disabled", currentPage === totalPages);
+            }
+        }
+
+        function changePage(direction) {
+            const table = document.getElementById("history-table");
+            const tbody = table.getElementsByTagName("tbody")[0];
+            const totalRows = tbody.getElementsByTagName("tr").length;
+            const totalPages = Math.ceil(totalRows / perPage);
+
+            if ((direction === 1 && currentPage < totalPages) || (direction === -1 && currentPage > 1)) {
+                currentPage += direction;
+                paginateTable();
+            }
+        }
+
+        function truncateUrls() {
+            const links = document.querySelectorAll('.url-link');
+            links.forEach(link => {
+                const fullUrl = link.textContent;
+                if (fullUrl.length > 150) {
+                    link.textContent = fullUrl.slice(0, 150) + '...';
+                }
+            });
+        }
+
+        function truncateRequests() {
+            const requests = document.querySelectorAll('.request-container');
+            requests.forEach(request => {
+                const fullRequest = request.textContent;
+                if (fullRequest.length > 200) {
+                    request.textContent = fullRequest.slice(0, 200) + '...';
+                }
+            });
+        }
+
+        // Initialize
+        window.onload = function() {
+            sortTable();
+            paginateTable();
+            truncateUrls();
+            truncateRequests();
+        };
+    </script>
+</body>
+</html>

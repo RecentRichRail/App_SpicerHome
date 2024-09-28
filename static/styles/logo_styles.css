@@ -1,0 +1,23 @@
+@font-face { 
+    font-family: bebel; 
+    /* src: url('https://www.1001fonts.com/download/font/bebel.black.otf');  */
+    src: url('https://www.1001fonts.com/download/font/evgeny.bold-italic.ttf'); 
+}
+
+.logo-link {
+    font-family: bebel;
+    font-size: 9rem;
+    /* text-shadow: 3px 3px 0 #EEE4B1, -1px -1px 0 #EEE4B1, 1px -1px 0 #EEE4B1, -1px 1px 0 #EEE4B1, 1px 1px 0 #EEE4B1; */
+    text-decoration: none;
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+    .logo-link {
+        font-size: 5.9rem;
+    }
+
+}
+
+/* https://colorhunt.co/palette/1a120b3c2a21d5cea3e5e5cb   - Color pallete */
+/* Testing color - https://colorhunt.co/palette/331d2c3f2e3ea78295efe1d1 */

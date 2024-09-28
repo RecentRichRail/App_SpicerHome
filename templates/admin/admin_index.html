@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin Panel</title>
+    <link id="theme-stylesheet" rel="stylesheet" href="{{ url_for('static', filename='styles/' + user_theme + '/color.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/dropdown_styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/pagination_styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/modern_table.css') }}">
+</head>
+<body>
+    {% include 'internal/search/elements/header.html' %}
+    <div class="container">
+        {% include 'internal/search/elements/logo.html' %}
+        <form id="admin-form" method="get" action="{{ url_for('admin.admin_history') }}">
+            <div id="search-bar-container">
+                <!-- Dropdown for selecting tool -->
+                <div id="styled-dropdown">
+                    <label for="tool-select" class="sr-only">Select Tool:</label>
+                    <select id="styled-dropdown-select" name="info">
+                        <option value="">None</option>
+                        <option value="history">History</option>
+                        <option value="track">Track</option>
+                    </select>
+                </div>
+                
+                <!-- Dropdown for selecting user -->
+                <div id="styled-dropdown">
+                    <label for="user-select" class="sr-only">Select User:</label>
+                    <select id="styled-dropdown-select" name="q">
+                        <option value="">None</option>
+                        {% for user_id, user_info in users_query.items() %}
+                            <option value="{{ user_id }}">{{ user_info.email }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <button type="submit" id="search-button">Go</button>
+            </div>
+        </form>
+        <div id="history-section">
+            {% if login_request_query %}
+            <table id="history-table">
+                <tbody>
+                    {% for login_request in login_request_query %}
+                        <tr class="track-row" data-request-id="{{ login_request_query[login_request]['login_attempt_id'] }}">
+                            <td data-label="Login ID">{{ login_request_query[login_request]['login_attempt_id'] }}</td>
+                            <td data-label="User ID">{{ login_request_query[login_request]['user_id'] }}</td>
+                            <td data-label="User Auth">{{ login_request_query[login_request]['is_authenticated'] }}</td>
+                            <td data-label="Requested Resource">
+                                <a href="{{ login_request_query[login_request]['requested_resource'] }}" class="quick-fix-data-url" target="_blank">{{ login_request_query[login_request]['requested_resource'] }}</a>
+                            </td>
+                            <td data-label="Source IP">{{ login_request_query[login_request]['request_ip_source'] }}</td>
+                            <td data-label="Date and Time">{{ login_request_query[login_request]['datetime_of_login_attempt'] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination-controls">
+                <button id="prev-page" class="pagination-button" onclick="changePage(-1)">Previous</button>
+                <button id="next-page" class="pagination-button" onclick="changePage(1)">Next</button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% include 'internal/search/elements/footer.html' %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const formatDate = (dateStr) => {
+                const date = new Date(dateStr);
+                return date.toLocaleString(); // Convert to client's local timezone and format
+            };
+
+            document.querySelectorAll('#history-table td[data-label="Date and Time"]').forEach(cell => {
+                cell.textContent = formatDate(cell.textContent);
+            });
+        });
+
+        let currentPage = 1;
+        const perPage = 25;
+
+        function sortTable() {
+            const table = document.getElementById("history-table");
+            const tbody = table.getElementsByTagName("tbody")[0];
+            const rows = Array.from(tbody.getElementsByTagName("tr"));
+
+            rows.sort((a, b) => {
+                const idA = parseInt(a.getAttribute('data-request-id'), 10);
+                const idB = parseInt(b.getAttribute('data-request-id'), 10);
+                return idB - idA; // Descending order
+            });
+
+            rows.forEach(row => tbody.appendChild(row)); // Reattach rows in sorted order
+        }
+
+        function paginateTable() {
+            const table = document.getElementById("history-table");
+            const tbody = table.getElementsByTagName("tbody")[0];
+            const rows = Array.from(tbody.getElementsByTagName("tr"));
+            const totalRows = rows.length;
+            const totalPages = Math.ceil(totalRows / perPage);
+
+            // Hide all rows
+            rows.forEach(row => row.style.display = "none");
+
+            // Show only the rows for the current page
+            const start = (currentPage - 1) * perPage;
+            const end = start + perPage;
+
+            for (let i = start; i < end && i < totalRows; i++) {
+                rows[i].style.display = "";
+            }
+
+            // Update pagination links
+            const prevPageLink = document.getElementById("prev-page");
+            const nextPageLink = document.getElementById("next-page");
+
+            if (prevPageLink && nextPageLink) {
+                prevPageLink.classList.toggle("disabled", currentPage === 1);
+                nextPageLink.classList.toggle("disabled", currentPage === totalPages);
+            }
+        }
+
+        function truncateUrls() {
+            const links = document.querySelectorAll('.url-link');
+            links.forEach(link => {
+                const fullUrl = link.textContent;
+                if (fullUrl.length > 150) {
+                    link.textContent = fullUrl.slice(0, 150) + '...';
+                }
+            });
+        }
+
+        function truncateRequests() {
+            const requests = document.querySelectorAll('.request-container');
+            requests.forEach(request => {
+                const fullRequest = request.textContent;
+                if (fullRequest.length > 200) {
+                    request.textContent = fullRequest.slice(0, 200) + '...';
+                }
+            });
+        }
+
+        function changePage(direction) {
+            const table = document.getElementById("history-table");
+            const tbody = table.getElementsByTagName("tbody")[0];
+            const totalRows = tbody.getElementsByTagName("tr").length;
+            const totalPages = Math.ceil(totalRows / perPage);
+
+            if ((direction === 1 && currentPage < totalPages) || (direction === -1 && currentPage > 1)) {
+                currentPage += direction;
+                paginateTable();
+            }
+        }
+
+        // Initialize
+        window.onload = function() {
+            sortTable();
+            paginateTable();
+            truncateUrls();
+            truncateRequests();
+        };
+    </script>
+</body>
+</html>

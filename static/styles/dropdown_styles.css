@@ -1,0 +1,15 @@
+#styled-dropdown {
+    margin-bottom: 10px; /* Added for spacing on smaller screens */
+    width: 100%; /* Ensure dropdown fits within container */
+}
+
+#styled-dropdown-select {
+    height: 39px;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+    -webkit-backdrop-filter: none; /* Disables backdrop filter on macOS */
+    backdrop-filter: none; /* Disables backdrop filter */
+}

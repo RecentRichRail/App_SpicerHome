@@ -1,0 +1,178 @@
+/* https://colorhunt.co/palette/331d2c3f2e3ea78295efe1d1 */
+
+/* Dropdown Color */
+
+#styled-dropdown-select {
+    border: 1px solid #444043;
+    background-color: #000000;
+    color: #ffffff;
+}
+
+/* Hamburger Color */
+
+.header-content {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+header {
+    border-bottom: 1px solid #444043;
+    background-color: #000000;
+    color: #ffffff;
+}
+
+.sidebar {
+    border-right: 1px solid #444043;
+    background-color: #000000;
+    color: #ffffff;
+}
+
+.sidebar ul li a {
+    color: #ffffff;
+}
+
+.overlay {
+    background-color: #00000075;
+}
+
+#sidebar-dropdown-select {
+    border: 1px solid #444043;
+    background-color: #000000;
+    color: #ffffff;
+}
+
+#theme-dropdown-select {
+    border: 1px solid #444043;
+    background-color: #000000;
+    color: #ffffff;
+}
+
+/* Logo Color */
+
+.logo-link {
+    color: rgb(255, 255, 255);
+}
+
+/* Pagination Color */
+
+.pagination-button {
+    background-color: #444043;
+    color: #ffffff;
+}
+
+.pagination-button:hover {
+    background-color: #000000;
+}
+
+/* Search index Color */
+
+.result_index {
+    background-color: #000000;
+    color: #ffffff;
+}
+.result {
+    background-color: #000000;
+    border: 1px solid #444043;
+    background-color: #000000;
+    color: #ffffff;
+    /* box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); */
+    color: #ffffff;
+}
+
+.result p {
+    color: #ffffff;
+}
+.meta-info {
+    color: #444043;
+}
+
+.video-results {
+    border: 1px solid #444043;
+    background-color: #000000;
+    color: #ffffff;
+}
+
+.video-result {
+    border-right: 1px solid #444043;
+    background-color: #000000;
+    color: #ffffff;
+}
+
+/* Tab 1 Colors */
+
+#history-table tr {
+    background-color: #000000;
+}
+
+#history-table td {
+    color: #ffffff;
+}
+
+#history-table td::before {
+    color: #ffffff;
+}
+
+.track-row {
+    border: 1px solid #444043; /* Add white border */
+}
+
+/* border color and round corners by 8px */
+.detail-row {
+    border: 1px solid #444043;
+}
+
+/* Styles Colors */
+
+body {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+.container {
+    background-color: #000000;
+    /* box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); */
+}
+
+h1 {
+    color: #ffffff;
+}
+
+a {
+    color: #ffffff;
+}
+
+#search-form {
+    color: #ffffff;
+}
+
+#search-bar {
+    border: 1px solid #444043;
+    background-color: #000000;
+    color: #ffffff;
+}
+
+#username_email {
+    border: 1px solid #444043;
+    background-color: #000000;
+    color: #ffffff;
+}
+
+#search-button {
+    /* border: 1px solid #444043; */
+    background-color: #444043;
+    color: #ffffff;
+}
+
+#start-login {
+    /* border: 1px solid #444043; */
+    background-color: #444043;
+    color: #ffffff;
+}
+
+#search-button:hover {
+    background-color: #000000;
+}
+
+#start-login:hover {
+    background-color: #000000;
+}

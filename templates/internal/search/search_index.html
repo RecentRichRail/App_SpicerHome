@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- <title>Search Results for {{ search_index.query.original }}</title> -->
+    <link id="theme-stylesheet" rel="stylesheet" href="{{ url_for('static', filename='styles/' + user_theme + '/color.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/search_index_styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/pagination_styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/dropdown_styles.css') }}">
+</head>
+<body>
+    {% include 'internal/search/elements/header.html' %}
+    <div class="container">
+        {% include 'internal/search/elements/logo.html' %}
+        <form id="search-form" onsubmit="return submitForm()">
+            <div id="search-bar-container">
+                <div id="category-dropdown">
+                    <select id="styled-dropdown-select">
+                        <option value="">Default</option>
+                        {% for search_command in search_commands %}
+                            <option value="{{ search_command['prefix'] }}">{{ search_command['text'] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <input type="text" id="search-bar" name="q" placeholder="Search..." value="{{ search_index.query.original }}">
+                <button type="submit" id="search-button">Search</button>
+            </div>
+        </form>
+        <div id="shortcut-section">
+            <!-- Shortcut Links will be dynamically added here -->
+        </div>
+    </div>
+    <div class="result_index">
+        <h3>Search Results for "{{ search_index.query.original }}"</h3>
+
+        {% if search_index.web.results %}
+            {% for search_type in search_index.mixed.main %}
+                {% if search_type['type'] == "web" %}
+                    {% set result = search_index.web.results[search_type['index']] %}
+                    <div class="result">
+                        <div class="web-result-content">
+                            <a href="{{ result.url }}" target="_self">
+                                <div class="web-result-content-title-div">
+                                    <div class="favicon-container">
+                                        <img class="favicon" src="{{ result.meta_url.favicon }}" alt="{{ result.profile.name }} favicon">
+                                    </div>
+                                    <div class="web-result-content-title-nav">
+                                        <div class="web-result-content-title-nav-info">
+                                            <a href="{{ result.url }}">{{ result.profile.name }}</a>
+                                        </div>
+                                        <div class="meta-info">
+                                            <a href="{{ result.url }}">{{ result.profile.long_name }}</a> - {{ result.meta_url.path }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                            <div class="web-result-content-title">
+                                <a href="{{ result.url }}" title="{{ result.title }}">{{ result.title }}</a>
+                            </div>
+                            <p>{{ result.description | safe }}</p>
+                        </div>
+                    </div>
+                {% elif search_type['type'] == "videos" %}
+                    <h3>Videos - <a href="/internal/search?q=yt {{ search_index.query.original }}">See More on YouTube!</a></h3>
+                    <div class="video-results">
+                    {% for result in search_index.videos.results %}
+                        <div class="video-result">
+                            <div class="video-result-content">
+                                <img class="thumbnail" src="{{ result.thumbnail.src }}" alt="{{ result.title }} on {{ result.meta_url.netloc }}">
+                                <h3><a href="{{ result.url }}">{{ result.title }}</a></h3>
+                                <p>{{ result.description | safe }}</p>
+                                <div class="meta-info">
+                                    <img class="favicon" src="{{ result.meta_url.favicon }}" alt="{{ result.meta_url.netloc }} favicon">
+                                    <a href="{{ result.meta_url.scheme + "://" + result.meta_url.hostname }}">{{ result.meta_url.netloc }}</a> - {{ result.meta_url.path }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <p>No results found for "{{ search_index.query.original }}"</p>
+        {% endif %}
+    </div>
+    <div class="pagination-controls">
+        <button id="prev-page" class="pagination-button" onclick="changePage(-1)">Previous</button>
+        <button id="next-page" class="pagination-button" onclick="changePage(1)">Next</button>
+    </div>
+    <script>
+        function submitForm() {
+            var query = document.getElementById("search-bar").value;
+            var category = document.getElementById("styled-dropdown-select").value;
+            if (query.trim() !== "") {
+                if (category !== "") {
+                    query = category + " " + query;
+                }
+                window.location.href = "/internal/search?q=" + encodeURIComponent(query);
+            }
+            return false;
+        }
+
+        function changePage(offsetChange) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentOffset = parseInt(urlParams.get('offset')) || 0;
+            const newOffset = currentOffset + offsetChange;
+
+            if (newOffset < 0) {
+                return; // Prevent going to a negative offset
+            }
+
+            urlParams.set('offset', newOffset);
+            window.location.search = urlParams.toString();
+        }
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentOffset = parseInt(urlParams.get('offset')) || 0;
+
+            if (currentOffset === 0) {
+                document.getElementById("prev-page").classList.add("disabled");
+                document.getElementById("prev-page").disabled = true;
+            }
+        };
+    </script>
+</body>
+</html>

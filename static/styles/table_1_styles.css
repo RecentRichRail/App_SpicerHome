@@ -1,0 +1,69 @@
+#history-section {
+    overflow-x: auto; /* Allow horizontal scrolling if necessary */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling for mobile devices */
+}
+
+#history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    border: none;
+    table-layout: fixed;
+}
+
+#history-table tbody {
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+#history-table tr {
+    display: inline-block;
+    text-align: left;
+    width: 100%;
+    border: none;
+    margin-bottom: 10px;
+    /* background-color: #E5E5CB; */
+    border-radius: 8px;
+}
+
+/* .quick-fix-data-url {
+    color: #D5CEA3;
+} */
+
+#history-table td {
+    display: inline-block;
+    padding: 8px;
+    border: none;
+    position: relative;
+    overflow: hidden;
+    word-wrap: break-word;
+    hyphens: none;
+    box-sizing: content-box;
+    max-width: 20%;
+}
+
+#history-table td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    display: block;
+    margin-bottom: 2px;
+    
+}
+
+@media (max-width: 768px) {
+    #history-table td {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    #history-table td {
+        font-size: 10px;
+        padding: 6px;
+    }
+
+    #history-table tr {
+        font-size: 10px;
+    }
+}

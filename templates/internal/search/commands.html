@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Search Commands</title>
+    <link id="theme-stylesheet" rel="stylesheet" href="{{ url_for('static', filename='styles/' + user_theme + '/color.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/modern_table.css') }}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    {% include 'internal/search/elements/header.html' %}
+    <div class="container">
+        {% include 'internal/search/elements/logo.html' %}
+        <div id="history-section">
+            <h2>{{ page_title }}</h2>
+            {% if commands %}
+            <table id="history-table">
+                <tbody>
+                    {% for command in commands %}
+                        <tr class="track-row">
+                            <td data-label="Category">{{ command.category }}</td>
+                            <td data-label="Prefix">{{ command.prefix }}</td>
+                            <td data-label="URL">
+                                <a href="{{ command.url }}" class="quick-fix-data-url" target="_blank">{{ command.url }}</a>
+                            </td>
+                            {% if command.search_url %}
+                            <td data-label="Search URL">
+                                <a href="{{ command.search_url if command.search_url else '' }}" class="quick-fix-data-url" target="_blank">{{ command.search_url if command.search_url else '' }}</a>
+                            </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <p>No search history found.</p>
+            {% endif %}
+        </div>
+    {% include 'internal/search/elements/footer.html' %}
+    <script>
+        $(document).ready(function() {
+            var $rows = $('#history-table tbody tr');
+            var groupedRows = [];
+            var lastCategory, lastUrl, lastSearchUrl, $group;
+
+            $rows.each(function() {
+                var $row = $(this);
+                var category = $row.find('td').eq(0).text();
+                var url = $row.find('td').eq(2).text();
+                var searchUrl = $row.find('td').eq(3).text();
+
+                if (category !== lastCategory || url !== lastUrl || searchUrl !== lastSearchUrl) {
+                    if ($group) {
+                        groupedRows.push($group);
+                    }
+                    $group = $row.clone();
+                    lastCategory = category;
+                    lastUrl = url;
+                    lastSearchUrl = searchUrl;
+                } else {
+                    var prefix = $row.find('td').eq(1).text();
+                    var groupPrefix = $group.find('td').eq(1);
+                    groupPrefix.text(groupPrefix.text() + ', ' + prefix);
+                }
+            });
+
+            if ($group) {
+                groupedRows.push($group);
+            }
+
+            $('#history-table tbody').empty().append(groupedRows);
+        });
+    </script>
+</body>
+</html>

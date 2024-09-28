@@ -1,0 +1,108 @@
+<header>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/hamburger_styles.css') }}">
+    <div class="header-content">
+        <div class="hamburger-menu" id="hamburger-menu">
+            &#9776; <!-- Hamburger icon -->
+        </div>
+        <div class="page-title" id="page-title" data-title="{{ page_title }}">{{ page_title }}</div>
+        <!-- <div><a href="{{ url_for('internal_auth.logout') }}" class="page-title" id="page-title">Logout</a></div> -->
+    </div>
+    <nav class="sidebar" id="sidebar">
+        <ul id="sidebar-links" data-links='{{ sidebar_links | tojson | safe }}'>
+            {% for link in sidebar_links %}
+            <li><a href="{{ link.href }}" class="tab-link" data-tab="{{ link.data_tab }}">{{ link.text }}</a></li>
+            {% endfor %}
+        </ul>
+
+        <!-- New Dropdown for Theme Selection -->
+        <div class="theme-dropdown">
+            <select id="theme-dropdown-select">
+                <option value="coffee" {% if user_theme == 'coffee' %}selected{% endif %}>Coffee</option>
+                <option value="mignight" {% if user_theme == 'mignight' %}selected{% endif %}>Mignight</option>
+                <option value="dark" {% if user_theme == 'dark' %}selected{% endif %}>Dark</option>
+            </select>
+        </div>
+
+        <!-- Dropdown for Search Commands -->
+        <div class="sidebar-dropdown">
+            <select id="sidebar-dropdown-select">
+                {% for search_command in search_commands %}
+                    {% if search_command['id'] == user_default_search_id %}
+                        <option value="{{ search_command['id'] }}">{{ search_command['text'] }}</option>
+                    {% endif %}
+                {% endfor %}
+                {% for search_command in search_commands %}
+                    {% if search_command['id'] != user_default_search_id %}
+                        <option value="{{ search_command['id'] }}">{{ search_command['text'] }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+    </nav>
+    <div class="overlay" id="overlay"></div>
+    <script src="{{ url_for('static', filename='scripts/hamburger_script.js') }}" defer></script>
+    <script>
+        function getCookie(name) {
+            let value = `; ${document.cookie}`;
+            let parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+    
+        document.getElementById('theme-dropdown-select').addEventListener('change', function() {
+            var selectedTheme = this.value;
+            if (selectedTheme) {
+                // Update the stylesheet immediately
+                document.getElementById('theme-stylesheet').href = '/static/styles/' + selectedTheme + '/color.css';
+
+                // Retrieve the JWT token from the cookie
+                var jwtToken = getCookie('{{ cookie_name }}'); // Use the variable passed from Flask
+    
+                fetch('/apiv1/data/user/change_theme', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        theme: selectedTheme,
+                        jwt_token: jwtToken // Include the JWT token in the POST data body
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Theme change success:', data);
+                    // Optionally handle the response here
+                })
+                .catch((error) => {
+                    console.error('Error changing theme:', error);
+                });
+            }
+        });
+
+        document.getElementById('sidebar-dropdown-select').addEventListener('change', function() {
+            var selectedId = this.value;
+            if (selectedId) {
+                // Retrieve the JWT token from the cookie
+                var jwtToken = getCookie('{{ cookie_name }}'); // Use the variable passed from Flask
+    
+                fetch('/apiv1/data/user/change_default_search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        search_id: selectedId,
+                        jwt_token: jwtToken // Include the JWT token in the POST data body
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Default search change success:', data);
+                    // Optionally handle the response here
+                })
+                .catch((error) => {
+                    console.error('Error changing default search:', error);
+                });
+            }
+        });
+    </script>
+</header>

@@ -1,0 +1,93 @@
+/* Style for main row (clickable) */
+.track-row {
+    display: table;
+    position: relative;
+    width: 90%; /* Ensure .track-row takes full width */
+}
+
+.dropdown-arrow {
+    cursor: pointer;
+}
+
+/* Style for detail row */
+.detail-row {
+    display: none;
+    margin: 0 auto; /* Center within the flex container */
+    margin-top: -15px; /* Adjust this value as needed to make it closer */
+    border-radius: 8px;
+}
+
+.detail-row#open {
+    display: table;
+    width: 95%; /* Makes it smaller than .track-row */
+    height: 100%;
+}
+
+/* Detail row cell styles */
+.detail-row td {
+    padding: 8px;
+    display: inline-block;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+/* Table container styles */
+#history-section {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Table styles */
+#history-table {
+    width: 99%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    table-layout: fixed;
+}
+
+#history-table tbody {
+    width: 100%;
+    text-align: center;
+}
+
+#history-table tr {
+    text-align: center;
+    width: 100%;
+    margin-bottom: 10px;
+    border-radius: 8px;
+}
+
+/* Table cell styles */
+#history-table td {
+    padding: 8px;
+    position: relative;
+    overflow: hidden;
+    word-wrap: break-word;
+    box-sizing: border-box;
+}
+
+#history-table td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    display: block;
+    margin-bottom: 2px;
+    
+}
+
+/* Responsive font sizes and padding */
+@media (max-width: 768px) {
+    #history-table td {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    #history-table td {
+        font-size: 10px;
+        padding: 6px;
+    }
+
+    #history-table tr {
+        font-size: 10px;
+    }
+}

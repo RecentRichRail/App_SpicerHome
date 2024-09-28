@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.font-merriweather {
+    font-family: 'Merriweather', serif;
+}
+
+.font-work-sans {
+    font-family: 'Work Sans', sans-serif;
+}
+
+input {
+    border-radius: 0;
+}

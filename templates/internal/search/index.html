@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SpicerHome Search</title>
+    <link id="theme-stylesheet" rel="stylesheet" href="{{ url_for('static', filename='styles/' + user_theme + '/color.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/pagination_styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/dropdown_styles.css') }}">
+</head>
+<body>
+    {% include 'internal/search/elements/header.html' %}
+    <div class="container">
+        {% include 'internal/search/elements/logo.html' %}
+        <form id="search-form" onsubmit="return submitForm()">
+            <div id="search-bar-container">
+                <div id="category-dropdown">
+                    <select id="styled-dropdown-select">
+                        <option value="">Default</option>
+                        {% for search_command in search_commands %}
+                            <option value="{{ search_command['prefix'] }}">{{ search_command['text'] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <input type="text" id="search-bar" name="q" placeholder="Search...">
+                <button type="submit" id="search-button">Search</button>
+            </div>
+        </form>
+        <div id="shortcut-section">
+            <!-- Shortcut Links will be dynamically added here -->
+        </div>
+    </div>
+    {% include 'internal/search/elements/footer.html' %}
+    <script>
+        function submitForm() {
+            var query = document.getElementById("search-bar").value;
+            var category = document.getElementById("styled-dropdown-select").value;
+            if (query.trim() !== "") {
+                if (category !== "") {
+                    query = category + " " + query;
+                }
+                window.location.href = "/internal/search?q=" + encodeURIComponent(query);
+            }
+            return false;
+        }
+    </script>
+</body>
+</html>

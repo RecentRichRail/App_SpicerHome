@@ -1,0 +1,134 @@
+/* body {
+    font-family: Arial, sans-serif;
+    background-color: #D5CEA3;
+    color: #3C2A21;
+    margin: 0;
+} */
+.result_index {
+    padding: 1.5em;
+    font-family: Arial, sans-serif;
+    /* background-color: #D5CEA3; */
+    /* color: #3C2A21; */
+    margin: 0;
+}
+.result {
+    margin-bottom: 20px;
+    padding: 0.5em;
+    /* background-color: #E5E5CB; */
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: flex-start;
+    width: 65%;
+    /* color: #3C2A21; */
+}
+.favicon {
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+}
+.result-content {
+    flex: 1;
+}
+.result h3 {
+    margin: 0;
+    font-size: 1.5em;
+}
+.result a {
+    /* color: #1a0dab; */
+    text-decoration: none;
+}
+.result a:hover {
+    text-decoration: underline;
+}
+.result p {
+    margin: 5px 0 10px;
+    font-size: 0.9em;
+    /* color: #3C2A21; */
+}
+.meta-info {
+    /* color: #6a737c; */
+    font-size: 0.85em;
+}
+
+
+
+.web-result-content-title-div {
+    display: flex;
+    align-items: center;
+    padding-bottom: 20px;
+}
+
+.favicon-container {
+    margin-right: 10px; /* Adjust as needed */
+}
+
+.web-result-content-title-nav {
+    display: flex;
+    flex-direction: column;
+}
+
+.web-result-content-title {
+    font-size: 1.3em;
+    padding-bottom: 10px;
+}
+
+
+.video-results {
+    display: flex;
+    overflow-x: auto;
+    padding: 10px;
+    padding-bottom: 20px;
+    margin: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    width: 65%;
+}
+
+.video-result {
+    flex: 0 0 auto;
+    width: 350px;
+    margin-right: 10px;
+    padding-left: 50px;
+    padding-right: 50px;
+/*     border-radius: 8px; */
+}
+
+.video-result img.favicon {
+    width: 16px;
+    height: 16px;
+}
+
+.video-result-content {
+    padding: 10px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    margin: 0 auto;
+    max-width: 800px; /* Adjust as needed */
+}
+
+/* .meta-info {
+    font-size: 0.9em;
+    color: #555;
+} */
+
+@media (max-width: 480px) {
+    .result_index {
+        padding: 0.5em;
+    }
+    
+    .result {
+        /* margin-bottom: 20px; */
+        /* padding: 0.5em; */
+        /* border-radius: 8px; */
+        /* box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); */
+        /* display: flex; */
+        /* align-items: flex-start; */
+        width: 95%;
+    }
+
+    .video-results {
+        width: 95%;
+    }
+}

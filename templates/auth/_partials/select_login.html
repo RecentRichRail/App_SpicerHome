@@ -1,0 +1,74 @@
+<h1 class="font-bold text-xl">Hello, {{ username }}</h1>
+<p class="my-2">
+  If you have logged in on this device before, you may be able to use a
+  biometric method (Fingerprint Reader or Facial Recognition) or a security key.
+  Click "Device Login" to try this.
+</p>
+<p class="my-2">
+  If you haven't logged in on this device before (or your device doesn't support
+  biometrics, choose email login. Then you can set up biometric authentication to
+  use in the future.
+</p>
+<div class="flex space-x-2">
+    <a
+    hx-get="{{ url_for('external_auth.email_login') }}"
+    hx-target="#page-content"
+    hx-swap="innerHTML"
+    class="cursor-pointer bg-orange-300 font-bold py-2 px-4 uppercase border-b-2 border-orange-600 hover:bg-orange-600 hover:text-white  hover:shadow"
+  >
+    Email Login
+  </a>
+
+  <button
+    class="bg-indigo-300 font-bold py-2 px-4 uppercase border-b-2 border-indigo-700 hover:bg-indigo-700 hover:text-white hover:shadow"
+    id="start-login"
+  >
+    Device Login
+  </button>
+  <a
+    href="{{ url_for('external_auth.login_switch_user') }}"
+    class="bg-gray-300 font-bold py-2 px-4 uppercase border-b-2 border-black hover:bg-black hover:text-white hover:shadow"
+  >
+    Switch User
+  </a>
+</div>
+
+<script id="auth-options" type="application/json">
+  {{ auth_options | tojson }}
+</script>
+<script id="script-data"
+    data-verify-url="{{ url_for('external_auth.verify_login_credential', next=next) }}"
+></script>
+<script>
+    const scriptData = document.getElementById('script-data').dataset;
+
+    document.getElementById('start-login').addEventListener('click', async () => {
+        // The auth_options dictionary is also a valid javascript object, so it can be injected here.
+        const options = JSON.parse(document.getElementById('auth-options').textContent);
+
+        let asseResp;
+        try {
+            asseResp = await startAuthentication(options);
+        } catch (error) {
+            alert("Something went wrong");
+            console.error(error)
+        }
+
+        const verificationResp = await fetch(scriptData.verifyUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(asseResp),
+        })
+
+        const verificationJSON = await verificationResp.json();
+
+        if (verificationJSON && verificationJSON.verified) {
+            window.location.replace(verificationJSON.next);
+        } else {
+            alert("login failed")
+            console.error(verificationJSON)
+        }
+    })
+</script>

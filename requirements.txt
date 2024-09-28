@@ -1,0 +1,11 @@
+flask
+flask_login
+sqlalchemy
+load_dotenv
+flask_sqlalchemy
+bcrypt
+webauthn
+requests
+tracking_numbers
+pymysql
+gunicorn

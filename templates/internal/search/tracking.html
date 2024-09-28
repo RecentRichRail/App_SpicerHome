@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SpicerHome Tracking</title>
+    <link id="theme-stylesheet" rel="stylesheet" href="{{ url_for('static', filename='styles/' + user_theme + '/color.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/pagination_styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/modern_table.css') }}">
+</head>
+<body>
+    {% include 'internal/search/elements/header.html' %}
+    <div class="container">
+        {% include 'internal/search/elements/logo.html' %}
+        <div id="history-section">
+            <h2>Search Tracking Numbers</h2>
+            {% if tracking_requests %}
+            <table id="history-table">
+                <tbody>
+                    {% for user_id, user_tracking in tracking_requests.items() %}
+                        {% for request_id, track_info in user_tracking.items() %}
+                            <tr class="track-row" data-request-id="{{ track_info.track_id }}">
+                                <td data-label="Tracking Number">
+                                    <a href="{{ track_info.query_url }}" class="quick-fix-data-url" target="_blank">{{ track_info.tracking_number }}</a>
+                                </td>
+                                <td data-label="Note" id="note-{{ track_info.id }}" onclick="makeEditable(this, '{{ track_info.track_id }}'); event.stopPropagation();">{{ track_info.note }}</td>
+                                <td>
+                                    <span class="dropdown-arrow" onclick="this.closest('tr').nextElementSibling.id = this.closest('tr').nextElementSibling.id === 'closed' ? 'open' : 'closed';">&#9660;</span>
+                                </td>
+                            </tr>
+                            <tr class="detail-row" data-request-id="{{ track_info.track_id }}" id="closed">
+                                <td data-label="ID">{{ track_info.track_id }}</td>
+                                <td data-label="Courier">{{ track_info.courier_name }}</td>
+                                <td data-label="Tracking Link">
+                                    <a href="{{ track_info.query_url }}" class="quick-fix-data-url" target="_blank">{{ track_info.query_url }}</a>
+                                </td>
+                                <td data-label="Date and Time">{{ track_info.datetime_of_create_on_database }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>  
+            <div class="pagination-controls">
+                <button id="prev-page" class="pagination-button" onclick="changePage(-1)">Previous</button>
+                <button id="next-page" class="pagination-button" onclick="changePage(1)">Next</button>
+            </div>
+        {% else %}
+            <p>No search history found.</p>
+        {% endif %}
+        </div>
+    </div>
+    {% include 'internal/search/elements/footer.html' %}
+    <script>
+        function makeEditable(td, trackId) {
+            if (td.isContentEditable) return;
+    
+            td.contentEditable = true;
+            setTimeout(() => {
+                td.focus();
+                document.execCommand('selectAll', false, null); // Select all text to ensure the cursor is visible
+                document.getSelection().collapseToEnd(); // Place the cursor at the end
+            }, 0);
+    
+            function saveNote() {
+                td.contentEditable = false;
+                const updatedNote = td.innerText;
+                const jwtToken = getCookie('{{ cookie_name }}');
+    
+                fetch('/apiv1/data/user/search/track/update_note', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${jwtToken}`
+                    },
+                    body: JSON.stringify({
+                        track_id: trackId,
+                        updated_note: updatedNote,
+                        jwt_token: jwtToken
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        console.log('Note updated successfully');
+                    } else {
+                        console.error('Failed to update note');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+    
+            td.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    event.stopPropagation(); // Prevent the detail-row from opening
+                    saveNote();
+                }
+            });
+    
+            td.addEventListener('blur', function(event) {
+                event.preventDefault();
+                event.stopPropagation(); // Prevent the detail-row from opening
+                saveNote();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Function to hide all detail rows
+            // function hideAllDetailRows() {
+            //     document.querySelectorAll('.detail-row').forEach(row => {
+            //         row.style.display = 'none';
+            //     });
+            // }
+            
+            // document.querySelectorAll('.track-row').forEach(row => {
+            //     row.addEventListener('click', () => {
+            //         const detailRow = row.nextElementSibling;
+            //         if (detailRow.id === 'closed') {
+            //             detailRow.id = 'open';
+            //         } else {
+            //             detailRow.id = 'closed';
+            //         }
+            //     });
+            // });
+        
+            // Ensure all detail rows are initially hidden
+            // hideAllDetailRows();
+        
+            const formatDate = (dateStr) => {
+                const date = new Date(dateStr);
+                return date.toLocaleString(); // Convert to client's local timezone and format
+            };
+        
+            document.querySelectorAll('#history-table td[data-label="Date and Time"]').forEach(cell => {
+                cell.textContent = formatDate(cell.textContent);
+            });
+        
+            let currentPage = 1;
+            const perPage = 25;
+        
+            function sortTable() {
+                const table = document.getElementById("history-table");
+                const tbody = table.getElementsByTagName("tbody")[0];
+                const rows = Array.from(tbody.getElementsByTagName("tr"));
+        
+                rows.sort((a, b) => {
+                    const idA = parseInt(a.getAttribute('data-request-id'), 10);
+                    const idB = parseInt(b.getAttribute('data-request-id'), 10);
+                    return idB - idA; // Descending order
+                });
+        
+                rows.forEach(row => tbody.appendChild(row)); // Reattach rows in sorted order
+            }
+        
+            function paginateTable() {
+                const table = document.getElementById("history-table");
+                const tbody = table.getElementsByTagName("tbody")[0];
+                const rows = Array.from(tbody.getElementsByTagName("tr"));
+                const totalRows = rows.length;
+                const totalPages = Math.ceil(totalRows / perPage);
+        
+                // Hide all rows
+                rows.forEach(row => row.style.display = "none");
+        
+                // Show only the rows for the current page
+                const start = (currentPage - 1) * perPage;
+                const end = start + perPage;
+        
+                for (let i = start; i < end && i < totalRows; i++) {
+                    rows[i].style.display = "";
+                }
+        
+                // Update pagination links
+                const prevPageLink = document.getElementById("prev-page");
+                const nextPageLink = document.getElementById("next-page");
+        
+                if (prevPageLink && nextPageLink) {
+                    prevPageLink.classList.toggle("disabled", currentPage === 1);
+                    nextPageLink.classList.toggle("disabled", currentPage === totalPages);
+                }
+            }
+        
+            function changePage(direction) {
+                const table = document.getElementById("history-table");
+                const tbody = table.getElementsByTagName("tbody")[0];
+                const totalRows = tbody.getElementsByTagName("tr").length;
+                const totalPages = Math.ceil(totalRows / perPage);
+        
+                if ((direction === 1 && currentPage < totalPages) || (direction === -1 && currentPage > 1)) {
+                    currentPage += direction;
+                    paginateTable();
+                }
+            }
+        
+            function truncateUrls() {
+                const links = document.querySelectorAll('.url-link');
+                links.forEach(link => {
+                    const fullUrl = link.textContent;
+                    if (fullUrl.length > 150) {
+                        link.textContent = fullUrl.slice(0, 150) + '...';
+                    }
+                });
+            }
+        
+            function truncateRequests() {
+                const requests = document.querySelectorAll('.request-container');
+                requests.forEach(request => {
+                    const fullRequest = request.textContent;
+                    if (fullRequest.length > 200) {
+                        request.textContent = fullRequest.slice(0, 200) + '...';
+                    }
+                });
+            }
+        
+            // Initialize
+            window.onload = function() {
+                sortTable();
+                paginateTable();
+                truncateUrls();
+                truncateRequests();
+            };
+        });
+    </script>        
+</body>
+</html>

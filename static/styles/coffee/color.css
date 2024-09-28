@@ -1,0 +1,145 @@
+/* https://colorhunt.co/palette/1a120b3c2a21d5cea3e5e5cb */
+
+/* Dropdown Color */
+
+#styled-dropdown-select {
+    border: 1px solid #1A120B;
+    background-color: #E5E5CB;
+    color: #3C2A21;
+}
+
+/* Hamburger Color */
+
+.header-content {
+    background-color: #3C2A21;
+    color: #D5CEA3;
+}
+
+header {
+    background-color: #3C2A21;
+    color: #D5CEA3;
+}
+
+.sidebar {
+    border: 1px solid #1A120B;
+    background-color: #3C2A21;
+    color: #D5CEA3;
+}
+
+.sidebar ul li a {
+    color: #D5CEA3;
+}
+
+.overlay {
+    background-color: #00000075;
+}
+
+#sidebar-dropdown-select {
+    border: 1px solid #1A120B;
+    background-color: #3C2A21;
+    color: #D5CEA3;
+}
+
+#theme-dropdown-select {
+    border: 1px solid #1A120B;
+    background-color: #3C2A21;
+    color: #D5CEA3;
+}
+
+/* Logo Color */
+
+.logo-link {
+    color: #3C2A21;
+}
+
+/* Pagination Color */
+
+.pagination-button {
+    background-color: #3C2A21;
+    color: #E5E5CB;
+}
+
+.pagination-button:hover {
+    background-color: #1A120B;
+}
+
+/* Search index Color */
+
+.result_index {
+    background-color: #D5CEA3;
+    color: #3C2A21;
+}
+.result {
+    background-color: #E5E5CB;
+    /* box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); */
+    color: #3C2A21;
+}
+
+.video-results {
+    background-color: #E5E5CB;
+    color: #3C2A21;
+}
+
+.result a {
+    text-decoration: none;
+}
+
+.result p {
+    color: #3C2A21;
+}
+.meta-info {
+    color: #6a737c;
+}
+
+/* Tab 1 Colors */
+
+#history-table tr {
+    background-color: #E5E5CB;
+}
+
+#history-table td {
+    color: #3C2A21;
+}
+
+#history-table td::before {
+    color: #3C2A21;
+}
+
+/* Styles Colors */
+
+body {
+    background-color: #D5CEA3;
+    color: #3C2A21;
+}
+
+.container {
+    background-color: #D5CEA3;
+    /* box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); */
+}
+
+h1 {
+    color: #3C2A21;
+}
+
+a {
+    color: #3C2A21;
+}
+
+#search-form {
+    color: #3C2A21;
+}
+
+#search-bar {
+    border: 1px solid #1A120B;
+    background-color: #E5E5CB;
+    color: #3C2A21;
+}
+
+#search-button {
+    background-color: #3C2A21;
+    color: #E5E5CB;
+}
+
+#search-button:hover {
+    background-color: #1A120B;
+}
