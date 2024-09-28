@@ -147,6 +147,16 @@ def captive_send_email():
                             # Process user_data as needed
                             print(user_data)
                             return {'message': 'success', 'data': user_data}, 200
+                            # if user is found then send email with password, Otherwise create user and send password.
+                            # util.send_email(
+                            #     user.email,
+                            #     "Flask WebAuthn Login",
+                            #     "Click or copy this link to log in. You must use the same browser that "
+                            #     f"you were using when you requested to log in. {login_url}",
+                            #     render_template(
+                            #         "auth/email/login_email.html", username=user.username, login_url=login_url
+                            #     ),
+                            # )
                         except ValueError:
                             return {"message": "Error decoding JSON response from redirect"}, 500
                     else:
