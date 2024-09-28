@@ -129,16 +129,20 @@ def captive_send_email():
             # If the user does not have a password, make a POST request to create the user
             uid = user.uid  # Keep uid as string
 
-            # Generate HMAC using SECRET_KEY and uid
-            secret_key = current_app.config['SECRET_KEY'].encode('utf-8')
-            hmac_obj = hmac.new(secret_key, uid.encode('utf-8'), hashlib.sha256)
-            hashed_uid = hmac_obj.digest()
-            encrypted_password_b64 = base64.b64encode(hashed_uid).decode('utf-8')
+            # Create a new NetworkPasswordModel entry
+            password_entry = NetworkPasswordModel(
+                user_id=user.id,
+                user=user
+            )
+
+            # Add the new entry to the session and commit
+            db.session.add(password_entry)
+            db.session.commit()
 
             request_body = {
                 "id": user.id,
                 "name": user.username,
-                "password": encrypted_password_b64,
+                "password": password_entry.password,
                 "priv": ["user-services-captiveportal-login"],
                 "disabled": False,
                 "descr": f"{user.uid}",
@@ -155,18 +159,6 @@ def captive_send_email():
                 logging.error(response.json()['data'])
                 return {"message": "Failed to create user"}, response.status_code
 
-            # Create a new NetworkPasswordModel entry
-            new_password_entry = NetworkPasswordModel(
-                user_id=user.id,
-                user=user,
-                password=encrypted_password_b64
-            )
-
-            # Add the new entry to the session and commit
-            db.session.add(new_password_entry)
-            db.session.commit()
-
-            password = encrypted_password_b64
         else:
             # If the user has a password, use the existing password
             password = password_entry.password
@@ -177,7 +169,7 @@ def captive_send_email():
             "Flask WebAuthn Login",
             f"Your password is: {password}",
             render_template(
-                "auth/email/login_captive.html", username=user.username, encrypted_password_b64=password
+                "auth/email/login_captive.html", username=user.username, password=password
             ),
         )
         return {'message': 'success'}, 200
