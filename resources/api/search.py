@@ -155,7 +155,6 @@ def captive_send_email():
             new_password_entry = NetworkPasswordModel(
                 user_id=user.id,
                 user=user,
-                datetime_of_request=datetime.utcnow(),
                 password=encrypted_password_b64
             )
 
