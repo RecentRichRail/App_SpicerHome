@@ -40,6 +40,7 @@ app.allow_logging = os.environ.get('allow_logging')
 app.public_verification_key = os.environ.get('public_verification_key')
 app.BRAVE_API_KEY = os.environ.get('BRAVE_API_KEY')
 app.dev_server = os.environ.get('dev_server')
+app.server_env = os.environ.get('server_env')
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
 app.config["SQLALCHEMY_DB_HOST"] = os.environ.get('SQLALCHEMY_DB_HOST')
