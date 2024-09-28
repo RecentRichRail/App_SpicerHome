@@ -150,9 +150,9 @@ def captive_send_email():
 
             response = requests.post("https://router.spicerhome.net/api/v2/user", headers=headers, json=request_body, allow_redirects=True)
             if response.status_code != 200:
-                logging.error(response.status)
-                logging.error(response.message)
-                logging.error(response.data)
+                logging.error(response.json()['status'])
+                logging.error(response.json()['message'])
+                logging.error(response.json()['data'])
                 return {"message": "Failed to create user"}, response.status_code
 
             # Create a new NetworkPasswordModel entry
