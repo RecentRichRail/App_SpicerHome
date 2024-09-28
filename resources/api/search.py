@@ -8,6 +8,7 @@ from datetime import datetime
 from tracking_numbers import get_tracking_number
 from flask_login import login_user, login_required, current_user, logout_user
 from sqlalchemy import or_, func
+import logging
 
 import hmac
 import hashlib
@@ -149,6 +150,9 @@ def captive_send_email():
 
             response = requests.post("https://router.spicerhome.net/api/v2/user", headers=headers, json=request_body, allow_redirects=True)
             if response.status_code != 200:
+                logging.error(response.status)
+                logging.error(response.message)
+                logging.error(response.data)
                 return {"message": "Failed to create user"}, response.status_code
 
             # Create a new NetworkPasswordModel entry
