@@ -22,7 +22,7 @@ ENV FLASK_APP=app.py
 # Create an entrypoint script
 RUN echo '#!/bin/sh\n' \
          'cd /app\n' \
-         'git pull origin main\n' \
+         'git pull origin master\n' \
          'pip install --no-cache-dir -r requirements.txt\n' \
          'exec "$@"' > /entrypoint.sh
 
