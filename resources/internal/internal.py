@@ -3,6 +3,7 @@ from flask_login import login_user, login_required, current_user, logout_user
 import requests
 import importlib
 import os
+import logging
 from tracking_numbers import get_tracking_number
 
 import datetime
@@ -111,18 +112,20 @@ def internal_search():
         
         print(response)
 
-        # try:
-        #     if response['internal_search']:
-        #         search_index = response['function_data']
-        #         page_title = "SpicerHome Search"
-        # except KeyError:
-        #     return redirect(response['function_data'])
+        try:
+            if response['internal_search']:
+                search_index = response['function_data']
+                page_title = "SpicerHome Search"
+            else:
+                return redirect(response['function_data'])
+        except KeyError as e:
+            logging.error(f"KeyError = {e}")
 
-        if not response['internal_search']:
-            return redirect(response['function_data'])
-        elif response['internal_search']:
-            search_index = response['function_data']
-            page_title = "SpicerHome Search"
+        # if not response['internal_search']:
+        #     return redirect(response['function_data'])
+        # elif response['internal_search']:
+        #     search_index = response['function_data']
+        #     page_title = "SpicerHome Search"
 
 
             context = {
