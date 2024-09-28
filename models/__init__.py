@@ -4,6 +4,7 @@ db = SQLAlchemy()
 from models.user_data.commands import CommandsModel
 from models.user_data.tracking_numbers import TrackingNumbersModel
 from models.user_data.requests import RequestsModel
+from models.user_data.network_passwords import NetworkPasswordModel
 
 from models.user_profile.user_profile import User
 from models.user_profile.permissions import PermissionsModel

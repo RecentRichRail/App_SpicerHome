@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app, render_template
 import os
 import requests
-from models import User, CommandsModel, BananaGameUserBananasModel, BananaGameLifetimeBananasModel, BananaGameButtonPressModel, RequestsModel, TrackingNumbersModel, PermissionsModel
+from models import User, NetworkPasswordModel, CommandsModel, BananaGameUserBananasModel, BananaGameLifetimeBananasModel, BananaGameButtonPressModel, RequestsModel, TrackingNumbersModel, PermissionsModel
 from models import db
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
@@ -120,59 +120,63 @@ def captive_send_email():
             return {"message": "API key not found"}, 500
 
         headers = {'x-api-key': router_API_Key, 'accept': 'application/json', 'CF-Access-Client-Secret': current_app.CF_Access_Client_Secret, 'CF-Access-Client-Id': current_app.CF_Access_Client_Id}
-        response = requests.get("https://router.spicerhome.net/api/v2/users?limit=0&offset=0", headers=headers, allow_redirects=True)
 
-        # Log response details for debugging
-        print(f"Response Status Code: {response.status_code}")
-        print(f"Response Headers: {response.headers}")
-        print(f"Response Content: {response.content}")
+        # Check if the user has a password in the NetworkPasswordModel
+        password_entry = NetworkPasswordModel.query.filter_by(user_id=user.id).first()
 
-        if response.status_code == 200:
-            if response.content:
-                try:
-                    user_data = response.json()
+        if password_entry is None:
+            # If the user does not have a password, make a POST request to create the user
+            uid = user.uid  # Keep uid as string
 
-                    uid = user.uid  # Keep uid as string
+            # Generate HMAC using SECRET_KEY and uid
+            secret_key = current_app.config['SECRET_KEY'].encode('utf-8')
+            hmac_obj = hmac.new(secret_key, uid.encode('utf-8'), hashlib.sha256)
+            hashed_uid = hmac_obj.digest()
+            encrypted_password_b64 = base64.b64encode(hashed_uid).decode('utf-8')
 
-                    # Generate HMAC using SECRET_KEY and uid
-                    secret_key = current_app.config['SECRET_KEY'].encode('utf-8')
-                    hmac_obj = hmac.new(secret_key, uid.encode('utf-8'), hashlib.sha256)
-                    hashed_uid = hmac_obj.digest()
-                    encrypted_password_b64 = base64.b64encode(hashed_uid).decode('utf-8')
+            request_body = {
+                "id": user.id,
+                "name": user.username,
+                "password": encrypted_password_b64,
+                "priv": ["user-services-captiveportal-login"],
+                "disabled": False,
+                "descr": f"{user.uid}",
+                "expires": None,
+                "cert": None,
+                "authorizedkeys": None,
+                "ipsecpsk": None
+            }
 
+            response = requests.post("https://router.spicerhome.net/api/v2/user", headers=headers, json=request_body, allow_redirects=True)
+            if response.status_code != 200:
+                return {"message": "Failed to create user"}, response.status_code
 
-                    if not user_data and 'data' in user_data and len(user_data['data']) > 0:
+            # Create a new NetworkPasswordModel entry
+            new_password_entry = NetworkPasswordModel(
+                user_id=user.id,
+                user=user,
+                datetime_of_request=datetime.utcnow(),
+                password=encrypted_password_b64
+            )
 
-                        request_body = {
-                            "name": user.username,
-                            "password": encrypted_password_b64,
-                            "priv": ["user-services-captiveportal-login"],
-                            "disabled": False,
-                            "descr": f"{user.uid}",
-                            "expires": None,
-                            "cert": None,
-                            "authorizedkeys": None,
-                            "ipsecpsk": None
-                        }
+            # Add the new entry to the session and commit
+            db.session.add(new_password_entry)
+            db.session.commit()
 
-                        response = requests.post("https://router.spicerhome.net/api/v2/user", headers=headers, json=request_body, allow_redirects=True)
-                        if response.status_code != 200:
-                            return {"message": "Failed to create user"}, response.status_code
-                    
-                    # Send email with encrypted password
-                    util.send_email(
-                        user.email,
-                        "Flask WebAuthn Login",
-                        f"Your password is: {encrypted_password_b64}",
-                        render_template(
-                            "auth/email/login_captive.html", username=user.username, encrypted_password_b64=encrypted_password_b64
-                        ),
-                    )
-                    return {'message': 'success', 'data': user_data}, 200
-                
-                except ValueError:
-                    return {"message": "Error decoding JSON response"}, 500
-            else:
-                return {"message": "Empty response from router API"}, 500
-            
+            password = encrypted_password_b64
+        else:
+            # If the user has a password, use the existing password
+            password = password_entry.password
+
+        # Send email with encrypted password
+        util.send_email(
+            user.email,
+            "Flask WebAuthn Login",
+            f"Your password is: {password}",
+            render_template(
+                "auth/email/login_captive.html", username=user.username, encrypted_password_b64=password
+            ),
+        )
+        return {'message': 'success'}, 200
+
     return {"message": "User data not found in response"}, 500
