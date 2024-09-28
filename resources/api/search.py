@@ -109,8 +109,6 @@ def captive_send_email():
     ).first()
     if user:
         router_API_Key = current_app.router_API_Key
-        CF_Access_Client_Id = current_app.CF_Access_Client_Id
-        CF_Access_Client_Secret = current_app.CF_Access_Client_Secret
         if not router_API_Key:
             return {"message": "API key not found"}, 500
 
