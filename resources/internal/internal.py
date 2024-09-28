@@ -78,7 +78,7 @@ def user_search_query(offset, search_query):
         script_return = run_funtion(script_path, data)
         # print(f"script_return: {script_return}")
         if script_return.get("funtion_triggered"):
-            logging.info("internal_search": script_return.get("internal_search", False), "function_data": script_return['funtion_return'])
+            logging.info({"internal_search": script_return.get("internal_search", False), "function_data": script_return['funtion_return']})
             return {"internal_search": script_return.get("internal_search", False), "function_data": script_return['funtion_return']}
     except Exception as e:
                 logging.error(f"Error running search.py: {e}")
