@@ -112,7 +112,7 @@ def captive_send_email():
         if not router_API_Key:
             return {"message": "API key not found"}, 500
 
-        headers = {'x-api-key': router_API_Key, 'accept': 'application/json', 'CF-Access-Client-Secret': CF_Access_Client_Secret, 'CF-Access-Client-Id': CF_Access_Client_Id}
+        headers = {'x-api-key': router_API_Key, 'accept': 'application/json', 'CF-Access-Client-Secret': current_app.CF_Access_Client_Secret, 'CF-Access-Client-Id': current_app.CF_Access_Client_Id}
         response = requests.get("https://router.spicerhome.net/api/v2/users?limit=0&offset=0", headers=headers, allow_redirects=True)
 
         # Log response details for debugging
