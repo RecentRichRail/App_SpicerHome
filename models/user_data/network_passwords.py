@@ -10,7 +10,7 @@ class NetworkPasswordModel(db.Model):
     id = db.Column(db.Integer, primary_key=True, unique=False, nullable=False, autoincrement=True)
     password = db.Column(db.String(16), nullable=False, default=lambda: NetworkPasswordModel.generate_password())
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), unique=False, nullable=False)
-    user = db.relationship("User", back_populates="requests")
+    user = db.relationship("User", back_populates="network_password")
 
     @staticmethod
     def generate_password(length=16):

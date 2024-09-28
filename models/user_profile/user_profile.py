@@ -23,6 +23,7 @@ class User(db.Model):
     name = db.Column(db.String(255), nullable=True)
     requests = db.relationship("RequestsModel", back_populates="user", lazy="dynamic")
     permissions = db.relationship("PermissionsModel", back_populates="user", lazy="dynamic")
+    network_password = db.relationship("NetworkPasswordModel", back_populates="user", lazy="dynamic")
     datetime_of_create_on_database = db.Column(db.DateTime, unique=False, nullable=True, default=datetime.utcnow)
 
     def to_dict(self):
