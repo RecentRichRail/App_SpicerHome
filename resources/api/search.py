@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, render_template
 import os
 import requests
 from models import User, CommandsModel, BananaGameUserBananasModel, BananaGameLifetimeBananasModel, BananaGameButtonPressModel, RequestsModel, TrackingNumbersModel, PermissionsModel
@@ -8,6 +8,13 @@ from datetime import datetime
 from tracking_numbers import get_tracking_number
 from flask_login import login_user, login_required, current_user, logout_user
 from sqlalchemy import or_, func
+
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives import padding
+from cryptography.hazmat.backends import default_backend
+import base64
+
+from resources.utils import security, util
 
 api_blueprint = Blueprint("apiv1", __name__, template_folder="templates")
 
@@ -100,7 +107,6 @@ def tracking_update_note():
 def captive_send_email():
     username_or_email = request.json.get('username')
     print(username_or_email)
-    # return {'message': 'success'}, 200
     user = User.query.filter(
         or_(
             func.lower(User.username) == username_or_email,
@@ -124,48 +130,56 @@ def captive_send_email():
             if response.content:
                 try:
                     user_data = response.json()
-                    # Process user_data as needed
-                    print(user_data)
+
+                    uid = user.uid
+                    uid_16_bit = uid & 0xFFFF  # Convert to 16-bit integer
+
+                    # Encrypt the 16-bit uid
+                    secret_key = current_app.config['SECRET_KEY'].encode('utf-8')
+                    iv = b'\x00' * 16  # Initialization vector
+                    cipher = Cipher(algorithms.AES(secret_key), modes.CBC(iv), backend=default_backend())
+                    encryptor = cipher.encryptor()
+
+                    # Pad the data to be a multiple of the block size
+                    padder = padding.PKCS7(algorithms.AES.block_size).padder()
+                    padded_data = padder.update(uid_16_bit.to_bytes(2, 'big')) + padder.finalize()
+
+                    encrypted_password = encryptor.update(padded_data) + encryptor.finalize()
+                    encrypted_password_b64 = base64.b64encode(encrypted_password).decode('utf-8')
+
+
+                    if not user_data and 'data' in user_data and len(user_data['data']) > 0:
+
+                        request_body = {
+                            "name": user.username,
+                            "password": encrypted_password_b64,
+                            "priv": ["user-services-captiveportal-login"],
+                            "disabled": False,
+                            "descr": f"{user.uid}",
+                            "expires": None,
+                            "cert": None,
+                            "authorizedkeys": None,
+                            "ipsecpsk": None
+                        }
+
+                        response = requests.post("https://router.spicerhome.net/api/v2/user", headers=headers, json=request_body, allow_redirects=True)
+                        if response.status_code != 200:
+                            return {"message": "Failed to create user"}, response.status_code
+                    
+                    # Send email with encrypted password
+                    util.send_email(
+                        user.email,
+                        "Flask WebAuthn Login",
+                        f"Your password is: {encrypted_password_b64}",
+                        render_template(
+                            "auth/email/login_captive.html", username=user.username, encrypted_password_b64=encrypted_password_b64
+                        ),
+                    )
                     return {'message': 'success', 'data': user_data}, 200
+                
                 except ValueError:
                     return {"message": "Error decoding JSON response"}, 500
             else:
                 return {"message": "Empty response from router API"}, 500
-        elif response.is_redirect:
-            # Follow the redirect manually
-            redirect_url = response.headers.get('Location')
-            if redirect_url:
-                redirect_response = requests.get(redirect_url, headers=headers)
-                print(f"Redirect Response Status Code: {redirect_response.status_code}")
-                print(f"Redirect Response Headers: {redirect_response.headers}")
-                print(f"Redirect Response Content: {redirect_response.content}")
-
-                if redirect_response.status_code == 200:
-                    if redirect_response.content:
-                        try:
-                            user_data = redirect_response.json()
-                            # Process user_data as needed
-                            print(user_data)
-                            return {'message': 'success', 'data': user_data}, 200
-                            # if user is found then send email with password, Otherwise create user and send password.
-                            # util.send_email(
-                            #     user.email,
-                            #     "Flask WebAuthn Login",
-                            #     "Click or copy this link to log in. You must use the same browser that "
-                            #     f"you were using when you requested to log in. {login_url}",
-                            #     render_template(
-                            #         "auth/email/login_email.html", username=user.username, login_url=login_url
-                            #     ),
-                            # )
-                        except ValueError:
-                            return {"message": "Error decoding JSON response from redirect"}, 500
-                    else:
-                        return {"message": "Empty response from redirect URL"}, 500
-                else:
-                    return {"message": f"Error fetching data from redirect URL: {redirect_response.status_code}"}, redirect_response.status_code
-            else:
-                return {"message": "Redirect URL not found"}, 500
-        else:
-            return {"message": f"Error fetching data from router API: {response.status_code}"}, response.status_code
-        
-    return {"message": "Error"}, 500
+            
+    return {"message": "User data not found in response"}, 500
