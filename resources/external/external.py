@@ -3,7 +3,7 @@ from flask_login import login_user, login_required, current_user, logout_user
 from sqlalchemy import or_, func
 from models import User, NetworkPasswordModel
 from resources.utils import security, util
-import hmac
+import hmac, logging
 
 external_blueprint = Blueprint("external", __name__, template_folder="templates")
 
@@ -52,9 +52,12 @@ def authenticate():
         # Dummy authentication logic
         if user.username and hmac.compare_digest(password_input, password_entry.password):
             headers = {'x-api-key': router_API_Key, 'accept': 'application/json', 'CF-Access-Client-Secret': current_app.CF_Access_Client_Secret, 'CF-Access-Client-Id': current_app.CF_Access_Client_Id}
-            
+
+            logging.info(f"User {user.username} authenticated")
+
             return jsonify({"message": "Success"}), 200
 
+    logging.info(f"User {username_input} failed to authenticate - {password_input}")
     return jsonify({"message": "Bad username or password"}), 401
 
 @external_blueprint.route('/captive-portal/send_email', methods=['POST'])
