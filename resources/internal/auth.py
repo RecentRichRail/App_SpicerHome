@@ -11,9 +11,10 @@ from flask import (
     redirect,
     flash,
     Response,
+    current_app,
 )
-import base64
-# import Response
+import base64, logging
+import requests
 from flask_login import login_user, login_required, current_user, logout_user
 from sqlalchemy import or_, func
 from sqlalchemy.exc import IntegrityError
@@ -24,7 +25,7 @@ from webauthn.helpers.exceptions import (
 from webauthn.helpers.structs import RegistrationCredential, AuthenticationCredential
 
 from resources.utils import security, util
-from models import User, db, CommandsModel, PermissionsModel
+from models import User, db, CommandsModel, PermissionsModel, NetworkPasswordModel
 # from models import User, db
 
 auth = Blueprint("internal_auth", __name__, template_folder="templates")
@@ -157,7 +158,41 @@ def create_user():
             error="Error creating user account. "
             "Please enter a different one.",
         )
+    
+    try:
+        router_API_Key = current_app.router_API_Key
+        if not router_API_Key:
+            return {"message": "API key not found"}, 500
 
+        headers = {'x-api-key': router_API_Key, 'accept': 'application/json', 'CF-Access-Client-Secret': current_app.CF_Access_Client_Secret, 'CF-Access-Client-Id': current_app.CF_Access_Client_Id}
+
+            
+        # Create a new NetworkPasswordModel entry
+        password_entry = NetworkPasswordModel(
+            user_id=user_model.id,
+            user=user_model
+        )
+
+        # Add the new entry to the session and commit
+        db.session.add(password_entry)
+        db.session.commit()
+
+        request_body = {
+            "id": user_model.id,
+            "name": user_model.username,
+            "password": password_entry.password,
+            "priv": ["user-services-captiveportal-login"],
+            "disabled": False,
+            "descr": f"{user_model.uid}",
+            "expires": None,
+            "cert": None,
+            "authorizedkeys": None,
+            "ipsecpsk": None
+        }
+
+        requests.post("https://router.spicerhome.net/api/v2/user", headers=headers, json=request_body, allow_redirects=True)
+    except:
+        logging.error("Error creating user on router")
     # if not current_user:
     #     login_user(user)
     #     session["used_webauthn"] = False

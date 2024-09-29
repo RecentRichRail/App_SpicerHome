@@ -30,20 +30,8 @@ def run_funtion(script_path, data):
 def change_theme():
     print(current_user)
     selected_theme = request.json.get('theme')
-    # jwt_token = request.json.get("jwt_token")
-
-    # theme_list = ['coffee', 'mignight', 'dark']
-
-    # if str(selected_theme) not in theme_list:
-    #     print("selected_theme")
-    #     return {"message": "Error"}
-
-    # payload = requests.post(f"http://{current_app.authentication_server}/apiv1/auth/get_user_info", json={"jwt": jwt_token})
-    # user_sub = payload.json()
 
     if current_user:
-    #     user_model = User.query.filter_by(id=user_sub['sub']).first()
-
 
         current_user.user_theme = selected_theme
 
@@ -60,15 +48,9 @@ def change_theme():
 @api_blueprint.route("/data/user/change_default_search", methods=['POST'])
 def change_user_default_command():
     print('Request Incoming')
-    # jwt_token = request.json.get("jwt_token")
     new_search_id = request.json.get("search_id")
 
-    # payload = requests.post(f"http://{current_app.authentication_server}/apiv1/auth/get_user_info", json={"jwt": jwt_token})
-    # user_sub = payload.json()
-
     if current_user:
-        # user_model = UsersModel.query.filter_by(id=user_sub['sub']).first()
-
 
         current_user.default_search_id = new_search_id
 
@@ -105,73 +87,37 @@ def tracking_update_note():
                 return {"message": "Error"}
     return {"message": "Error"}
 
-@api_blueprint.route('/captive/send_email', methods=['POST'])
-def captive_send_email():
-    username_or_email = request.json.get('username')
-    print(username_or_email)
-    user = User.query.filter(
-        or_(
-            func.lower(User.username) == username_or_email,
-            func.lower(User.email) == username_or_email,
-        )
-    ).first()
-    if user:
-        router_API_Key = current_app.router_API_Key
-        if not router_API_Key:
-            return {"message": "API key not found"}, 500
 
-        headers = {'x-api-key': router_API_Key, 'accept': 'application/json', 'CF-Access-Client-Secret': current_app.CF_Access_Client_Secret, 'CF-Access-Client-Id': current_app.CF_Access_Client_Id}
 
-        # Check if the user has a password in the NetworkPasswordModel
-        password_entry = NetworkPasswordModel.query.filter_by(user_id=user.id).first()
+# @api_blueprint.route('/captive/send_email', methods=['POST'])
+# def captive_send_email():
+#     username_or_email = request.json.get('username')
+#     print(username_or_email)
+#     user = User.query.filter(
+#         or_(
+#             func.lower(User.username) == username_or_email,
+#             func.lower(User.email) == username_or_email,
+#         )
+#     ).first()
+#     if user:
+#         router_API_Key = current_app.router_API_Key
+#         if not router_API_Key:
+#             return {"message": "API key not found"}, 500
 
-        if password_entry is None:
-            # If the user does not have a password, make a POST request to create the user
-            uid = user.uid  # Keep uid as string
+#         headers = {'x-api-key': router_API_Key, 'accept': 'application/json', 'CF-Access-Client-Secret': current_app.CF_Access_Client_Secret, 'CF-Access-Client-Id': current_app.CF_Access_Client_Id}
 
-            # Create a new NetworkPasswordModel entry
-            password_entry = NetworkPasswordModel(
-                user_id=user.id,
-                user=user
-            )
+#         # Check if the user has a password in the NetworkPasswordModel
+#         password_entry = NetworkPasswordModel.query.filter_by(user_id=user.id).first()
 
-            # Add the new entry to the session and commit
-            db.session.add(password_entry)
-            db.session.commit()
+#         # Send email with encrypted password
+#         util.send_email(
+#             user.email,
+#             "Flask WebAuthn Login",
+#             f"Your password is: {password_entry.password}",
+#             render_template(
+#                 "auth/email/login_captive.html", username=user.username, password=password_entry.password
+#             ),
+#         )
+#         return {'message': 'success'}, 200
 
-            request_body = {
-                "id": user.id,
-                "name": user.username,
-                "password": password_entry.password,
-                "priv": ["user-services-captiveportal-login"],
-                "disabled": False,
-                "descr": f"{user.uid}",
-                "expires": None,
-                "cert": None,
-                "authorizedkeys": None,
-                "ipsecpsk": None
-            }
-
-            response = requests.post("https://router.spicerhome.net/api/v2/user", headers=headers, json=request_body, allow_redirects=True)
-            if response.status_code != 200:
-                logging.error(response.json()['status'])
-                logging.error(response.json()['message'])
-                logging.error(response.json()['data'])
-                return {"message": "Failed to create user"}, response.status_code
-
-        else:
-            # If the user has a password, use the existing password
-            password = password_entry.password
-
-        # Send email with encrypted password
-        util.send_email(
-            user.email,
-            "Flask WebAuthn Login",
-            f"Your password is: {password}",
-            render_template(
-                "auth/email/login_captive.html", username=user.username, password=password
-            ),
-        )
-        return {'message': 'success'}, 200
-
-    return {"message": "User data not found in response"}, 500
+#     return {"message": "User data not found in response"}, 500
