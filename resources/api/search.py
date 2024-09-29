@@ -89,35 +89,35 @@ def tracking_update_note():
 
 
 
-# @api_blueprint.route('/captive/send_email', methods=['POST'])
-# def captive_send_email():
-#     username_or_email = request.json.get('username')
-#     print(username_or_email)
-#     user = User.query.filter(
-#         or_(
-#             func.lower(User.username) == username_or_email,
-#             func.lower(User.email) == username_or_email,
-#         )
-#     ).first()
-#     if user:
-#         router_API_Key = current_app.router_API_Key
-#         if not router_API_Key:
-#             return {"message": "API key not found"}, 500
+@api_blueprint.route('/captive/send_email', methods=['POST'])
+def captive_send_email():
+    username_or_email = request.json.get('username')
+    print(username_or_email)
+    user = User.query.filter(
+        or_(
+            func.lower(User.username) == username_or_email,
+            func.lower(User.email) == username_or_email,
+        )
+    ).first()
+    if user:
+        router_API_Key = current_app.router_API_Key
+        if not router_API_Key:
+            return {"message": "API key not found"}, 500
 
-#         headers = {'x-api-key': router_API_Key, 'accept': 'application/json', 'CF-Access-Client-Secret': current_app.CF_Access_Client_Secret, 'CF-Access-Client-Id': current_app.CF_Access_Client_Id}
+        headers = {'x-api-key': router_API_Key, 'accept': 'application/json', 'CF-Access-Client-Secret': current_app.CF_Access_Client_Secret, 'CF-Access-Client-Id': current_app.CF_Access_Client_Id}
 
-#         # Check if the user has a password in the NetworkPasswordModel
-#         password_entry = NetworkPasswordModel.query.filter_by(user_id=user.id).first()
+        # Check if the user has a password in the NetworkPasswordModel
+        password_entry = NetworkPasswordModel.query.filter_by(user_id=user.id).first()
 
-#         # Send email with encrypted password
-#         util.send_email(
-#             user.email,
-#             "Flask WebAuthn Login",
-#             f"Your password is: {password_entry.password}",
-#             render_template(
-#                 "auth/email/login_captive.html", username=user.username, password=password_entry.password
-#             ),
-#         )
-#         return {'message': 'success'}, 200
+        # Send email with encrypted password
+        util.send_email(
+            user.email,
+            "Flask WebAuthn Login",
+            f"Your password is: {password_entry.password}",
+            render_template(
+                "auth/email/login_captive.html", username=user.username, password=password_entry.password
+            ),
+        )
+        return {'message': 'success'}, 200
 
-#     return {"message": "User data not found in response"}, 500
+    return {"message": "User data not found in response"}, 500
