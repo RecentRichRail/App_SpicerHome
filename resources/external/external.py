@@ -53,11 +53,11 @@ def authenticate():
         if user.username and hmac.compare_digest(password_input, password_entry.password):
             headers = {'x-api-key': router_API_Key, 'accept': 'application/json', 'CF-Access-Client-Secret': current_app.CF_Access_Client_Secret, 'CF-Access-Client-Id': current_app.CF_Access_Client_Id}
 
-            logging.info(f"User {user.username} authenticated")
+            logging.info(f"User {user.username} authenticated captive portal")
 
             return jsonify({"message": "Success"}), 200
 
-    logging.info(f"User {username_input} failed to authenticate - {password_input}")
+    logging.info(f"User {username_input} failed to authenticate captive portal")
     return jsonify({"message": "Bad username or password"}), 401
 
 @external_blueprint.route('/captive-portal/send_email', methods=['POST'])
