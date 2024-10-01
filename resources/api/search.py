@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, current_app, render_template
 import os
 import requests
 from models import User, NetworkPasswordModel, CommandsModel, BananaGameUserBananasModel, BananaGameLifetimeBananasModel, BananaGameButtonPressModel, RequestsModel, TrackingNumbersModel, PermissionsModel
-from models import ChoresUser, ChoreLog
+from models import ChoresUser
 from models import db
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
@@ -129,7 +129,6 @@ def chores_test():
     name = data.get('name')
     action = data.get('action')
     points = data.get('points')
-    reason = data.get('reason')
 
     if not action or (action != 'get' and (not name or points is None)):
         return {"message": "Invalid input"}, 400
@@ -156,8 +155,5 @@ def chores_test():
     else:
         return {"message": "Invalid action"}, 400
 
-    log = ChoreLog(user_id=user.id, action=action, points=points, reason=reason)
-    db.session.add(log)
     db.session.commit()
-
     return {"message": "success", "points": user.points}, 200
