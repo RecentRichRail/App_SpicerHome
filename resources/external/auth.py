@@ -239,7 +239,7 @@ def verify_login_credential():
 
     try:
         security.verify_authentication_credential(user, authentication_credential)
-        login_user(user)
+        login_user(user, duration = datetime.timedelta(days=30))
         session["used_webauthn"] = True
         flash("Login Complete", "success")
 
@@ -299,7 +299,8 @@ def magic_link():
         return redirect(url_for("external_auth.login"))
 
     if security.verify_magic_link(user_uid, url_secret):
-        login_user(user)
+
+        login_user(user, duration = datetime.timedelta(days=30))
         session["used_webauthn"] = False
         flash("Logged in", "success")
         return redirect(url_for("internal_auth.user_profile"))

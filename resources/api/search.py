@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, current_app, render_template
 import os
 import requests
 from models import User, NetworkPasswordModel, CommandsModel, BananaGameUserBananasModel, BananaGameLifetimeBananasModel, BananaGameButtonPressModel, RequestsModel, TrackingNumbersModel, PermissionsModel
+from models import ChoresUser, ChoreLog
 from models import db
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
@@ -121,3 +122,42 @@ def captive_send_email():
         return {'message': 'success'}, 200
 
     return {"message": "User data not found in response"}, 500
+
+@api_blueprint.route('/chores/points', methods=['POST'])
+def chores_test():
+    data = request.get_json()
+    name = data.get('name')
+    action = data.get('action')
+    points = data.get('points')
+    reason = data.get('reason')
+
+    if not action or (action != 'get' and (not name or points is None)):
+        return {"message": "Invalid input"}, 400
+
+    if action == 'get':
+        if not name:
+            users = ChoresUser.query.all()
+            all_users_points = {user.name: user.points for user in users}
+            return {"message": "success", "points": all_users_points}, 200
+        user = ChoresUser.query.filter_by(name=name).first()
+        if not user:
+            return {"message": "User not found"}, 404
+        return {"message": "success", "points": user.points}, 200
+
+    user = ChoresUser.query.filter_by(name=name).first()
+    if not user:
+        user = ChoresUser(name=name, points=0)
+        db.session.add(user)
+
+    if action == 'add':
+        user.points += points
+    elif action == 'subtract':
+        user.points -= points
+    else:
+        return {"message": "Invalid action"}, 400
+
+    log = ChoreLog(user_id=user.id, action=action, points=points, reason=reason)
+    db.session.add(log)
+    db.session.commit()
+
+    return {"message": "success", "points": user.points}, 200
