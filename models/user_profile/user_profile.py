@@ -92,7 +92,7 @@ class User(db.Model):
         added_urls = []
         json_user_commands = self.json_user_commands()
         for command in json_user_commands:
-            if command["category"] == "shortcut" and command["url"].startswith("/internal/") and command["url"] not in added_urls:
+            if command["category"] == "shortcut" and command["url"].startswith("/internal/") and command["url"] not in added_urls or command["prefix"] == "logout":
                 sidebar_links.append({"href": command["url"], "text": command["prefix"].capitalize(), "data_tab": command["prefix"]})
                 added_urls.append(command["url"])
 
