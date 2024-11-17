@@ -141,7 +141,7 @@
       {
         "category": "shortcut",
         "prefix": ["logout"],
-        "url": "/internal/auth/logout",
+        "url": "https://spicerhome.cloudflareaccess.com/cdn-cgi/access/logout",
         "permission_level": 999
       }
     ]

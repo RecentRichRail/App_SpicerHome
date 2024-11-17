@@ -90,9 +90,17 @@ def add_credential():
 @auth.route("/logout")
 @login_required
 def logout():
+    # Remove the CF_Authorization cookie
+    response = make_response(redirect(url_for("redirect_to_url")))
+    response.delete_cookie("CF_Authorization")
+    response.delete_cookie("cf_clearance")
+    response.delete_cookie("CF_AppSession")
+
+    # Log the user out and show a flash message
     logout_user()
     flash("Logged out", "success")
-    return redirect(url_for("external_auth.login"))
+    
+    return response
 
 
 @auth.route("/user-profile")
