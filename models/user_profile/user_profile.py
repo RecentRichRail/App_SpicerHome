@@ -18,7 +18,7 @@ class User(db.Model):
     # is_email_valid = db.Column(db.Boolean, unique=False)
     default_search_id = db.Column(db.Integer, db.ForeignKey("commands.id"), unique=False, nullable=False)
     user_theme = db.Column(db.String(80), nullable=False, default="coffee")
-    uid = db.Column(db.String(40), default=_str_uuid, unique=True)
+    uid = db.Column(db.String(40), nullable=False, unique=True)
     username = db.Column(db.String(255), unique=True, nullable=False)
     name = db.Column(db.String(255), nullable=True)
     requests = db.relationship("RequestsModel", back_populates="user", lazy="dynamic")

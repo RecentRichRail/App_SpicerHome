@@ -39,6 +39,7 @@ class Response:
 @login_required
 def add_credential():
     """Receive a newly registered credentials to validate and save."""
+    print(request)
     data = request.get_json()
     print(data)
 
@@ -105,7 +106,8 @@ def user_profile():
 def create_credential():
     """Start creation of new credentials by existing users."""
     pcco = security.prepare_credential_creation(current_user)
-    # flash("Click the button to start setup", "warning")
+    flash("Click the button to start setup", "warning")
+    print(pcco)
     return make_response(
         render_template(
             "auth/_partials/register_credential.html",

@@ -16,4 +16,6 @@ from models.user_login.challenges import RegistrationChallenge, AuthenticationCh
 from models.user_data.banana_game.banana_game_button_press import BananaGameButtonPressModel
 from models.user_data.banana_game.banana_game_user_bananas import BananaGameUserBananasModel
 from models.user_data.banana_game.banana_game_user_bananas_lifetime import BananaGameLifetimeBananasModel
-from models.user_data.chores import ChoresUser
+
+from models.user_data.chores.chores import ChoresUser
+from models.user_data.chores.households import Household

@@ -198,8 +198,13 @@ def verify_login_credential():
 
     # authentication_credential = AuthenticationCredential.parse_raw(request.get_data())
 
+    print(f'Here 1')
     # data = json.loads(request.get_data())
-    data = request.get_json()
+    # data = request.get_json()
+    data = request.get_data()
+    print(f'Here 1.a - {data}')
+    # data = request.get_json()
+    print('Here 2')
     print(data)
 
     # auth_cred = AuthResponse(data)

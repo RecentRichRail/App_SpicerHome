@@ -1,13 +1,14 @@
 import logging
-from flask import Flask, render_template, redirect, url_for
-from flask_login import LoginManager, login_user, login_required, current_user, logout_user
+import requests
+from flask import Flask, render_template, redirect, url_for, request, session
+from flask_login import LoginManager, login_user, login_required, current_user, logout_user, UserMixin
 import os
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 import json
 from dotenv import load_dotenv
 import uuid
 
-from models import db, User, CommandsModel, PermissionsModel
+from models import db, User, CommandsModel, PermissionsModel, NetworkPasswordModel
 # from db import db
 # CommandsModel.__table__.create(db.engine)
 
@@ -19,6 +20,7 @@ from resources.internal.auth import auth as internal_auth
 from resources.internal.internal import internal_blueprint
 from resources.internal.admin import admin_blueprint
 from resources.api.search import api_blueprint
+from resources.internal.chores import chores_blueprint
 
 # from sqlalchemy.exc import SQLAlchemyError
 
@@ -28,7 +30,7 @@ app = Flask(__name__)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = "external_auth.login"
+# login_manager.login_view = "external_auth.login"
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -45,6 +47,9 @@ app.router_API_Key = os.environ.get('router_API_Key')
 app.CF_Access_Client_Id = os.environ.get('CF-Access-Client-Id')
 app.CF_Access_Client_Secret = os.environ.get('CF-Access-Client-Secret')
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+
+CLOUDFLARE_TEAM_NAME = "SpicerHome"  # Replace with your team name
+IDENTITY_ENDPOINT = f"https://{CLOUDFLARE_TEAM_NAME}.cloudflareaccess.com/cdn-cgi/access/get-identity"
 
 app.config["SQLALCHEMY_DB_HOST"] = os.environ.get('SQLALCHEMY_DB_HOST')
 app.config["SQLALCHEMY_DB_USER"] = os.environ.get('SQLALCHEMY_DB_USER')
@@ -64,6 +69,32 @@ app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER")
 app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT"))
 app.config["MAIL_FROM"] = os.getenv("MAIL_FROM")
     
+class CFUser(UserMixin):
+    def __init__(self, identity):
+        self.id = identity.get("user_uuid")
+        self.user_uuid = identity.get("user_uuid")
+        self.email = identity.get("email")
+        self.idp = identity.get("idp")
+        self.geo = identity.get("geo")
+        self.devicePosture = identity.get("devicePosture")
+        self.account_id = identity.get("account_id")
+        self.iat = identity.get("iat")
+        self.ip = identity.get("ip")
+        self.auth_status = identity.get("auth_status")
+        self.common_name = identity.get("common_name")
+        self.service_token_id = identity.get("service_token_id")
+        self.service_token_status = identity.get("service_token_status")
+        self.is_warp = identity.get("is_warp")
+        self.is_gateway = identity.get("is_gateway")
+        self.gateway_account_id = identity.get("gateway_account_id")
+        self.device_id = identity.get("device_id")
+        self.version = identity.get("version")
+        self.device_sessions = identity.get("device_sessions")
+
+    @staticmethod
+    def from_identity(identity):
+        return CFUser(identity)
+
 db.init_app(app)
 with app.app_context():
     # try:
@@ -99,40 +130,325 @@ with app.app_context():
             else:
                 print("Command already exists")
 
-    if User.query.count() == 0:
-        cmd_query = CommandsModel.query.filter_by(category="default_search").first()
-        user = User(name='spicerhome-admin', username='spicerhome-admin', email='admin@spicerhome.net', default_search_id=cmd_query.id)
+    # if User.query.count() == 0:
+    #     cmd_query = CommandsModel.query.filter_by(category="default_search").first()
+    #     user = User(name='spicerhome-admin', username='spicerhome-admin', email='admin@spicerhome.net', default_search_id=cmd_query.id)
         
-        try:
-            db.session.add(user)
-            db.session.commit()  # Commit to get the user.id
+    #     try:
+    #         db.session.add(user)
+    #         db.session.commit()  # Commit to get the user.id
 
-            # Retrieve the user again to ensure the id is set
-            user = User.query.filter_by(username='spicerhome-admin').first()
+    #         # Retrieve the user again to ensure the id is set
+    #         user = User.query.filter_by(username='spicerhome-admin').first()
             
-            if user:
-                user_permissions = [
-                    PermissionsModel(user_id=user.id, permission_name="commands", permission_level=0),
-                    PermissionsModel(user_id=user.id, permission_name="admin", permission_level=0)
-                ]
+    #         if user:
+    #             user_permissions = [
+    #                 PermissionsModel(user_id=user.id, permission_name="commands", permission_level=0),
+    #                 PermissionsModel(user_id=user.id, permission_name="admin", permission_level=0)
+    #             ]
                 
-                for permission in user_permissions:
-                    db.session.add(permission)
-                db.session.commit()
-                logging.info('User created successfully')
-            else:
-                logging.error('User creation failed, user not found after commit')
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            logging.error(f"Error creating user: {e}")
+    #             for permission in user_permissions:
+    #                 db.session.add(permission)
+    #             db.session.commit()
+    #             logging.info('User created successfully')
+    #         else:
+    #             logging.error('User creation failed, user not found after commit')
+    #     except SQLAlchemyError as e:
+    #         db.session.rollback()
+    #         logging.error(f"Error creating user: {e}")
+
+def synchronize_user_with_identity():
+    """
+    Synchronize the User table using identity data fetched from Cloudflare.
+    Update an existing User or create a new one based on the identity.
+    """
+    identity = get_identity_from_cloudflare()
+    if not identity:
+        print("No identity fetched from Cloudflare")
+        return
+
+    # Extract data from identity
+    user_uuid = identity.get("user_uuid")
+    email = identity.get("email")
+    common_name = identity.get("common_name")
+    
+    if not user_uuid or not email:
+        print("Incomplete identity data. Cannot synchronize.")
+        return
+
+    # Look for an existing user
+    user = User.query.filter((User.email == email) | (User.uid == user_uuid)).first()
+
+    if user:
+        # Update the existing user
+        user.uid = user_uuid
+        user.email = email
+        user.username = common_name or user.username
+        user.name = common_name or user.name
+    else:
+        # Create a new user
+        user = User(
+            uid=user_uuid,
+            email=email,
+            username=common_name or email.split("@")[0],
+            name=common_name,
+            default_search_id=None  # Set default or derive from another source
+        )
+        db.session.add(user)
+
+    # Commit changes
+    try:
+        db.session.commit()
+        print(f"User synchronization complete for {email}")
+    except IntegrityError as e:
+        db.session.rollback()
+        print(f"Error during synchronization: {e}")
+
+
+def get_user():
+    """
+    Retrieve the most up-to-date user data, preferring CFUser if available.
+    """
+    identity = get_identity_from_cloudflare()
+    if identity:
+        return CFUser.from_identity(identity)
+    
+    # Fallback to User table
+    return User.query.filter_by(uid=session.get("user_uuid")).first()
+
+def get_identity_from_cloudflare():
+    """Fetch user's identity from Cloudflare."""
+    cf_authorization = request.cookies.get("CF_Authorization")
+    if not cf_authorization:
+        logging.error("CF_Authorization cookie missing.")
+        return None
+
+    try:
+        response = requests.get(
+            IDENTITY_ENDPOINT,
+            headers={"cookie": f"CF_Authorization={cf_authorization}"}
+        )
+        response.raise_for_status()
+        identity = response.json()
+        logging.info(f"Fetched identity for user: {identity.get('email')}")
+        return identity
+    except requests.RequestException as e:
+        logging.error(f"Error fetching Cloudflare identity: {e}")
+        return None
+
+def create_user():
+    if not current_user:
+        return redirect(url_for("external_auth.login"))
+
+    # Extract form data
+    name = request.form.get("name")
+    username = request.form.get("username")
+    email = request.form.get("email")
+
+    # Fetch default search command
+    cmd_query = CommandsModel.query.filter_by(category="default_search").first()
+    if not cmd_query:
+        return {"error": "Default search command not found"}, 500
+
+    # Create new user instance
+    user = User(
+        uid=current_user.user_uuid,
+        name=name,
+        username=username,
+        email=email,
+        default_search_id=cmd_query.id,
+    )
+
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except IntegrityError as e:
+        logging.error(f"Error adding user: {e}")
+        return render_template(
+            "auth/_partials/user_creation_form.html",
+            error="That username or email address is already in use. Please enter a different one.",
+        )
+
+    # Assign permissions to the newly created user
+    user_model = User.query.filter_by(username=username).first()
+    if not user_model:
+        return {"error": "User creation failed. User not found after creation."}, 500
+
+    user_permissions = PermissionsModel(
+        user_id=user_model.id, 
+        permission_name="commands", 
+        permission_level=999
+    )
+    try:
+        db.session.add(user_permissions)
+        db.session.commit()
+    except IntegrityError as e:
+        logging.error(f"Error adding user permissions: {e}")
+        return render_template(
+            "auth/_partials/user_creation_form.html",
+            error="Error creating user account. Please try again later.",
+        )
+
+    # Handle network password creation and router API interaction
+    try:
+        router_api_key = current_app.config.get("ROUTER_API_KEY")
+        cf_client_secret = current_app.config.get("CF_ACCESS_CLIENT_SECRET")
+        cf_client_id = current_app.config.get("CF_ACCESS_CLIENT_ID")
+        
+        if not (router_api_key and cf_client_secret and cf_client_id):
+            return {"error": "Missing API credentials for router"}, 500
+
+        headers = {
+            'x-api-key': router_api_key,
+            'accept': 'application/json',
+            'CF-Access-Client-Secret': cf_client_secret,
+            'CF-Access-Client-Id': cf_client_id,
+        }
+
+        # Create a new network password entry
+        password_entry = NetworkPasswordModel(user_id=user_model.id, user=user_model)
+        db.session.add(password_entry)
+        db.session.commit()
+
+        # Prepare request body for router API
+        request_body = {
+            "id": user_model.id,
+            "name": user_model.username,
+            "password": password_entry.password,
+            "priv": ["user-services-captiveportal-login"],
+            "disabled": False,
+            "descr": f"{user_model.uid}",
+            "expires": None,
+            "cert": None,
+            "authorizedkeys": None,
+            "ipsecpsk": None,
+        }
+
+        # Send user creation request to router
+        response = requests.post(
+            "https://router.spicerhome.net/api/v2/user",
+            headers=headers,
+            json=request_body,
+            allow_redirects=True
+        )
+        if response.status_code != 200:
+            logging.error(f"Router API error: {response.text}")
+            return {"error": "Failed to create user on router"}, 500
+
+    except Exception as e:
+        logging.error(f"Error during router API interaction: {e}")
+        return {"error": "Error creating user on router"}, 500
+
+    # return redirect(url_for("user.dashboard"))
+
+def synchronize_user_with_identity(identity):
+    """
+    Synchronize a user with their identity. If the user does not exist, create one.
+    """
+    email = identity.get("email")
+    uid = identity.get("user_uuid")
+    name = identity.get("name", email.split('@')[0])  # Fallback to email prefix if name is not provided
+    username = identity.get("username", email.split('@')[0])  # Fallback to email prefix if username is not provided
+
+    try:
+        # Check if user exists
+        user = User.query.filter_by(email=email).first()
+        if user:
+            logging.info(f"User already exists: {email}")
+            return user
+
+        # Fetch default search command
+        cmd_query = CommandsModel.query.filter_by(category="default_search").first()
+        if not cmd_query:
+            logging.error("Default search command not found")
+            raise ValueError("Default search command is required but not available")
+
+        # Create new user
+        user = User(
+            uid=uid,
+            name=name,
+            username=username,
+            email=email,
+            default_search_id=cmd_query.id,
+        )
+
+        db.session.add(user)
+        db.session.commit()
+
+        # Assign permissions
+        user_permissions = PermissionsModel(
+            user_id=user.id,
+            permission_name="commands",
+            permission_level=999
+        )
+        db.session.add(user_permissions)
+        db.session.commit()
+
+        # Add router integration if needed (optional based on your system)
+        router_api_key = current_app.config.get("ROUTER_API_KEY")
+        if router_api_key:
+            headers = {
+                'x-api-key': router_api_key,
+                'accept': 'application/json',
+                'CF-Access-Client-Secret': current_app.config.get("CF_ACCESS_CLIENT_SECRET"),
+                'CF-Access-Client-Id': current_app.config.get("CF_ACCESS_CLIENT_ID"),
+            }
+            password_entry = NetworkPasswordModel(user_id=user.id, user=user)
+            db.session.add(password_entry)
+            db.session.commit()
+
+            request_body = {
+                "id": user.id,
+                "name": user.username,
+                "password": password_entry.password,
+                "priv": ["user-services-captiveportal-login"],
+                "disabled": False,
+                "descr": f"{user.uid}",
+                "expires": None,
+                "cert": None,
+                "authorizedkeys": None,
+                "ipsecpsk": None,
+            }
+
+            response = requests.post(
+                "https://router.spicerhome.net/api/v2/user",
+                headers=headers,
+                json=request_body,
+                allow_redirects=True
+            )
+            if response.status_code != 200:
+                logging.error(f"Router API error: {response.text}")
+
+        logging.info(f"User created successfully: {email}")
+        return user
+
+    except IntegrityError as e:
+        logging.error(f"Database integrity error: {e}")
+        db.session.rollback()
+    except Exception as e:
+        logging.error(f"Error synchronizing user: {e}")
 
 @login_manager.user_loader
-def load_user(user_uid):
-    user = User.query.filter_by(uid=user_uid).first()
-    # if user:
-        # print(user.permissions)
-    return user
+def load_user(user_id):
+    """Load user from the database by ID for Flask-Login."""
+    return User.query.get(user_id)
 
+@app.before_request
+def check_user_logged_in():
+    """Ensure the user is logged in using Cloudflare identity."""
+    if current_user.is_authenticated:
+        return  # User is already logged in
+
+    # Fetch identity from Cloudflare
+    identity = get_identity_from_cloudflare()
+    if identity:
+        # Synchronize with the database
+        synchronize_user_with_identity(identity)
+
+        # Log in the user with Flask-Login
+        user = User.query.filter_by(uid=identity["user_uuid"]).first()
+        if user:
+            login_user(user)
 
 @app.context_processor
 def utility_processor():
@@ -154,6 +470,7 @@ app.register_blueprint(external_auth, url_prefix="/external/auth")
 app.register_blueprint(internal_auth, url_prefix="/internal/auth")
 app.register_blueprint(admin_blueprint, url_prefix="/internal/admin")
 app.register_blueprint(api_blueprint, url_prefix="/apiv1")
+app.register_blueprint(chores_blueprint, url_prefix="/chores")
 
 # @app.route("/")
 # @login_required
