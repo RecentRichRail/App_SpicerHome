@@ -26,8 +26,9 @@ def run(data):
     shortcut_command = next((cmd for cmd in user_commands if cmd['prefix'] == search_query_prefix), None)
     # shortcut_command_model = CommandsModel.query.filter_by(prefix=data['user_query']['prefix']).first()
     # if shortcut_command_model != None:
-    if shortcut_command:
+    if shortcut_command and shortcut_command['search_url'] is not None:
         if is_search:
+            print("Search query: ", search_query)
             encoded_query = urllib.parse.quote_plus(search_query)
             # user_query['encoded_query'] = encoded_query
         else:
