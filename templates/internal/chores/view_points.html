@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Points</title>
+</head>
+<body>
+    <h1>Your Points</h1>
+    <p id="points">Loading...</p>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/api/points')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('points').textContent = data.dollar_amount;
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>

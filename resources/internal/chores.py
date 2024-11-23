@@ -1,48 +1,135 @@
-from flask import Blueprint, request, jsonify, current_app, render_template
-import os
-import requests
-from models import ChoresUser
-from models import db
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for
+from flask_login import login_required, current_user
+from models import ChoresUser, db, PermissionsModel, Household, User
 
-chores_blueprint = Blueprint("chores", __name__, template_folder="templates")
+chores_blueprint = Blueprint("chores", __name__, template_folder="templates/internal/chores")
 
-@chores_blueprint.route('/points', methods=['POST'])
-def chores_test():
-    print('1a - Here')
-    data = request.get_json()
-    name = data.get('name')
-    # print(f'1b - {name}')
-    action = data.get('action')
-    print(f'1c - {action}')
-    points = data.get('points')
-    # print(f'1d - {points}')
+@chores_blueprint.route('/dashboard', methods=['GET'])
+@login_required
+def dashboard():
+    return render_template('internal/chores/dashboard.html')
 
-    if not action or (action != 'get' and (not name or points is None)):
-        print(f'2a - Here')
-        return {"message": "Invalid input"}, 400
-
-    if action == 'get':
-        if not name:
-            users = ChoresUser.query.all()
-            all_users_points = {user.name: user.points for user in users}
-            return {"message": "success", "points": all_users_points}, 200
-        user = ChoresUser.query.filter_by(name=name).first()
-        if not user:
-            return {"message": "User not found"}, 404
-        return {"message": "success", "points": user.points}, 200
-
-    user = ChoresUser.query.filter_by(name=name).first()
+@chores_blueprint.route('/points', methods=['GET'])
+@login_required
+def view_points():
+    user = ChoresUser.query.filter_by(name=current_user.username).first()
     if not user:
-        user = ChoresUser(name=name, points=0)
-        db.session.add(user)
+        return {"message": "User not found"}, 404
+    return render_template('internal/chores/view_points.html')
+
+@chores_blueprint.route('/manage_points', methods=['GET', 'POST'])
+@login_required
+def manage_points():
+    if request.method == 'GET':
+        return render_template('internal/chores/manage_points.html')
+
+    data = request.get_json()
+    username = data.get('username')
+    action = data.get('action')
+    amount = data.get('amount')
+
+    user_permissions = PermissionsModel.query.filter_by(user_id=current_user.id).first()
+    if not user_permissions or user_permissions.permission_level < 2:
+        return {"message": "Permission denied"}, 403
+
+    user = ChoresUser.query.filter_by(name=username).first()
+    if not user:
+        return {"message": "User not found"}, 404
 
     if action == 'add':
-        user.points += points
+        user.dollar_amount += amount
     elif action == 'subtract':
-        user.points -= points
+        user.dollar_amount -= amount
     else:
-        print(f'1b - {action}')
         return {"message": "Invalid action"}, 400
 
     db.session.commit()
-    return {"message": "success", "points": user.points}, 200
+    return {"message": "Points updated successfully"}
+
+@chores_blueprint.route('/create_household', methods=['GET', 'POST'])
+@login_required
+def create_household():
+    if request.method == 'GET':
+        return render_template('internal/chores/manage_households.html')
+
+    data = request.get_json()
+    name = data.get('name')
+
+    if not name:
+        return {"message": "Household name is required"}, 400
+
+    household = Household(name=name, owner_id=current_user.id)
+    db.session.add(household)
+    db.session.commit()
+
+    return {"message": "Household created successfully", "household_id": household.id}, 201
+
+@chores_blueprint.route('/manage_households', methods=['GET'])
+@login_required
+def manage_households():
+    return render_template('internal/chores/manage_households.html')
+
+@chores_blueprint.route('/add_members', methods=['POST'])
+@login_required
+def add_members():
+    data = request.get_json()
+    household_id = data.get('household_id')
+    member_emails = data.get('member_emails')
+
+    if not household_id or not member_emails:
+        return {"message": "Household ID and Member Emails are required"}, 400
+
+    household = Household.query.get(household_id)
+    if not household:
+        return {"message": "Household not found"}, 404
+
+    if household.owner_id != current_user.id:
+        return {"message": "Only the household owner can add members"}, 403
+
+    for email in member_emails:
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return {"message": f"User with email {email} not found"}, 404
+
+        chores_user = ChoresUser.query.filter_by(name=user.username).first()
+        if not chores_user:
+            chores_user = ChoresUser(name=user.username, dollar_amount=0.0, household_id=household_id)
+            db.session.add(chores_user)
+        else:
+            chores_user.household_id = household_id
+
+    db.session.commit()
+    return {"message": "Members added successfully"}, 200
+
+@chores_blueprint.route('/add_admins', methods=['POST'])
+@login_required
+def add_admins():
+    data = request.get_json()
+    household_id = data.get('household_id')
+    admin_emails = data.get('admin_emails')
+
+    if not household_id or not admin_emails:
+        return {"message": "Household ID and Admin Emails are required"}, 400
+
+    household = Household.query.get(household_id)
+    if not household:
+        return {"message": "Household not found"}, 404
+
+    if household.owner_id != current_user.id:
+        return {"message": "Only the household owner can add admins"}, 403
+
+    for email in admin_emails:
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return {"message": f"User with email {email} not found"}, 404
+
+        chores_user = ChoresUser.query.filter_by(name=user.username).first()
+        if not chores_user:
+            chores_user = ChoresUser(name=user.username, dollar_amount=0.0, household_id=household_id, household_admin=True)
+            db.session.add(chores_user)
+        else:
+            chores_user.household_id = household_id
+            chores_user.household_admin = True
+
+    db.session.commit()
+    return {"message": "Admins added successfully"}, 200

@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import uuid
 
 from models import db, User, CommandsModel, PermissionsModel, NetworkPasswordModel
+from resources.utils import util
 # from db import db
 # CommandsModel.__table__.create(db.engine)
 
@@ -23,6 +24,8 @@ from resources.api.search import api_blueprint
 from resources.internal.chores import chores_blueprint
 
 # from sqlalchemy.exc import SQLAlchemyError
+
+from sqlalchemy.pool import QueuePool
 
 load_dotenv()
 
@@ -57,6 +60,14 @@ app.config["SQLALCHEMY_DB_PASSWORD"] = os.environ.get('SQLALCHEMY_DB_PASSWORD')
 app.config["SQLALCHEMY_DB_NAME"] = os.environ.get('SQLALCHEMY_DB_NAME')
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["PROPAGATE_EXCEPTIONS"] = True
+
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_pre_ping": True,
+    "pool_size": 10,
+    "max_overflow": 20,
+    "pool_timeout": 30,
+    "pool_recycle": 1800,  # Recycle connections after 30 minutes
+}
 
 if app.config["SQLALCHEMY_DB_HOST"] == 'sqlite':
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///data.db"
@@ -157,52 +168,54 @@ with app.app_context():
     #         db.session.rollback()
     #         logging.error(f"Error creating user: {e}")
 
-def synchronize_user_with_identity():
-    """
-    Synchronize the User table using identity data fetched from Cloudflare.
-    Update an existing User or create a new one based on the identity.
-    """
-    identity = get_identity_from_cloudflare()
-    if not identity:
-        print("No identity fetched from Cloudflare")
-        return
+# def synchronize_user_with_identity():
+#     """
+#     Synchronize the User table using identity data fetched from Cloudflare.
+#     Update an existing User or create a new one based on the identity.
+#     """
+#     identity = get_identity_from_cloudflare()
+#     if not identity:
+#         print("No identity fetched from Cloudflare")
+#         return
 
-    # Extract data from identity
-    user_uuid = identity.get("user_uuid")
-    email = identity.get("email")
-    common_name = identity.get("common_name")
+#     # Extract data from identity
+#     user_uuid = identity.get("user_uuid")
+#     email = identity.get("email")
+#     common_name = identity.get("common_name")
     
-    if not user_uuid or not email:
-        print("Incomplete identity data. Cannot synchronize.")
-        return
+#     if not user_uuid or not email:
+#         print("Incomplete identity data. Cannot synchronize.")
+#         return
 
-    # Look for an existing user
-    user = User.query.filter((User.email == email) | (User.uid == user_uuid)).first()
+#     # Look for an existing user
+#     user = User.query.filter((User.email == email) | (User.uid == user_uuid)).first()
 
-    if user:
-        # Update the existing user
-        user.uid = user_uuid
-        user.email = email
-        user.username = common_name or user.username
-        user.name = common_name or user.name
-    else:
-        # Create a new user
-        user = User(
-            uid=user_uuid,
-            email=email,
-            username=common_name or email.split("@")[0],
-            name=common_name,
-            default_search_id=None  # Set default or derive from another source
-        )
-        db.session.add(user)
+#     if user:
+#         # Update the existing user
+#         user.uid = user_uuid
+#         user.email = email
+#         user.username = common_name or user.username
+#         user.name = common_name or user.name
+#     else:
+#         # Create a new user
+#         if User.query.count() == 0:
+#             is_new_user_admin = True
+#         user = User(
+#             uid=user_uuid,
+#             email=email,
+#             username=common_name or email.split("@")[0],
+#             name=common_name,
+#             default_search_id=None  # Set default or derive from another source
+#         )
+#         db.session.add(user)
 
-    # Commit changes
-    try:
-        db.session.commit()
-        print(f"User synchronization complete for {email}")
-    except IntegrityError as e:
-        db.session.rollback()
-        print(f"Error during synchronization: {e}")
+#     # Commit changes
+#     try:
+#         db.session.commit()
+#         print(f"User synchronization complete for {email}")
+#     except IntegrityError as e:
+#         db.session.rollback()
+#         print(f"Error during synchronization: {e}")
 
 
 def get_user():
@@ -291,9 +304,9 @@ def create_user():
 
     # Handle network password creation and router API interaction
     try:
-        router_api_key = current_app.config.get("ROUTER_API_KEY")
-        cf_client_secret = current_app.config.get("CF_ACCESS_CLIENT_SECRET")
-        cf_client_id = current_app.config.get("CF_ACCESS_CLIENT_ID")
+        router_api_key = app.config.get("ROUTER_API_KEY")
+        cf_client_secret = app.config.get("CF_ACCESS_CLIENT_SECRET")
+        cf_client_id = app.config.get("CF_ACCESS_CLIENT_ID")
         
         if not (router_api_key and cf_client_secret and cf_client_id):
             return {"error": "Missing API credentials for router"}, 500
@@ -385,13 +398,13 @@ def synchronize_user_with_identity(identity):
         db.session.commit()
 
         # Add router integration if needed (optional based on your system)
-        router_api_key = current_app.config.get("ROUTER_API_KEY")
+        router_api_key = app.config.get("ROUTER_API_KEY")
         if router_api_key:
             headers = {
                 'x-api-key': router_api_key,
                 'accept': 'application/json',
-                'CF-Access-Client-Secret': current_app.config.get("CF_ACCESS_CLIENT_SECRET"),
-                'CF-Access-Client-Id': current_app.config.get("CF_ACCESS_CLIENT_ID"),
+                'CF-Access-Client-Secret': app.config.get("CF_ACCESS_CLIENT_SECRET"),
+                'CF-Access-Client-Id': app.config.get("CF_ACCESS_CLIENT_ID"),
             }
             password_entry = NetworkPasswordModel(user_id=user.id, user=user)
             db.session.add(password_entry)
@@ -450,6 +463,7 @@ def check_user_logged_in():
         if user:
             login_user(user)
 
+
 @app.context_processor
 def utility_processor():
     def random_id():
@@ -470,7 +484,7 @@ app.register_blueprint(external_auth, url_prefix="/external/auth")
 app.register_blueprint(internal_auth, url_prefix="/internal/auth")
 app.register_blueprint(admin_blueprint, url_prefix="/internal/admin")
 app.register_blueprint(api_blueprint, url_prefix="/apiv1")
-app.register_blueprint(chores_blueprint, url_prefix="/chores")
+app.register_blueprint(chores_blueprint, url_prefix="/internal/chores")
 
 # @app.route("/")
 # @login_required

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Dashboard</h1>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('chores.view_points') }}">View Points</a></li>
+            <li><a href="{{ url_for('chores.manage_points') }}">Manage Points</a></li>
+            <li><a href="{{ url_for('chores.create_household') }}">Create Household</a></li>
+            <li><a href="{{ url_for('chores.manage_households') }}">Manage Households</a></li>
+        </ul>
+    </nav>
+</body>
+</html>

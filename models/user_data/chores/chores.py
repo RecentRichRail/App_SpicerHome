@@ -5,7 +5,7 @@ class ChoresUser(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True, nullable=False)
-    points = db.Column(db.Integer, default=0)
+    dollar_amount = db.Column(db.Float, nullable=False, default=0.0)
     household_id = db.Column(db.Integer, db.ForeignKey('households.id'), nullable=True)
     household_admin = db.Column(db.Boolean, default=False)
 

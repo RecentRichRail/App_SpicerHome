@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Households</title>
+    <style>
+        .member-input {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Manage Households</h1>
+    <form id="createHouseholdForm">
+        <label for="householdName">Household Name:</label>
+        <input type="text" id="householdName" name="householdName" required>
+        <button type="submit">Create Household</button>
+    </form>
+    <h2>Add Members</h2>
+    <form id="addMembersForm">
+        <div id="membersContainer">
+            <div class="member-input">
+                <label for="memberEmail">Member Email:</label>
+                <input type="email" class="memberEmail" name="memberEmail" required>
+            </div>
+        </div>
+        <button type="button" id="addMemberButton">+ Add Member</button>
+        <button type="submit">Submit Members</button>
+    </form>
+    <h2>Add Admins</h2>
+    <form id="addAdminsForm">
+        <div id="adminsContainer">
+            <div class="admin-input">
+                <label for="adminEmail">Admin Email:</label>
+                <input type="email" class="adminEmail" name="adminEmail" required>
+            </div>
+        </div>
+        <button type="button" id="addAdminButton">+ Add Admin</button>
+        <button type="submit">Submit Admins</button>
+    </form>
+    <p id="message"></p>
+    <script>
+        document.getElementById('createHouseholdForm').addEventListener('submit', event => {
+            event.preventDefault();
+            const householdName = document.getElementById('householdName').value;
+
+            fetch('/api/create_household', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: householdName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('message').textContent = data.message;
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        document.getElementById('addMemberButton').addEventListener('click', () => {
+            const container = document.getElementById('membersContainer');
+            const newMemberInput = document.createElement('div');
+            newMemberInput.classList.add('member-input');
+            newMemberInput.innerHTML = `
+                <label for="memberEmail">Member Email:</label>
+                <input type="email" class="memberEmail" name="memberEmail" required>
+            `;
+            container.appendChild(newMemberInput);
+        });
+
+        document.getElementById('addMembersForm').addEventListener('submit', event => {
+            event.preventDefault();
+            const householdId = document.getElementById('householdId').value;
+            const memberEmails = Array.from(document.getElementsByClassName('memberEmail')).map(input => input.value);
+
+            fetch('/api/add_members', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ household_id: householdId, member_emails: memberEmails })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('message').textContent = data.message;
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        document.getElementById('addAdminButton').addEventListener('click', () => {
+            const container = document.getElementById('adminsContainer');
+            const newAdminInput = document.createElement('div');
+            newAdminInput.classList.add('admin-input');
+            newAdminInput.innerHTML = `
+                <label for="adminEmail">Admin Email:</label>
+                <input type="email" class="adminEmail" name="adminEmail" required>
+            `;
+            container.appendChild(newAdminInput);
+        });
+
+        document.getElementById('addAdminsForm').addEventListener('submit', event => {
+            event.preventDefault();
+            const householdId = document.getElementById('householdIdAdmin').value;
+            const adminEmails = Array.from(document.getElementsByClassName('adminEmail')).map(input => input.value);
+
+            fetch('/api/add_admins', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ household_id: householdId, admin_emails: adminEmails })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('message').textContent = data.message;
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>

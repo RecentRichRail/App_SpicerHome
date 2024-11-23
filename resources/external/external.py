@@ -1,11 +1,26 @@
-from flask import Blueprint, render_template, request, current_app, jsonify, redirect
-from flask_login import login_user, login_required, current_user, logout_user
-from sqlalchemy import or_, func
-from models import User, NetworkPasswordModel
-from resources.utils import security, util
-import hmac, logging
+from flask import Blueprint, render_template, request, redirect, url_for, current_app
+import logging
+from urllib.parse import urlparse, urlunparse
+from flask_login import current_user
 
 external_blueprint = Blueprint("external", __name__, template_folder="templates")
+
+def is_valid_url(url):
+    """
+    Validate the provided URL to ensure it has a valid scheme and netloc.
+    """
+    try:
+        result = urlparse(url)
+        return all([result.scheme, result.netloc])
+    except ValueError:
+        return False
+
+def normalize_url(url):
+    """
+    Normalize a URL by stripping query parameters and fragments for comparison.
+    """
+    parsed = urlparse(url)
+    return urlunparse((parsed.scheme, parsed.netloc, parsed.path, '', '', ''))
 
 @external_blueprint.route("/captive-portal", methods=["GET", "POST"])
 def captive_portal():
@@ -18,74 +33,41 @@ def captive_portal():
         continue_url = request.args.get('continue_url')
         status = request.args.get('status')
 
-        print(f"login_url: {login_url}")
-        print(f"client_mac: {client_mac}")
-        print(f"client_ip: {client_ip}")
-        print(f"ap_mac: {ap_mac}")
-        print(f"continue_url: {continue_url}")
-        print(f"status: {status}")
+        # Log parameters for debugging
+        logging.info(f"Received captive portal request: "
+                     f"login_url={login_url}, client_mac={client_mac}, client_ip={client_ip}, "
+                     f"ap_mac={ap_mac}, continue_url={continue_url}, status={status}")
 
-        redirect(continue_url)
+        # Ensure the user is authenticated (check current_user)
+        if current_user.is_authenticated:
+            logging.info(f"Authenticated user {current_user.username} detected.")
 
-        return render_template("external/captive-portal/captive-index.html")
-
-    elif request.method == "POST":
-        data = request.get_json()
-        action = data.get('action')
-        username_or_email = data.get('username')
-        password_input = data.get('password')
-        continue_url = request.args.get('continue_url')  # Extract continue_url from request arguments
-
-        if action == "authenticate":
-            user = User.query.filter(
-                or_(
-                    func.lower(User.username) == username_or_email,
-                    func.lower(User.email) == username_or_email,
+            # Redirect to continue_url (grant internet access)
+            if continue_url and is_valid_url(continue_url):
+                redirect_url = (
+                    f"/external/captive-portal?login_url=https://spicerhome.cloudflareaccess.com&client_mac={client_mac}&"
+                    f"client_ip={client_ip}&ap_mac={ap_mac}&continue_url={continue_url}&status=1"
                 )
-            ).first()
-            if user:
-                router_API_Key = current_app.router_API_Key
+                # logging.info(f"Redirecting authenticated user to continue_url: {continue_url}")
+                # return redirect(continue_url)
+                logging.info(f"Redirecting authenticated user to continue_url: {redirect_url}")
+                return redirect(redirect_url)
+                
+            else:
+                logging.warning("Invalid or missing continue_url, redirecting to fallback.")
+                return {"message": "Authentication successful, no continue_url provided."}, 200
 
-                # Check if the user has a password in the NetworkPasswordModel
-                password_entry = NetworkPasswordModel.query.filter_by(user_id=user.id).first()
+        # If the user is not authenticated (status=0 or missing status)
+        if status == "0":
+            # The user is unauthenticated; render the captive portal page
+            logging.info("Rendering captive portal page for unauthenticated user.")
+            return render_template("external/captive-portal/captive-index.html")
 
-                # Dummy authentication logic
-                if user.username and hmac.compare_digest(password_input, password_entry.password):
-                    headers = {'x-api-key': router_API_Key, 'accept': 'application/json', 'CF-Access-Client-Secret': current_app.CF_Access_Client_Secret, 'CF-Access-Client-Id': current_app.CF_Access_Client_Id}
+        # Default fallback
+        logging.warning("Unexpected flow, redirecting to login_url.")
+        return redirect(login_url)
 
-                    logging.info(f"User {user.username} authenticated captive portal")
-
-                    return jsonify({"message": "Login successful", "continue_url": continue_url}), 200
-
-            logging.info(f"User {username_or_email} failed to authenticate captive portal")
-            return jsonify({"message": "Bad username or password"}), 401
-
-        elif action == "send_email":
-            user = User.query.filter(
-                or_(
-                    func.lower(User.username) == username_or_email,
-                    func.lower(User.email) == username_or_email,
-                )
-            ).first()
-            if user:
-                router_API_Key = current_app.router_API_Key
-                if not router_API_Key:
-                    return jsonify({"message": "API key not found"}), 500
-
-                # Check if the user has a password in the NetworkPasswordModel
-                password_entry = NetworkPasswordModel.query.filter_by(user_id=user.id).first()
-
-                # Send email with encrypted password
-                util.send_email(
-                    user.email,
-                    "Flask WebAuthn Login",
-                    f"Your password is: {password_entry.password}",
-                    render_template(
-                        "auth/email/login_captive.html", username=user.username, password=password_entry.password
-                    ),
-                )
-                return jsonify({'message': 'success', 'continue_url': continue_url}), 200
-
-            return jsonify({"message": "User data not found in response"}), 500
-
-        return jsonify({"message": "Invalid action"}), 400
+    # Handle POST requests (optional, depending on the portal logic)
+    if request.method == "POST":
+        # Add POST handling logic if necessary
+        return "POST method not supported", 405
