@@ -518,7 +518,13 @@ def handle_exception(e):
         "traceback": traceback.format_exc()
     }
 
-    subject = f"Application Error - {app.server_env}"
+    if app.server_env == "dev":
+        server_enviroment_for_email = "Development"
+    elif app.server_env == "prod":
+        server_enviroment_for_email = "Production"
+    else:
+        server_enviroment_for_email = "'Something went wrong'"
+    subject = f"Application Error - {server_enviroment_for_email} Enviroment"
     body_text = (
         f"An error occurred:\n"
         f"Error: {error_details['error']}\n"
