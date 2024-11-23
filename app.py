@@ -513,7 +513,7 @@ def handle_exception(e):
         "user id": current_user.id if current_user.is_authenticated else "Anonymous",
         "user uid": current_user.uid if current_user.is_authenticated else "Anonymous",
         "user email": current_user.email if current_user.is_authenticated else "Anonymous",
-        "user ip": request.remote_addr,
+        "user ip": request.headers.get('X-Forwarded-For', request.remote_addr),
         "permissions": [perm.permission_name for perm in current_user.permissions] if current_user.is_authenticated else "N/A",
         "traceback": traceback.format_exc()
     }
