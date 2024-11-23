@@ -51,6 +51,9 @@ app.CF_Access_Client_Id = os.environ.get('CF-Access-Client-Id')
 app.CF_Access_Client_Secret = os.environ.get('CF-Access-Client-Secret')
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
+if app.server_env == 'dev':
+    os.chdir("/home/vscodeuser/scripts/Profile/Main Projects/Together/")
+
 CLOUDFLARE_TEAM_NAME = "SpicerHome"  # Replace with your team name
 IDENTITY_ENDPOINT = f"https://{CLOUDFLARE_TEAM_NAME}.cloudflareaccess.com/cdn-cgi/access/get-identity"
 
