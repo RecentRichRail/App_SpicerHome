@@ -461,9 +461,9 @@ def check_user_logged_in():
     current_url = request.url
     previous_url = session.get('previous_url')
 
-    if previous_url == current_url:
-        send_infinite_redirect_email(previous_url, current_url)
-        return "Infinite redirect detected", 500
+    # if previous_url == current_url:
+    #     send_infinite_redirect_email(previous_url, current_url)
+    #     return "Infinite redirect detected", 500
 
     session['previous_url'] = current_url
 
