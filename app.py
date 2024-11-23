@@ -7,9 +7,11 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 import json
 from dotenv import load_dotenv
 import uuid
+import traceback
 
+from resources.utils.util import send_email
 from models import db, User, CommandsModel, PermissionsModel, NetworkPasswordModel
-from resources.utils import util
+# from resources.utils import util
 # from db import db
 # CommandsModel.__table__.create(db.engine)
 
@@ -52,7 +54,9 @@ app.CF_Access_Client_Secret = os.environ.get('CF-Access-Client-Secret')
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
 if app.server_env == 'dev':
-    os.chdir("/home/vscodeuser/scripts/Profile/Main Projects/Together/")
+    # If current dir is not the same as the script dir, change to the script dir
+    if os.getcwd() != os.path.dirname(os.path.realpath(__file__)):
+        os.chdir("/home/vscodeuser/scripts/Profile/Main Projects/Together/")
 
 CLOUDFLARE_TEAM_NAME = "SpicerHome"  # Replace with your team name
 IDENTITY_ENDPOINT = f"https://{CLOUDFLARE_TEAM_NAME}.cloudflareaccess.com/cdn-cgi/access/get-identity"
@@ -77,6 +81,7 @@ if app.config["SQLALCHEMY_DB_HOST"] == 'sqlite':
 else:
     app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{app.config['SQLALCHEMY_DB_USER']}:{app.config['SQLALCHEMY_DB_PASSWORD']}@{app.config['SQLALCHEMY_DB_HOST']}/{app.config['SQLALCHEMY_DB_NAME']}"
 
+app.config["DEVELOPER_EMAIL"] = os.getenv("DEVELOPER_EMAIL")
 app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
 app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
 app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER")
@@ -494,6 +499,57 @@ app.register_blueprint(chores_blueprint, url_prefix="/internal/chores")
 # def index():
 #     """The main homepage. This is a stub since it's a demo project."""
 #     return render_template("index.html")
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # Log the error
+    logging.error(f"An error occurred: {e}")
+
+    # Send an email to the developer
+    error_details = {
+        "error": str(e),
+        "url": request.url,
+        "method": request.method,
+        "user id": current_user.id if current_user.is_authenticated else "Anonymous",
+        "user uid": current_user.uid if current_user.is_authenticated else "Anonymous",
+        "user email": current_user.email if current_user.is_authenticated else "Anonymous",
+        "permissions": [perm.permission_name for perm in current_user.permissions] if current_user.is_authenticated else "N/A",
+        "traceback": traceback.format_exc()
+    }
+
+    subject = f"Application Error - {app.server_env}"
+    body_text = (
+        f"An error occurred:\n"
+        f"Error: {error_details['error']}\n"
+        f"URL: {error_details['url']}\n"
+        f"Method: {error_details['method']}\n"
+        f"User ID: {error_details['user id']}\n"
+        f"User UID: {error_details['user uid']}\n"
+        f"User Email: {error_details['user email']}\n"
+        f"Permissions: {error_details['permissions']}\n"
+        f"Traceback:\n{error_details['traceback']}"
+    )
+    body_html = (
+        f"<p>An error occurred:</p>"
+        f"<p><strong>Error:</strong> {error_details['error']}</p>"
+        f"<p><strong>URL:</strong> {error_details['url']}</p>"
+        f"<p><strong>Method:</strong> {error_details['method']}</p>"
+        f"<p><strong>User ID:</strong> {error_details['user id']}</p>"
+        f"<p><strong>User UID:</strong> {error_details['user uid']}</p>"
+        f"<p><strong>User Email:</strong> {error_details['user email']}</p>"
+        f"<p><strong>Permissions:</strong> {error_details['permissions']}</p>"
+        f"<p><strong>Traceback:</strong><pre>{error_details['traceback']}</pre></p>"
+    )
+
+    send_email(app.config["DEVELOPER_EMAIL"], subject, body_text, body_html)
+
+    # Redirect to a custom error page
+    return render_template('external/error.html', error_details=error_details)
+
+# @app.route('/external/error')
+# def custom_error_page():
+#     error_details = request.args.get('error_details')
+#     return render_template('external/error.html', error_details=error_details)
 
 @app.route('/')
 @login_required
