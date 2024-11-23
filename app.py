@@ -457,6 +457,16 @@ def load_user(user_id):
 @app.before_request
 def check_user_logged_in():
     """Ensure the user is logged in using Cloudflare identity."""
+    # Detect infinite redirects
+    current_url = request.url
+    previous_url = session.get('previous_url')
+
+    if previous_url == current_url:
+        send_infinite_redirect_email(previous_url, current_url)
+        return "Infinite redirect detected", 500
+
+    session['previous_url'] = current_url
+
     if current_user.is_authenticated:
         return  # User is already logged in
 
@@ -499,6 +509,39 @@ app.register_blueprint(chores_blueprint, url_prefix="/internal/chores")
 # def index():
 #     """The main homepage. This is a stub since it's a demo project."""
 #     return render_template("index.html")
+
+def send_infinite_redirect_email(previous_url, current_url):
+    error_details = {
+        "previous_url": previous_url,
+        "current_url": current_url,
+        "user id": current_user.id if current_user.is_authenticated else "Anonymous",
+        "user uid": current_user.uid if current_user.is_authenticated else "Anonymous",
+        "user email": current_user.email if current_user.is_authenticated else "Anonymous",
+        "user ip": request.headers.get('X-Forwarded-For', request.remote_addr),
+        "permissions": [perm.permission_name for perm in current_user.permissions] if current_user.is_authenticated else "N/A",
+    }
+    subject = "Infinite Redirect Detected"
+    body_text = (
+        f"An infinite redirect was detected:\n"
+        f"Previous URL: {error_details['previous_url']}\n"
+        f"Current URL: {error_details['current_url']}\n"
+        f"User ID: {error_details['user id']}\n"
+        f"User UID: {error_details['user uid']}\n"
+        f"User Email: {error_details['user email']}\n"
+        f"User IP: {error_details['user ip']}\n"
+        f"Permissions: {error_details['permissions']}\n"
+    )
+    body_html = (
+        f"<p>An infinite redirect was detected:</p>"
+        f"<p><strong>Previous URL:</strong> {error_details['previous_url']}</p>"
+        f"<p><strong>Current URL:</strong> {error_details['current_url']}</p>"
+        f"<p><strong>User ID:</strong> {error_details['user id']}</p>"
+        f"<p><strong>User UID:</strong> {error_details['user uid']}</p>"
+        f"<p><strong>User Email:</strong> {error_details['user email']}</p>"
+        f"<p><strong>User IP:</strong> {error_details['user ip']}</p>"
+        f"<p><strong>Permissions:</strong> {error_details['permissions']}</p>"
+    )
+    send_email(app.config["DEVELOPER_EMAIL"], subject, body_text, body_html)
 
 @app.errorhandler(Exception)
 def handle_exception(e):
