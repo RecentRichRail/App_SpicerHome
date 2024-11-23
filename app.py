@@ -513,6 +513,7 @@ def handle_exception(e):
         "user id": current_user.id if current_user.is_authenticated else "Anonymous",
         "user uid": current_user.uid if current_user.is_authenticated else "Anonymous",
         "user email": current_user.email if current_user.is_authenticated else "Anonymous",
+        "user ip": request.remote_addr,
         "permissions": [perm.permission_name for perm in current_user.permissions] if current_user.is_authenticated else "N/A",
         "traceback": traceback.format_exc()
     }
@@ -526,6 +527,7 @@ def handle_exception(e):
         f"User ID: {error_details['user id']}\n"
         f"User UID: {error_details['user uid']}\n"
         f"User Email: {error_details['user email']}\n"
+        f"User IP: {error_details['user ip']}\n"
         f"Permissions: {error_details['permissions']}\n"
         f"Traceback:\n{error_details['traceback']}"
     )
@@ -537,6 +539,7 @@ def handle_exception(e):
         f"<p><strong>User ID:</strong> {error_details['user id']}</p>"
         f"<p><strong>User UID:</strong> {error_details['user uid']}</p>"
         f"<p><strong>User Email:</strong> {error_details['user email']}</p>"
+        f"<p><strong>User IP:</strong> {error_details['user ip']}</p>"
         f"<p><strong>Permissions:</strong> {error_details['permissions']}</p>"
         f"<p><strong>Traceback:</strong><pre>{error_details['traceback']}</pre></p>"
     )
