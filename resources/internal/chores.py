@@ -35,7 +35,7 @@ def points():
         return {"message": "User not found"}, 404
 
     if choreuser.household_admin:  # Assuming you have a way to check if the user is an admin
-        choreusers = ChoresUser.query.all()
+        choreusers = ChoresUser.query.filter_by(household_admin=False).all()
         all_users_points = {}
         for user in choreusers:
             user_model = User.query.filter_by(id=user.user_id).first()
