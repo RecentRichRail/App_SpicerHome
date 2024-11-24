@@ -108,11 +108,6 @@ def internal_search():
             # return redirect('/')
 
         response = user_search_query(offset, user_query)
-        
-        # response = requests.post(f"http://{current_app.mysql_database_api}/apiv1/search/query", json=data)
-        # response = response.json()
-        
-        print(response)
 
         try:
             if response['internal_search']:
