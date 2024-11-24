@@ -225,7 +225,6 @@ with app.app_context():
 #         db.session.rollback()
 #         print(f"Error during synchronization: {e}")
 
-
 def get_user():
     """
     Retrieve the most up-to-date user data, preferring CFUser if available.
@@ -460,26 +459,72 @@ def check_user_logged_in():
     # Detect infinite redirects
     current_url = request.url
     previous_url = session.get('previous_url')
+    redirect_count = session.get('redirect_count', 0)
+    print(f"redirect_count = {redirect_count}")
 
-    # if previous_url == current_url:
-    #     send_infinite_redirect_email(previous_url, current_url)
-    #     return "Infinite redirect detected", 500
+    if not current_user.is_authenticated:
+        # return  # User is already logged in
+        # Fetch identity from Cloudflare
+        identity = get_identity_from_cloudflare()
+        if identity:
+            # Synchronize with the database
+            synchronize_user_with_identity(identity)
+
+            # Log in the user with Flask-Login
+            user = User.query.filter_by(uid=identity["user_uuid"]).first()
+            if user:
+                login_user(user)
+
+    if previous_url == current_url:
+        redirect_count += 1
+        session['redirect_count'] = redirect_count
+        if redirect_count >= 5:
+            if app.server_env == "dev":
+                server_enviroment_for_email = "Development"
+            elif app.server_env == "prod":
+                server_enviroment_for_email = "Production"
+            else:
+                server_enviroment_for_email = "'Something went wrong'"
+            error_details = {
+                "error": "Infinite Redirect Detected",
+                "previous_url": previous_url,
+                "url": current_url,
+                "redirect_count": redirect_count,
+                "user id": current_user.id if current_user.is_authenticated else "Anonymous",
+                "user uid": current_user.uid if current_user.is_authenticated else "Anonymous",
+                "user email": current_user.email if current_user.is_authenticated else "Anonymous",
+                "user ip": request.headers.get('X-Forwarded-For', request.remote_addr),
+                "permissions": [perm.permission_name for perm in current_user.permissions] if current_user.is_authenticated else "N/A",
+            }
+            subject = f"Infinite Redirect Detected - {server_enviroment_for_email} Enviroment"
+            body_text = (
+                f"An infinite redirect was detected:\n"
+                f"Previous URL: {error_details['previous_url']}\n"
+                f"Current URL: {error_details['url']}\n"
+                f"Redirect Count: {error_details['redirect_count']}\n"
+                f"User ID: {error_details['user id']}\n"
+                f"User UID: {error_details['user uid']}\n"
+                f"User Email: {error_details['user email']}\n"
+                f"User IP: {error_details['user ip']}\n"
+                f"Permissions: {error_details['permissions']}\n"
+            )
+            body_html = (
+                f"<p>An infinite redirect was detected:</p>"
+                f"<p><strong>Previous URL:</strong> {error_details['previous_url']}</p>"
+                f"<p><strong>Current URL:</strong> {error_details['url']}</p>"
+                f"<p><strong>Redirect Count:</strong> {error_details['redirect_count']}</p>"
+                f"<p><strong>User ID:</strong> {error_details['user id']}</p>"
+                f"<p><strong>User UID:</strong> {error_details['user uid']}</p>"
+                f"<p><strong>User Email:</strong> {error_details['user email']}</p>"
+                f"<p><strong>User IP:</strong> {error_details['user ip']}</p>"
+                f"<p><strong>Permissions:</strong> {error_details['permissions']}</p>"
+            )
+            send_email(app.config["DEVELOPER_EMAIL"], subject, body_text, body_html)
+            return render_template('external/error.html', error_details=error_details), 500
+    else:
+        session['redirect_count'] = 0
 
     session['previous_url'] = current_url
-
-    if current_user.is_authenticated:
-        return  # User is already logged in
-
-    # Fetch identity from Cloudflare
-    identity = get_identity_from_cloudflare()
-    if identity:
-        # Synchronize with the database
-        synchronize_user_with_identity(identity)
-
-        # Log in the user with Flask-Login
-        user = User.query.filter_by(uid=identity["user_uuid"]).first()
-        if user:
-            login_user(user)
 
 
 @app.context_processor
@@ -509,39 +554,6 @@ app.register_blueprint(chores_blueprint, url_prefix="/internal/chores")
 # def index():
 #     """The main homepage. This is a stub since it's a demo project."""
 #     return render_template("index.html")
-
-def send_infinite_redirect_email(previous_url, current_url):
-    error_details = {
-        "previous_url": previous_url,
-        "current_url": current_url,
-        "user id": current_user.id if current_user.is_authenticated else "Anonymous",
-        "user uid": current_user.uid if current_user.is_authenticated else "Anonymous",
-        "user email": current_user.email if current_user.is_authenticated else "Anonymous",
-        "user ip": request.headers.get('X-Forwarded-For', request.remote_addr),
-        "permissions": [perm.permission_name for perm in current_user.permissions] if current_user.is_authenticated else "N/A",
-    }
-    subject = "Infinite Redirect Detected"
-    body_text = (
-        f"An infinite redirect was detected:\n"
-        f"Previous URL: {error_details['previous_url']}\n"
-        f"Current URL: {error_details['current_url']}\n"
-        f"User ID: {error_details['user id']}\n"
-        f"User UID: {error_details['user uid']}\n"
-        f"User Email: {error_details['user email']}\n"
-        f"User IP: {error_details['user ip']}\n"
-        f"Permissions: {error_details['permissions']}\n"
-    )
-    body_html = (
-        f"<p>An infinite redirect was detected:</p>"
-        f"<p><strong>Previous URL:</strong> {error_details['previous_url']}</p>"
-        f"<p><strong>Current URL:</strong> {error_details['current_url']}</p>"
-        f"<p><strong>User ID:</strong> {error_details['user id']}</p>"
-        f"<p><strong>User UID:</strong> {error_details['user uid']}</p>"
-        f"<p><strong>User Email:</strong> {error_details['user email']}</p>"
-        f"<p><strong>User IP:</strong> {error_details['user ip']}</p>"
-        f"<p><strong>Permissions:</strong> {error_details['permissions']}</p>"
-    )
-    send_email(app.config["DEVELOPER_EMAIL"], subject, body_text, body_html)
 
 @app.errorhandler(Exception)
 def handle_exception(e):
@@ -616,6 +628,10 @@ def redirect_old_search_command(user_query):
 @app.route('/external/status', methods=['GET'])
 def status():
     return {"status": 200}
+
+@app.route('/external/redirect', methods=['GET'])
+def redirect_test():
+    return redirect("https://dev.spicerhome.net/external/redirect")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=host_port, debug=True)
