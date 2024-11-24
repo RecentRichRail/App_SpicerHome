@@ -18,8 +18,8 @@ from models import db, User, CommandsModel, PermissionsModel, NetworkPasswordMod
 # from db import db
 # import resources
 from resources.external.external import external_blueprint
-from resources.external.auth import auth as external_auth
-from resources.internal.auth import auth as internal_auth
+# from resources.external.auth import auth as external_auth
+# from resources.internal.auth import auth as internal_auth
 from resources.internal.internal import internal_blueprint
 from resources.internal.admin import admin_blueprint
 from resources.api.search import api_blueprint
@@ -56,7 +56,7 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 if app.server_env == 'dev':
     # If current dir is not the same as the script dir, change to the script dir
     if os.getcwd() != os.path.dirname(os.path.realpath(__file__)):
-        os.chdir("/home/vscodeuser/scripts/Profile/Main Projects/Together/")
+        os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
 CLOUDFLARE_TEAM_NAME = "SpicerHome"  # Replace with your team name
 IDENTITY_ENDPOINT = f"https://{CLOUDFLARE_TEAM_NAME}.cloudflareaccess.com/cdn-cgi/access/get-identity"
@@ -148,82 +148,6 @@ with app.app_context():
                     print(e)
             else:
                 print("Command already exists")
-
-    # if User.query.count() == 0:
-    #     cmd_query = CommandsModel.query.filter_by(category="default_search").first()
-    #     user = User(name='spicerhome-admin', username='spicerhome-admin', email='admin@spicerhome.net', default_search_id=cmd_query.id)
-        
-    #     try:
-    #         db.session.add(user)
-    #         db.session.commit()  # Commit to get the user.id
-
-    #         # Retrieve the user again to ensure the id is set
-    #         user = User.query.filter_by(username='spicerhome-admin').first()
-            
-    #         if user:
-    #             user_permissions = [
-    #                 PermissionsModel(user_id=user.id, permission_name="commands", permission_level=0),
-    #                 PermissionsModel(user_id=user.id, permission_name="admin", permission_level=0)
-    #             ]
-                
-    #             for permission in user_permissions:
-    #                 db.session.add(permission)
-    #             db.session.commit()
-    #             logging.info('User created successfully')
-    #         else:
-    #             logging.error('User creation failed, user not found after commit')
-    #     except SQLAlchemyError as e:
-    #         db.session.rollback()
-    #         logging.error(f"Error creating user: {e}")
-
-# def synchronize_user_with_identity():
-#     """
-#     Synchronize the User table using identity data fetched from Cloudflare.
-#     Update an existing User or create a new one based on the identity.
-#     """
-#     identity = get_identity_from_cloudflare()
-#     if not identity:
-#         print("No identity fetched from Cloudflare")
-#         return
-
-#     # Extract data from identity
-#     user_uuid = identity.get("user_uuid")
-#     email = identity.get("email")
-#     common_name = identity.get("common_name")
-    
-#     if not user_uuid or not email:
-#         print("Incomplete identity data. Cannot synchronize.")
-#         return
-
-#     # Look for an existing user
-#     user = User.query.filter((User.email == email) | (User.uid == user_uuid)).first()
-
-#     if user:
-#         # Update the existing user
-#         user.uid = user_uuid
-#         user.email = email
-#         user.username = common_name or user.username
-#         user.name = common_name or user.name
-#     else:
-#         # Create a new user
-#         if User.query.count() == 0:
-#             is_new_user_admin = True
-#         user = User(
-#             uid=user_uuid,
-#             email=email,
-#             username=common_name or email.split("@")[0],
-#             name=common_name,
-#             default_search_id=None  # Set default or derive from another source
-#         )
-#         db.session.add(user)
-
-#     # Commit changes
-#     try:
-#         db.session.commit()
-#         print(f"User synchronization complete for {email}")
-#     except IntegrityError as e:
-#         db.session.rollback()
-#         print(f"Error during synchronization: {e}")
 
 def get_user():
     """
@@ -478,7 +402,10 @@ def check_user_logged_in():
     if previous_url == current_url:
         redirect_count += 1
         session['redirect_count'] = redirect_count
-        if redirect_count >= 5:
+        if redirect_count <= 5:
+            print("Attempting to fix the redirect issue.")
+            return redirect(current_url)
+        elif redirect_count >= 5:
             if app.server_env == "dev":
                 server_enviroment_for_email = "Development"
             elif app.server_env == "prod":
@@ -543,8 +470,8 @@ def utility_processor():
 
 app.register_blueprint(external_blueprint, url_prefix="/external")
 app.register_blueprint(internal_blueprint, url_prefix="/internal")
-app.register_blueprint(external_auth, url_prefix="/external/auth")
-app.register_blueprint(internal_auth, url_prefix="/internal/auth")
+# app.register_blueprint(external_auth, url_prefix="/external/auth")
+# app.register_blueprint(internal_auth, url_prefix="/internal/auth")
 app.register_blueprint(admin_blueprint, url_prefix="/internal/admin")
 app.register_blueprint(api_blueprint, url_prefix="/apiv1")
 app.register_blueprint(chores_blueprint, url_prefix="/internal/chores")
@@ -610,11 +537,6 @@ def handle_exception(e):
     # Redirect to a custom error page
     return render_template('external/error.html', error_details=error_details)
 
-# @app.route('/external/error')
-# def custom_error_page():
-#     error_details = request.args.get('error_details')
-#     return render_template('external/error.html', error_details=error_details)
-
 @app.route('/')
 @login_required
 def redirect_to_url():
@@ -629,13 +551,9 @@ def redirect_old_search_command(user_query):
 def status():
     return {"status": 200}
 
-@app.route('/external/redirect', methods=['GET'])
-def redirect_test():
-    return redirect(url_for("redirect_test"))
+# @app.route('/external/redirect', methods=['GET'])
+# def redirect_test():
+#     return redirect(url_for("redirect_test"))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=host_port, debug=True)
-
-
-#  This is a test comment
-#  Testing this out

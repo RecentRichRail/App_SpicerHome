@@ -32,7 +32,7 @@ from webauthn.helpers.exceptions import (
 )
 from webauthn.helpers.structs import RegistrationCredential, AuthenticationCredential
 
-from resources.utils import security, util, search_utils
+from resources.utils import search_utils_old, security_old, util
 
 internal_blueprint = Blueprint("internal", __name__, template_folder="templates")
 

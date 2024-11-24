@@ -17,7 +17,7 @@ import base64
 
 import importlib
 
-from resources.utils import security, util
+from resources.utils import security_old, util
 
 api_blueprint = Blueprint("apiv1", __name__, template_folder="templates")
 

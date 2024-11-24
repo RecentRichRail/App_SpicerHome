@@ -24,7 +24,7 @@ from webauthn.helpers.exceptions import (
 )
 from webauthn.helpers.structs import RegistrationCredential, AuthenticationCredential
 
-from resources.utils import security, util
+from resources.utils import security_old, util
 from models import User, db, CommandsModel, PermissionsModel, NetworkPasswordModel
 # from models import User, db
 
@@ -62,7 +62,7 @@ def add_credential():
             response=response_obj,
             type=data.get("type"),
         )
-        security.verify_and_save_credential(current_user, registration_credential)
+        security_old.verify_and_save_credential(current_user, registration_credential)
         session["used_webauthn"] = True
         flash("Setup Complete!", "success")
 
@@ -113,7 +113,7 @@ def user_profile():
 @login_required
 def create_credential():
     """Start creation of new credentials by existing users."""
-    pcco = security.prepare_credential_creation(current_user)
+    pcco = security_old.prepare_credential_creation(current_user)
     flash("Click the button to start setup", "warning")
     print(pcco)
     return make_response(

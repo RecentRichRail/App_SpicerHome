@@ -22,7 +22,7 @@ from webauthn.helpers.exceptions import (
 )
 from webauthn.helpers.structs import RegistrationCredential, AuthenticationCredential
 
-from resources.utils import security, util
+from resources.utils import security_old, util
 from models import User, db, CommandsModel, PermissionsModel
 
 auth = Blueprint("external_auth", __name__, template_folder="///templates")
@@ -126,7 +126,7 @@ def login():
         return render_template("auth/sp_login.html", username=None, auth_options=None, next=request.args.get("next"))
 
     # If they are remembered, we can skip directly to biometrics.
-    auth_options = security.prepare_login_with_credential(user)
+    auth_options = security_old.prepare_login_with_credential(user)
 
     # Set the user uid on the session to get when we are authenticating
     session["login_user_uid"] = user.uid
@@ -152,7 +152,7 @@ def prepare_login():
             "auth/_partials/username_form.html", error="No matching user found"
         )
 
-    auth_options = security.prepare_login_with_credential(user)
+    auth_options = security_old.prepare_login_with_credential(user)
 
     res = make_response(
         # render_template(
@@ -243,7 +243,7 @@ def verify_login_credential():
     #     )
 
     try:
-        security.verify_authentication_credential(user, authentication_credential)
+        security_old.verify_authentication_credential(user, authentication_credential)
         login_user(user, duration = datetime.timedelta(days=30))
         session["used_webauthn"] = True
         flash("Login Complete", "success")
@@ -270,7 +270,7 @@ def email_login():
         )
         session.pop("login_user_uid", None)
         return res
-    login_url = security.generate_magic_link(user.uid)
+    login_url = security_old.generate_magic_link(user.uid)
     # TODO: make a template for an html version of the email.
     util.send_email(
         user.email,
@@ -303,7 +303,7 @@ def magic_link():
         flash("Could not log in. Please try again", "failure")
         return redirect(url_for("external_auth.login"))
 
-    if security.verify_magic_link(user_uid, url_secret):
+    if security_old.verify_magic_link(user_uid, url_secret):
 
         login_user(user, duration = datetime.timedelta(days=30))
         session["used_webauthn"] = False
