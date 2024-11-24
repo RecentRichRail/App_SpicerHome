@@ -631,7 +631,7 @@ def status():
 
 @app.route('/external/redirect', methods=['GET'])
 def redirect_test():
-    return redirect("https://dev.spicerhome.net/external/redirect")
+    return redirect(url_for("redirect_test"))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=host_port, debug=True)
