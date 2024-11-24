@@ -2,19 +2,97 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>View Points</title>
+    <link id="theme-stylesheet" rel="stylesheet" href="{{ url_for('static', filename='styles/' + user_theme + '/color.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/pagination_styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/dropdown_styles.css') }}">
 </head>
 <body>
-    <h1>Your Points</h1>
-    <p id="points">Loading...</p>
+    {% include 'internal/search/elements/header.html' %}
+    <div class="container">
+        {% include 'internal/search/elements/logo.html' %}
+        <h1>Your Points</h1>
+        <div id="points-container">Loading...</div>
+
+        <!-- Form for managing points -->
+        <div id="manage-points-container" style="display: none;">
+            <h2>Manage Points</h2>
+            <form id="managePointsForm">
+                <label for="action">Action:</label>
+                <select id="action" name="action" required>
+                    <option value="add">Add</option>
+                    <option value="subtract">Subtract</option>
+                </select>
+                <label for="amount">Amount:</label>
+                <input type="number" id="amount" name="amount" required>
+                <button type="submit">Submit</button>
+            </form>
+            <p id="message"></p>
+        </div>
+    </div>
+    {% include 'internal/search/elements/footer.html' %}
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            fetch('/api/points')
+        function fetchAndDisplayPoints() {
+            fetch('/internal/chores/points')
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById('points').textContent = data.dollar_amount;
+                    const pointsContainer = document.getElementById('points-container');
+                    pointsContainer.innerHTML = '';
+
+                    if (data.message === 'success') {
+                        const points = data.points;
+                        for (const [userId, userInfo] of Object.entries(points)) {
+                            const div = document.createElement('div');
+                            const checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.value = userId;  // Store user ID in the checkbox value
+                            checkbox.classList.add('user-checkbox');
+                            const label = document.createElement('label');
+                            label.textContent = `${userInfo.name}: ${userInfo.amount}`;
+                            div.appendChild(checkbox);
+                            div.appendChild(label);
+                            pointsContainer.appendChild(div);
+                        }
+
+                        // Show manage points form if the user is an admin
+                        if (data.is_admin) {
+                            document.getElementById('manage-points-container').style.display = 'block';
+                        }
+                    } else {
+                        pointsContainer.textContent = 'Error loading points';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('points-container').textContent = 'Error loading points';
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchAndDisplayPoints();
+
+            document.getElementById('managePointsForm').addEventListener('submit', event => {
+                event.preventDefault();
+                const selectedUsers = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(checkbox => checkbox.value);
+                const action = document.getElementById('action').value;
+                const amount = parseFloat(document.getElementById('amount').value);
+
+                fetch('/internal/chores/manage_points', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_ids: selectedUsers, action, amount })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('message').textContent = data.message;
+                    if (data.message === 'Points updated successfully') {
+                        fetchAndDisplayPoints();  // Refresh the list of users
+                    }
                 })
                 .catch(error => console.error('Error:', error));
+            });
         });
     </script>
 </body>

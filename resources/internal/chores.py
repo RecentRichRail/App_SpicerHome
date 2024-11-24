@@ -9,42 +9,74 @@ chores_blueprint = Blueprint("chores", __name__, template_folder="templates/inte
 def dashboard():
     return render_template('internal/chores/dashboard.html')
 
-@chores_blueprint.route('/points', methods=['GET'])
+@chores_blueprint.route('/', methods=['GET'])
 @login_required
 def view_points():
-    user = ChoresUser.query.filter_by(name=current_user.username).first()
-    if not user:
-        return {"message": "User not found"}, 404
-    return render_template('internal/chores/view_points.html')
+    page_title = "SpicerHome Points"
 
-@chores_blueprint.route('/manage_points', methods=['GET', 'POST'])
+    context = {
+                'user_default_search_id': current_user.default_search_id,
+                'user_theme': current_user.user_theme,
+                'search_commands': current_user.json_user_search_commands(),
+                'commands': current_user.json_user_commands(),
+                'page_title': page_title,
+                'sidebar_links': current_user.json_sidebar_links()
+                # 'cookie_name': current_app.short_session_cookie_name
+            }
+    
+    return render_template('internal/chores/view_points.html', **context)
+
+@chores_blueprint.route('/points', methods=['GET'])
+@login_required
+def points():
+    choreuser = ChoresUser.query.filter_by(user_id=current_user.id).first()
+    if not choreuser:
+        return {"message": "User not found"}, 404
+
+    if choreuser.household_admin:  # Assuming you have a way to check if the user is an admin
+        choreusers = ChoresUser.query.all()
+        all_users_points = {}
+        for user in choreusers:
+            user_model = User.query.filter_by(id=user.user_id).first()
+            if user_model and user_model.name:  # Ensure user_model and user_model.name are not None
+                all_users_points[user_model.id] = {"name": user_model.name, "amount": user.dollar_amount}
+        return {"message": "success", "points": all_users_points, "is_admin": True}, 200
+    else:
+        return {"message": "success", "points": {choreuser.user_id: {"name": choreuser.name, "amount": choreuser.dollar_amount}}, "is_admin": False}, 200
+
+@chores_blueprint.route('/manage_points', methods=['POST'])
 @login_required
 def manage_points():
-    if request.method == 'GET':
-        return render_template('internal/chores/manage_points.html')
+    # if request.method == 'GET':
+    #     return render_template('internal/chores/manage_points.html')
 
     data = request.get_json()
-    username = data.get('username')
+    user_ids = data.get('user_ids')
     action = data.get('action')
     amount = data.get('amount')
 
-    user_permissions = PermissionsModel.query.filter_by(user_id=current_user.id).first()
-    if not user_permissions or user_permissions.permission_level < 2:
+    if not user_ids or not isinstance(user_ids, list):
+        return {"message": "Invalid user IDs"}, 400
+
+    choreuser = ChoresUser.query.filter_by(user_id=current_user.id).first()
+    if not choreuser or not choreuser.household_admin:
         return {"message": "Permission denied"}, 403
 
-    user = ChoresUser.query.filter_by(name=username).first()
-    if not user:
-        return {"message": "User not found"}, 404
+    for user_id in user_ids:
+        print('user_id:', user_id)
+        user = ChoresUser.query.filter_by(user_id=user_id).first()
+        if not user:
+            return {"message": f"User with ID {user_id} not found"}, 404
 
-    if action == 'add':
-        user.dollar_amount += amount
-    elif action == 'subtract':
-        user.dollar_amount -= amount
-    else:
-        return {"message": "Invalid action"}, 400
+        if action == 'add':
+            user.dollar_amount += amount
+        elif action == 'subtract':
+            user.dollar_amount -= amount
+        else:
+            return {"message": "Invalid action"}, 400
 
     db.session.commit()
-    return {"message": "Points updated successfully"}
+    return {"message": "Points updated successfully"}, 200
 
 @chores_blueprint.route('/create_household', methods=['GET', 'POST'])
 @login_required
