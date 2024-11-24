@@ -450,8 +450,10 @@ def check_user_logged_in():
             return render_template('external/error.html', error_details=error_details), 500
     else:
         session['redirect_count'] = 0
+        return
 
     session['previous_url'] = current_url
+    return
 
 
 @app.context_processor
