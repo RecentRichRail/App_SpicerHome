@@ -79,8 +79,8 @@ def run(data):
 
         # search_results = Brave().search(q=user_query, count=20, offset=user_offset)
         # print(search_results)
-        return {"funtion_triggered": True, "internal_search": True, "funtion_return": search_results}
+        return {"function_triggered": True, "internal_search": True, "function_return": search_results}
 
     else:
-        return {"funtion_triggered": True, "funtion_return": user_command['search_url'].format(encoded_search_query)}
+        return {"function_triggered": True, "function_return": user_command['search_url'].format(encoded_search_query)}
         # pass

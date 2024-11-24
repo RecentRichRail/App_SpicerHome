@@ -6,41 +6,24 @@ from datetime import datetime, timezone
 
 from models import db, CommandsModel, RequestsModel
 
-# data = [current_user, search_query_prefix, search_query, offset]
-
 def run(data):
-    search_query_prefix = data[1]
-    user_query = data[2]
-    current_user = data[0]
+    current_user, search_query_prefix, user_query, _ = data
 
     search_query = user_query.replace(search_query_prefix, '', 1).strip()
-    if search_query == "":
-        search_query = None
-        is_search = False
-    else:
-        is_search = True
+    is_search = bool(search_query)
 
-    # print(data['user_commands'])
     user_commands = current_user.json_user_commands()
-
     shortcut_command = next((cmd for cmd in user_commands if cmd['prefix'] == search_query_prefix), None)
-    # shortcut_command_model = CommandsModel.query.filter_by(prefix=data['user_query']['prefix']).first()
-    # if shortcut_command_model != None:
-    if shortcut_command:
-        if is_search:
-            # Need to see if shortcut_command['search_url'] is a valid URL
-            if shortcut_command['search_url']:
-                encoded_query = urllib.parse.quote_plus(search_query)
-            else:
-                print("No search URL found.")
-                return {"funtion_triggered": False}
-            # user_query['encoded_query'] = encoded_query
-        else:
-            encoded_query = None
-    else:
+
+    if not shortcut_command:
+        logging.info(f"User search '{user_query}' was not a shortcut.")
         return {"function_triggered": False}
-    
-    # print(data['user_query']['encoded_query'])
+
+    encoded_query = urllib.parse.quote_plus(search_query) if is_search and shortcut_command.get('search_url') else None
+
+    if is_search and not encoded_query:
+        logging.info(f"User search '{user_query}' shortcut does not have 'search_url'.")
+        return {"function_triggered": False}
 
     request_dict_format = {
         "original_request": user_query,
@@ -51,9 +34,7 @@ def run(data):
         "is_search": is_search,
         "command_id": shortcut_command['id'],
         "datetime_of_request": datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
-            }
-
-    # print("search_request data = ", request_dict_format)
+    }
 
     request_model = RequestsModel(**request_dict_format)
 
@@ -65,15 +46,7 @@ def run(data):
         print(e)
         print("Failed to record search request.")
 
-    # if shortcut_command['search_url'].beginswith("/internal/search?"):
-    #     "internal_search": script_return.get("internal_search", False),
+    function_return = shortcut_command['search_url'].format(encoded_query) if is_search else shortcut_command['url']
+    logging.info(f"Shortcuts return - '{function_return}'.")
 
-    if is_search:
-        # if "/internal/search" == shortcut_command['url']:
-        #     return {"internal_search": True, "funtion_triggered": True, "funtion_return": shortcut_command['search_url'].format(data['user_query']['encoded_query'])}
-        # print(f"redirecting to {shortcut_command['search_url'].format(encoded_query)}")
-        return {"funtion_triggered": True, "funtion_return": shortcut_command['search_url'].format(encoded_query)}
-
-    else:
-        # print(f"redirecting to {shortcut_command['url']}")
-        return {"funtion_triggered": True, "funtion_return": shortcut_command['url']}
+    return {"function_triggered": True, "internal_search": False, "function_return": function_return}
