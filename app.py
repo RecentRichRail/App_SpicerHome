@@ -395,7 +395,7 @@ def check_user_logged_in():
             synchronize_user_with_identity(identity)
 
             # Log in the user with Flask-Login
-            user = User.query.filter_by(uid=identity["uid"]).first()
+            user = User.query.filter_by(uid=identity["user_uuid"]).first()
             if user:
                 login_user(user)
 
