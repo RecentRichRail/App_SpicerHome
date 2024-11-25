@@ -90,8 +90,8 @@ app.config["MAIL_FROM"] = os.getenv("MAIL_FROM")
     
 class CFUser(UserMixin):
     def __init__(self, identity):
-        self.id = identity.get("user_uuid")
-        self.user_uuid = identity.get("user_uuid")
+        self.uid = identity.get("user_uuid")
+        # self.user_uuid = identity.get("user_uuid")
         self.email = identity.get("email")
         self.idp = identity.get("idp")
         self.geo = identity.get("geo")
@@ -196,7 +196,7 @@ def create_user():
 
     # Create new user instance
     user = User(
-        uid=current_user.user_uuid,
+        uid=current_user.uid,
         name=name,
         username=username,
         email=email,
@@ -395,7 +395,7 @@ def check_user_logged_in():
             synchronize_user_with_identity(identity)
 
             # Log in the user with Flask-Login
-            user = User.query.filter_by(uid=identity["user_uuid"]).first()
+            user = User.query.filter_by(uid=identity["uid"]).first()
             if user:
                 login_user(user)
 
