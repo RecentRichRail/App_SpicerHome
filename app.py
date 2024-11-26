@@ -91,7 +91,7 @@ app.config["MAIL_FROM"] = os.getenv("MAIL_FROM")
 class CFUser(UserMixin):
     def __init__(self, identity):
         self.uid = identity.get("user_uuid")
-        # self.user_uuid = identity.get("user_uuid")
+        self.user_uuid = identity.get("user_uuid")
         self.email = identity.get("email")
         self.idp = identity.get("idp")
         self.geo = identity.get("geo")
@@ -373,9 +373,9 @@ def synchronize_user_with_identity(identity):
         logging.error(f"Error synchronizing user: {e}")
 
 @login_manager.user_loader
-def load_user(user_id):
+def load_user(user):
     """Load user from the database by ID for Flask-Login."""
-    return User.query.get(user_id)
+    return User.query.get(user)
 
 @app.before_request
 def check_user_logged_in():
@@ -392,10 +392,10 @@ def check_user_logged_in():
         identity = get_identity_from_cloudflare()
         if identity:
             # Synchronize with the database
-            synchronize_user_with_identity(identity)
+            user = synchronize_user_with_identity(identity)
 
             # Log in the user with Flask-Login
-            user = User.query.filter_by(email=identity["email"]).first()
+            # user = User.query.filter_by(email=identity["email"]).first()
             if user:
                 login_user(user)
 
