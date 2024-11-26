@@ -402,10 +402,6 @@ def check_user_logged_in():
         else:
             return redirect(url_for("external_auth.login"))
 
-    else:
-        # ! TODO - Fix this shit lol.
-        return 
-
     if previous_url == current_url:
         redirect_count += 1
         session['redirect_count'] = redirect_count
