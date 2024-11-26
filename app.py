@@ -149,16 +149,16 @@ with app.app_context():
             else:
                 print("Command already exists")
 
-def get_user():
-    """
-    Retrieve the most up-to-date user data, preferring CFUser if available.
-    """
-    identity = get_identity_from_cloudflare()
-    if identity:
-        return CFUser.from_identity(identity)
+# def get_user():
+#     """
+#     Retrieve the most up-to-date user data, preferring CFUser if available.
+#     """
+#     identity = get_identity_from_cloudflare()
+#     if identity:
+#         return CFUser.from_identity(identity)
     
-    # Fallback to User table
-    return User.query.filter_by(uid=session.get("user_uuid")).first()
+#     # Fallback to User table
+#     return User.query.filter_by(uid=session.get("user_uuid")).first()
 
 def get_identity_from_cloudflare():
     """Fetch user's identity from Cloudflare."""
@@ -397,7 +397,16 @@ def check_user_logged_in():
             # Log in the user with Flask-Login
             user = User.query.filter_by(uid=identity["user_uuid"]).first()
             if user:
+                identitygeo = identity.get("geo")
+                print(identitygeo)
                 login_user(user)
+
+        else:
+            return redirect(url_for("external_auth.login"))
+
+    else:
+        # ! TODO - Fix this shit lol.
+        return 
 
     if previous_url == current_url:
         redirect_count += 1
@@ -542,6 +551,7 @@ def handle_exception(e):
 @app.route('/')
 @login_required
 def redirect_to_url():
+    print()
     return redirect(url_for("internal.internal_search"))
 
 @app.route('/search=<user_query>')
