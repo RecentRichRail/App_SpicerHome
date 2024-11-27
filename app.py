@@ -2,6 +2,7 @@ import logging
 import requests
 from flask import Flask, render_template, redirect, url_for, request, session
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user, UserMixin
+from flask_migrate import Migrate
 import os
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 import json
@@ -35,6 +36,7 @@ app = Flask(__name__)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
+migrate = Migrate(app, db)
 # login_manager.login_view = "external_auth.login"
 
 logging.basicConfig(level=logging.DEBUG)
@@ -291,6 +293,7 @@ def synchronize_user_with_identity(identity):
     """
     email = identity.get("email")
     uid = identity.get("user_uuid")
+    geo = identity.get("geo")
     name = identity.get("name", email.split('@')[0])  # Fallback to email prefix if name is not provided
     username = identity.get("username", email.split('@')[0])  # Fallback to email prefix if username is not provided
 
@@ -311,6 +314,7 @@ def synchronize_user_with_identity(identity):
         user = User(
             uid=uid,
             name=name,
+            geo=geo,
             username=username,
             email=email,
             default_search_id=cmd_query.id,
@@ -373,34 +377,70 @@ def synchronize_user_with_identity(identity):
         logging.error(f"Error synchronizing user: {e}")
 
 @login_manager.user_loader
-def load_user(user):
+def load_user(user_id):
     """Load user from the database by ID for Flask-Login."""
-    return User.query.get(user)
+    cf_authorization = request.cookies.get("CF_Authorization")
+    if not cf_authorization:
+        logging.error("CF_Authorization cookie missing.")
+        return None
+
+    try:
+        response = requests.get(
+            IDENTITY_ENDPOINT,
+            headers={"cookie": f"CF_Authorization={cf_authorization}"}
+        )
+        response.raise_for_status()
+        identity = response.json()
+        logging.info(f"Fetched identity for user: {identity.get('email')}")
+    except requests.RequestException as e:
+        logging.error(f"Error fetching Cloudflare identity: {e}")
+        return None
+    if identity["user_uuid"] == user_id:
+        return User.query.filter_by(uid=user_id).first()
+    else:
+        return None
+
+# @app.before_first_request
+# def check_user_logged_in():
+#     """Ensure the user is logged in using Cloudflare identity."""
+#     if not current_user.is_authenticated:
+#         # return  # User is already logged in
+#         # Fetch identity from Cloudflare
+#         identity = get_identity_from_cloudflare()
+#         session['identity'] = identity
+#         if identity:
+#             # Synchronize with the database
+#             user = synchronize_user_with_identity(identity)
+
+#             # Log in the user with Flask-Login
+#             user = User.query.filter_by(uid=identity["user_uuid"]).first()
+#             if user:
+#                 login_user(user)
 
 @app.before_request
-def check_user_logged_in():
+def before_request_def():
+    if "first_request" not in session or session["first_request"] == True:
+        if not current_user.is_authenticated:
+            # return  # User is already logged in
+            # Fetch identity from Cloudflare
+            identity = get_identity_from_cloudflare()
+            session['identity'] = identity
+            if identity:
+                # Synchronize with the database
+                user = synchronize_user_with_identity(identity)
+
+                # Log in the user with Flask-Login
+                user = User.query.filter_by(uid=identity["user_uuid"]).first()
+                if user:
+                    login_user(user)
+        session["first_request"] = False
+
     """Ensure the user is logged in using Cloudflare identity."""
     # Detect infinite redirects
     current_url = request.url
     previous_url = session.get('previous_url')
     redirect_count = session.get('redirect_count', 0)
     print(f"redirect_count = {redirect_count}")
-
-    if not current_user.is_authenticated:
-        # return  # User is already logged in
-        # Fetch identity from Cloudflare
-        identity = get_identity_from_cloudflare()
-        if identity:
-            # Synchronize with the database
-            user = synchronize_user_with_identity(identity)
-
-            # Log in the user with Flask-Login
-            # user = User.query.filter_by(email=identity["email"]).first()
-            if user:
-                login_user(user)
-
-        else:
-            return redirect(url_for("external_auth.login"))
 
     if previous_url == current_url:
         redirect_count += 1

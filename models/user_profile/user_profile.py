@@ -21,6 +21,7 @@ class User(db.Model):
     uid = db.Column(db.String(40), nullable=False, unique=True)
     username = db.Column(db.String(255), unique=True, nullable=False)
     name = db.Column(db.String(255), nullable=True)
+    geo = db.Column(db.String(255), nullable=True)
     requests = db.relationship("RequestsModel", back_populates="user", lazy="dynamic")
     permissions = db.relationship("PermissionsModel", back_populates="user", lazy="dynamic")
     network_password = db.relationship("NetworkPasswordModel", back_populates="user", lazy="dynamic")
@@ -56,8 +57,6 @@ class User(db.Model):
         return True
 
     def get_id(self):
-        """Returns the user id. We're using the generated uuid rather than the database
-        primary key."""
         return self.uid
     
     def json_user_permissions(self):

@@ -1,5 +1,6 @@
 flask
 flask_login
+flask_migrate
 sqlalchemy
 load_dotenv
 flask_sqlalchemy
