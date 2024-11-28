@@ -1,6 +1,6 @@
 from flask import Blueprint, request, current_app, render_template
 from models import User, RequestsModel, TrackingNumbersModel, LoginAttemptModel
-from flask_login import login_user, login_required, current_user, logout_user
+from flask_login import login_required, current_user, logout_user
 from models import db
 
 # import requests

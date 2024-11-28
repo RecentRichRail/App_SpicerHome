@@ -15,7 +15,7 @@ from flask import (
 )
 import base64, logging
 import requests
-from flask_login import login_user, login_required, current_user, logout_user
+from flask_login import login_required, current_user, logout_user
 from sqlalchemy import or_, func
 from sqlalchemy.exc import IntegrityError
 from webauthn.helpers.exceptions import (

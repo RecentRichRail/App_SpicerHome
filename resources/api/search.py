@@ -7,7 +7,7 @@ from models import db
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 from tracking_numbers import get_tracking_number
-from flask_login import login_user, login_required, current_user, logout_user
+from flask_login import login_required, current_user, logout_user
 from sqlalchemy import or_, func
 import logging
 

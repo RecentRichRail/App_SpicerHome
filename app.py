@@ -395,8 +395,9 @@ def load_user(user_id):
     except requests.RequestException as e:
         logging.error(f"Error fetching Cloudflare identity: {e}")
         return None
-    if identity["user_uuid"] == user_id:
-        return User.query.filter_by(uid=user_id).first()
+    cfcookieuseruid = identity["user_uuid"]
+    if cfcookieuseruid == user_id:
+        return User.query.filter_by(uid=cfcookieuseruid).first()
     else:
         return None
 

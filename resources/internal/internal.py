@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, current_app, redirect, request
-from flask_login import login_user, login_required, current_user, logout_user
+from flask_login import login_required, current_user, logout_user
 import requests
 import importlib
 import os
@@ -23,7 +23,7 @@ from flask import (
 )
 import base64
 # import Response
-from flask_login import login_user, login_required, current_user, logout_user
+from flask_login import login_required, current_user, logout_user
 from sqlalchemy import or_, func
 from sqlalchemy.exc import IntegrityError
 from webauthn.helpers.exceptions import (
