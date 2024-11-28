@@ -6,7 +6,10 @@ const urlsToCache = [
   '/static/scripts.js',
   '/internal/chores/',
   '/internal/search/',
-  '/internal/admin/'
+  '/internal/admin/',
+  '/internal/search/track/',
+  '/internal/search/history/',
+  '/internal/search/commands/'
 ];
 
 self.addEventListener('install', event => {
