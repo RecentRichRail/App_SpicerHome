@@ -435,12 +435,14 @@ def before_request_def():
                     login_user(user)
         session["first_request"] = False
 
+    logging.debug(f"Session data: {session}")
+
     """Ensure the user is logged in using Cloudflare identity."""
     # Detect infinite redirects
     current_url = request.url
     previous_url = session.get('previous_url')
     redirect_count = session.get('redirect_count', 0)
-    print(f"redirect_count = {redirect_count}")
+    logging.debug(f"Redirect count: {redirect_count}, Current URL: {current_url}, Previous URL: {previous_url}")
 
     if previous_url == current_url:
         redirect_count += 1
