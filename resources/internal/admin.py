@@ -1,7 +1,6 @@
 from flask import Blueprint, request, current_app, render_template
 from models import User, RequestsModel, TrackingNumbersModel, LoginAttemptModel
-from flask_login import login_required, current_user, logout_user
-from models import db
+from flask_login import login_required, current_user
 
 # import requests
 
@@ -76,7 +75,7 @@ def admin_history():
                     }
                 response = user_track_query_structured
             else:
-                response = {"message": "No permission for this resource."}
+                response = {"message - No permission for this resource.": "No permission for this resource."}
         
         tracking_requests = response
         page_title = f"SpicerHome {user_id} Tracking"
@@ -97,34 +96,25 @@ def admin_history():
     else:
         for permission in current_user.permissions:
             if permission.permission_name == "admin" and permission.permission_level == 0:
-
                 admin_users_query = User.query.order_by(User.id.desc()).all()
-
                 admin_user_query_structured = {}
                 for user in admin_users_query:
                     admin_user_query_structured[user.id] = user.to_dict()
-
-                print(admin_user_query_structured)
                 response = admin_user_query_structured
             else:
-                response = {"message": "No permission for this resource."}
+                response = {"message - No permission for this resource.": "No permission for this resource."}
         users_query = response
-        print(users_query)
 
-        # response = requests.post(f"http://{current_app.mysql_database_api}/apiv1/admin/user/login/requests_unauth", json={"data": data})
-        # login_request_query = response.json()
-        # print(login_request_query)
         page_title = f"SpicerHome Admin Portal"
 
         context = {
-                # 'login_request_query': login_request_query,
-                'users_query': users_query,
-                'user_default_search_id': current_user.default_search_id,
-                'user_theme': current_user.user_theme,
-                'search_commands': current_user.json_user_search_commands(),
-                'commands': current_user.json_user_commands(),
-                'page_title': page_title,
-                'sidebar_links': current_user.json_sidebar_links()
-            }
+            'users_query': users_query,
+            'user_default_search_id': current_user.default_search_id,
+            'user_theme': current_user.user_theme,
+            'search_commands': current_user.json_user_search_commands(),
+            'commands': current_user.json_user_commands(),
+            'page_title': page_title,
+            'sidebar_links': current_user.json_sidebar_links()
+        }
 
         return render_template('admin/admin_index.html', **context)
