@@ -299,10 +299,10 @@ def synchronize_user_with_identity(identity):
 
     try:
         # Check if user exists
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(uid=identity.get("user_uuid")).first()
         if user:
             logging.info(f"User already exists: {email}")
-            return user
+            return None
 
         # Fetch default search command
         cmd_query = CommandsModel.query.filter_by(category="default_search").first()
@@ -424,13 +424,15 @@ def before_request_def():
         if not current_user.is_authenticated:
             # Fetch identity from Cloudflare
             identity = get_identity_from_cloudflare()
-            session['identity'] = identity
+            # session['identity'] = identity
             if identity:
                 # Synchronize with the database
-                user = synchronize_user_with_identity(identity)
+                user = User.query.filter_by(uid=identity["user_uuid"]).first()
+                if not user:
+                    synchronize_user_with_identity(identity)
+                    user = User.query.filter_by(uid=identity["user_uuid"]).first()
 
                 # Log in the user with Flask-Login
-                user = User.query.filter_by(uid=identity["user_uuid"]).first()
                 if user:
                     login_user(user)
         session["first_request"] = False

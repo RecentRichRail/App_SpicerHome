@@ -30,11 +30,11 @@ class User(db.Model):
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
     
-    credentials = db.relationship(
-        "WebAuthnCredential",
-        backref=backref("user", cascade="all, delete"),
-        lazy=True,
-    )
+    # credentials = db.relationship(
+    #     "WebAuthnCredential",
+    #     backref=backref("user", cascade="all, delete"),
+    #     lazy=True,
+    # )
 
     def __repr__(self):
         return f"<User {self.username}>"

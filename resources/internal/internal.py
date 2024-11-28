@@ -136,12 +136,15 @@ def internal_search():
             # 'cookie_name': current_app.short_session_cookie_name
         }
 
+        session['user_default_search_id'] = current_user.default_search_id
+        session['user_theme'] = current_user.user_theme
+
         return render_template('internal/search/search_index.html', **context)
     
     else:        
         page_title = "SpicerHome Search"
 
-        print(current_user.json_sidebar_links())
+        # print(current_user.json_sidebar_links())
 
         context = {
                 'user_default_search_id': current_user.default_search_id,
