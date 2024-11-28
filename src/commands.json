@@ -143,6 +143,12 @@
         "prefix": ["logout"],
         "url": "https://spicerhome.cloudflareaccess.com/cdn-cgi/access/logout",
         "permission_level": 999
+      },
+      {
+        "category": "shortcut",
+        "prefix": ["points"],
+        "url": "/internal/chores/",
+        "permission_level": 999
       }
     ]
   }
