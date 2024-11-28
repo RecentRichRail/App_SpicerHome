@@ -8,6 +8,35 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/pagination_styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/dropdown_styles.css') }}">
+    <style>
+        #points-container {
+            font-size: 24px;
+            margin-top: 20px;
+            padding: 20px;
+        }
+
+        #manage-points-container {
+            margin-top: 20px;
+        }
+
+        #managePointsForm {
+            display: flex;
+            flex-direction: column;
+            max-width: 300px;
+        }
+
+        #managePointsForm label {
+            margin-top: 10px;
+        }
+
+        #managePointsForm input {
+            margin-top: 5px;
+        }
+
+        #message {
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
     {% include 'internal/search/elements/header.html' %}
