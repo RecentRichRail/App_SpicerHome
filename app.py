@@ -421,7 +421,6 @@ def load_user(user_id):
 def before_request_def():
     if "first_request" not in session or session["first_request"] == True:
         if not current_user.is_authenticated:
-            # return  # User is already logged in
             # Fetch identity from Cloudflare
             identity = get_identity_from_cloudflare()
             session['identity'] = identity
@@ -435,6 +434,7 @@ def before_request_def():
                     login_user(user)
         session["first_request"] = False
 
+    # Log session data for debugging
     logging.debug(f"Session data: {session}")
 
     """Ensure the user is logged in using Cloudflare identity."""
@@ -448,27 +448,21 @@ def before_request_def():
         redirect_count += 1
         session['redirect_count'] = redirect_count
         if redirect_count <= 5:
-            print("Attempting to fix the redirect issue.")
             return redirect(current_url)
         elif redirect_count >= 5:
-            if app.server_env == "dev":
-                server_enviroment_for_email = "Development"
-            elif app.server_env == "prod":
-                server_enviroment_for_email = "Production"
-            else:
-                server_enviroment_for_email = "'Something went wrong'"
+            # Handle infinite redirect error
             error_details = {
-                "error": "Infinite Redirect Detected",
                 "previous_url": previous_url,
                 "url": current_url,
                 "redirect_count": redirect_count,
-                "user id": current_user.id if current_user.is_authenticated else "Anonymous",
-                "user uid": current_user.uid if current_user.is_authenticated else "Anonymous",
-                "user email": current_user.email if current_user.is_authenticated else "Anonymous",
-                "user ip": request.headers.get('X-Forwarded-For', request.remote_addr),
+                "user_id": current_user.id if current_user.is_authenticated else "Anonymous",
+                "user_uid": current_user.uid if current_user.is_authenticated else "Anonymous",
+                "user_email": current_user.email if current_user.is_authenticated else "Anonymous",
+                "user_ip": request.headers.get('X-Forwarded-For', request.remote_addr),
                 "permissions": [perm.permission_name for perm in current_user.permissions] if current_user.is_authenticated else "N/A",
             }
-            subject = f"Infinite Redirect Detected - {server_enviroment_for_email} Enviroment"
+
+            subject = f"Infinite Redirect Detected - {app.server_env} Enviroment"
             body_text = (
                 f"An infinite redirect was detected:\n"
                 f"Previous URL: {error_details['previous_url']}\n"
@@ -531,7 +525,6 @@ app.register_blueprint(chores_blueprint, url_prefix="/internal/chores")
 
 @app.errorhandler(Exception)
 def handle_exception(e):
-    def handle_exception(e):
     # Log the error
     logging.error(f"An error occurred: {e}")
 
