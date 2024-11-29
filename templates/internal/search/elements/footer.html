@@ -1,6 +1,6 @@
 <footer>
     <div style="text-align: center;">
-        {% if current_user.get_dollar_amount %}
+        {% if current_user.get_dollar_amount != "False" %}
             {{ current_user.email }} - {{ current_user.get_dollar_amount() }}
         {% else %}
             {{ current_user.email }}
