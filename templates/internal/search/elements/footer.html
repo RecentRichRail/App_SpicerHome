@@ -1,5 +1,9 @@
 <footer>
     <div style="text-align: center;">
-        {{ current_user.email }}
+        {% if session['user_points_as_dollar'] %}
+            {{ current_user.email }} - {{ session['user_points_as_dollar'] }}
+        {% else %}
+            {{ current_user.email }}
+        {% endif %}
     </div>
 </footer>

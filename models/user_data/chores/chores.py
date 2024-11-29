@@ -11,3 +11,6 @@ class ChoresUser(db.Model):
 
     def __repr__(self):
         return f'<User {self.name}>'
+    
+    def get_dollar_amount(self):
+        return f"${self.dollar_amount / 100:.2f}"

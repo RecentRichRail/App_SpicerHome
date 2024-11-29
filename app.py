@@ -11,7 +11,7 @@ import uuid
 import traceback
 
 from resources.utils.util import send_email
-from models import db, User, CommandsModel, PermissionsModel, NetworkPasswordModel
+from models import db, User, CommandsModel, PermissionsModel, NetworkPasswordModel, ChoresUser
 # from resources.utils import util
 # from db import db
 # CommandsModel.__table__.create(db.engine)
@@ -436,6 +436,12 @@ def before_request_def():
                 if user:
                     login_user(user)
         session["first_request"] = False
+
+    user_points_model = ChoresUser.query.filter_by(user_id=current_user.id).first()
+    if user_points_model and user_points_model.dollar_amount != 0:
+        session['user_points_as_dollar'] = user_points_model.get_dollar_amount
+    else:
+        session['user_points_as_dollar'] = False
 
     # Log session data for debugging
     logging.debug(f"Session data: {session}")
