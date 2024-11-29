@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from models import db, CommandsModel, ChoresUser
+from models import db, CommandsModel
 from sqlalchemy.orm import backref
 
 def _str_uuid():
@@ -115,8 +115,9 @@ class User(db.Model):
         return user_search_commands
     
     def get_dollar_amount(self):
+        from models.user_data.chores.chores import ChoresUser
         user_points_model = ChoresUser.query.filter_by(user_id=self.id).first()
         if user_points_model and user_points_model.dollar_amount != 0:
-            return user_points_model.get_dollar_amount
+            return user_points_model.get_dollar_amount()
         else:
             return False
