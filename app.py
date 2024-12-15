@@ -293,19 +293,21 @@ def synchronize_user_with_identity(identity):
     """
     email = identity.get("email")
     uid = identity.get("user_uuid")
-    geo = identity.get("geo")
+    geo = identity.get("country")
     name = identity.get("name", email.split('@')[0])  # Fallback to email prefix if name is not provided
     username = identity.get("username", email.split('@')[0])  # Fallback to email prefix if username is not provided
 
     try:
         # Check if user exists
         user = User.query.filter_by(uid=identity.get("user_uuid")).first()
+        logging.info(f"Fetching user by UID: {uid}")
         if user:
             logging.info(f"User already exists: {email}")
             return None
 
         # Fetch default search command
         cmd_query = CommandsModel.query.filter_by(category="default_search").first()
+        logging.info(f"Fetching default search command")
         if not cmd_query:
             logging.error("Default search command not found")
             raise ValueError("Default search command is required but not available")
@@ -320,52 +322,57 @@ def synchronize_user_with_identity(identity):
             default_search_id=cmd_query.id,
         )
 
+        logging.info(f"Creating new user: {email}")
         db.session.add(user)
         db.session.commit()
+        logging.info(f"User created successfully: {email}")
 
         # Assign permissions
+        logging.info(f"Assigning permissions to user: {email}")
         user_permissions = PermissionsModel(
             user_id=user.id,
             permission_name="commands",
             permission_level=999
         )
+        logging.info(f"Adding permissions to user: {email}")
         db.session.add(user_permissions)
         db.session.commit()
+        logging.info(f"Permissions added successfully: {email}")
 
         # Add router integration if needed (optional based on your system)
-        router_api_key = app.config.get("ROUTER_API_KEY")
-        if router_api_key:
-            headers = {
-                'x-api-key': router_api_key,
-                'accept': 'application/json',
-                'CF-Access-Client-Secret': app.config.get("CF_ACCESS_CLIENT_SECRET"),
-                'CF-Access-Client-Id': app.config.get("CF_ACCESS_CLIENT_ID"),
-            }
-            password_entry = NetworkPasswordModel(user_id=user.id, user=user)
-            db.session.add(password_entry)
-            db.session.commit()
+        # router_api_key = app.config.get("ROUTER_API_KEY")
+        # if router_api_key:
+        #     headers = {
+        #         'x-api-key': router_api_key,
+        #         'accept': 'application/json',
+        #         'CF-Access-Client-Secret': app.config.get("CF_ACCESS_CLIENT_SECRET"),
+        #         'CF-Access-Client-Id': app.config.get("CF_ACCESS_CLIENT_ID"),
+        #     }
+        #     password_entry = NetworkPasswordModel(user_id=user.id, user=user)
+        #     db.session.add(password_entry)
+        #     db.session.commit()
 
-            request_body = {
-                "id": user.id,
-                "name": user.username,
-                "password": password_entry.password,
-                "priv": ["user-services-captiveportal-login"],
-                "disabled": False,
-                "descr": f"{user.uid}",
-                "expires": None,
-                "cert": None,
-                "authorizedkeys": None,
-                "ipsecpsk": None,
-            }
+        #     request_body = {
+        #         "id": user.id,
+        #         "name": user.username,
+        #         "password": password_entry.password,
+        #         "priv": ["user-services-captiveportal-login"],
+        #         "disabled": False,
+        #         "descr": f"{user.uid}",
+        #         "expires": None,
+        #         "cert": None,
+        #         "authorizedkeys": None,
+        #         "ipsecpsk": None,
+        #     }
 
-            response = requests.post(
-                "https://router.spicerhome.net/api/v2/user",
-                headers=headers,
-                json=request_body,
-                allow_redirects=True
-            )
-            if response.status_code != 200:
-                logging.error(f"Router API error: {response.text}")
+        #     response = requests.post(
+        #         "https://router.spicerhome.net/api/v2/user",
+        #         headers=headers,
+        #         json=request_body,
+        #         allow_redirects=True
+        #     )
+        #     if response.status_code != 200:
+        #         logging.error(f"Router API error: {response.text}")
 
         logging.info(f"User created successfully: {email}")
         return user
@@ -375,6 +382,7 @@ def synchronize_user_with_identity(identity):
         db.session.rollback()
     except Exception as e:
         logging.error(f"Error synchronizing user: {e}")
+        db.session.rollback()
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -429,8 +437,11 @@ def before_request_def():
                 # Synchronize with the database
                 user = User.query.filter_by(uid=identity["user_uuid"]).first()
                 if not user:
-                    synchronize_user_with_identity(identity)
+                    # Just saying.. If it cannot find the user then why does it not create the user?
+                    # This needs to create a user if there is not one.
+                    user = synchronize_user_with_identity(identity)
                     user = User.query.filter_by(uid=identity["user_uuid"]).first()
+                    login_user(user)
 
                 # Log in the user with Flask-Login
                 if user:
