@@ -3,6 +3,7 @@ import requests
 from flask import Flask, render_template, redirect, url_for, request, session
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user, UserMixin
 from flask_migrate import Migrate
+import jinja_partials
 import os
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 import json
@@ -33,6 +34,7 @@ from sqlalchemy.pool import QueuePool
 load_dotenv()
 
 app = Flask(__name__)
+jinja_partials.register_extensions(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
