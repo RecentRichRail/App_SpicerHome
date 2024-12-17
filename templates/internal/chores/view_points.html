@@ -19,13 +19,13 @@
     </style>
 </head>
 {% include 'internal/search/elements/logo.html' %}
-    <h1>Your Points</h1>
-    <div id="points-container" class="text-2xl mt-5 p-9">Loading...</div>
+    <h1 class="flex justify-center items-center">Your Points</h1>
+    <div id="points-container" class="text-2xl mt-5 p-9 flex justify-center items-center">Loading...</div>
 
     <!-- Form for managing points -->
-    <div id="manage-points-container" style="display: none;">
-        <h2>Manage Points</h2>
-        <form id="managePointsForm">
+    <div id="manage-points-container" style="display: none;" class="flex justify-center items-center">
+        <h2 class="flex justify-center items-center">Manage Points</h2>
+        <form id="managePointsForm" class="flex justify-center items-center">
             <label for="action">Action:</label>
             <select id="action" name="action" required class="text-black">
                 <option value="add">Add</option>

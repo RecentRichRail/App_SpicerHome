@@ -8,9 +8,9 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>SpicerHome Search</title>
   <!-- <link id="theme-stylesheet" rel="stylesheet" href="{{ url_for('static', filename='styles/' + user_theme + '/color.css') }}"> -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <!-- <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"> -->
   <link rel="stylesheet" href="{{ url_for('static', filename='styles/pagination_styles.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles/dropdown_styles.css') }}">
+  <!-- <link rel="stylesheet" href="{{ url_for('static', filename='styles/dropdown_styles.css') }}"> -->
   <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
 
   <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
@@ -23,7 +23,7 @@
 
 </head>
 
-<body class="dark:bg-black bg-white dark:text-white text-black">
+<body class="dark:bg-black bg-yellow-100 dark:text-white text-black">
   {% include 'internal/search/elements/header.html' %}
   {% block content %}
   {% endblock %}

@@ -1,0 +1,34 @@
+<form class="flex justify-center items-center" id="search-form" onsubmit="return submitForm()">
+    <div id="search-bar-container">
+        <div id="category-dropdown" class="flex justify-center items-center">
+            <select id="styled-dropdown-select" class="dark:bg-grey-700 bg-white text-black">
+                <option value="">Default</option>
+                {% for search_command in search_commands %}
+                    <option value="{{ search_command['prefix'] }}">{{ search_command['text'] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% if search_index %}
+            <input type="text" id="search-bar" name="q" placeholder="Search..." value="{{ search_index.query.original }}" class="text-black border border-gray-700 rounded placeholder:center w-80 h-35">
+        {% else %}
+            <input type="text" id="search-bar" name="q" placeholder="Search..." class="text-black border border-gray-700 rounded placeholder:center w-80 h-35">
+        {% endif %}
+        <button type="submit" class="border border-gray-700 rounded w-32" id="search-button">Search</button>
+    </div>
+</form>
+<div id="shortcut-section" class="flex justify-center items-center">
+    <!-- Shortcut Links will be dynamically added here -->
+</div>
+<script>
+    function submitForm() {
+        var query = document.getElementById("search-bar").value;
+        var category = document.getElementById("styled-dropdown-select").value;
+        if (query.trim() !== "") {
+            if (category !== "") {
+                query = category + " " + query;
+            }
+            window.location.href = "/internal/search?q=" + encodeURIComponent(query);
+        }
+        return false;
+    }
+</script>

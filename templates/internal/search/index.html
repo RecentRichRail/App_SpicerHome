@@ -1,24 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
     {% include 'internal/search/elements/logo.html' %}
-        <form id="search-form" onsubmit="return submitForm()">
-            <div id="search-bar-container">
-                <div id="category-dropdown">
-                    <select id="styled-dropdown-select">
-                        <option value="">Default</option>
-                        {% for search_command in search_commands %}
-                            <option value="{{ search_command['prefix'] }}">{{ search_command['text'] }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <input class="border border-gray-700" type="text" id="search-bar" name="q" placeholder="Search...">
-                <button type="submit" id="search-button">Search</button>
-            </div>
-        </form>
-        <div id="shortcut-section">
-            <!-- Shortcut Links will be dynamically added here -->
-        </div>
-    </div>
+    {% include 'internal/search/elements/big_search_bar.html' %}
 {% endblock %}
 
 {% block scripts %}
@@ -31,18 +14,6 @@
                 .catch(error => {
                     console.log('Service Worker registration failed:', error);
                 });
-        }
-
-        function submitForm() {
-            var query = document.getElementById("search-bar").value;
-            var category = document.getElementById("styled-dropdown-select").value;
-            if (query.trim() !== "") {
-                if (category !== "") {
-                    query = category + " " + query;
-                }
-                window.location.href = "/internal/search?q=" + encodeURIComponent(query);
-            }
-            return false;
         }
     </script>
 {% endblock %}
