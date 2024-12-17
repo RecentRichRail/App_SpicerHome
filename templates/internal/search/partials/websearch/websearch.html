@@ -1,38 +1,14 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="container">
-    {% include 'internal/search/elements/logo.html' %}
-    <form id="search-form" onsubmit="return submitForm()">
-        <div id="search-bar-container">
-            <div id="category-dropdown">
-                <select id="styled-dropdown-select">
-                    <option value="">Default</option>
-                    {% for search_command in search_commands %}
-                        <option value="{{ search_command['prefix'] }}">{{ search_command['text'] }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <input type="text" id="search-bar" name="q" placeholder="Search..." value="{{ search_index.query.original }}">
-            <button type="submit" id="search-button">Search</button>
-        </div>
-    </form>
-    <div id="shortcut-section">
-        <!-- Shortcut Links will be dynamically added here -->
-    </div>
-</div>
 <div>
     <div class="pl-4">
         <h2 class="bold">Search Results for "{{ search_index.query.original }}"</h2>
     </div>
-    {{ render_partial("internal/search/partials/webentry.html", search_index=search_index) }}
+    {{ render_partial("internal/search/partials/websearch/webentry.html", search_index=search_index) }}
 </div>
 <div class="pagination-controls">
     <button id="prev-page" class="pagination-button" onclick="changePage(-1)">Previous</button>
     <button id="next-page" class="pagination-button" onclick="changePage(1)">Next</button>
 </div>
-{% endblock %}
 
-{% block script %}
 <script>
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('{{ url_for('static', filename='service-worker.js') }}')
@@ -78,4 +54,3 @@
         }
     };
 </script>
-{% endblock script %}

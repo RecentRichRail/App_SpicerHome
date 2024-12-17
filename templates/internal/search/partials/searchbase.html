@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+    {% include 'internal/search/elements/logo.html' %}
+        <form id="search-form" onsubmit="return submitForm()">
+            <div id="search-bar-container">
+                <div id="category-dropdown">
+                    <select id="styled-dropdown-select">
+                        <option value="">Default</option>
+                        {% for search_command in search_commands %}
+                            <option value="{{ search_command['prefix'] }}">{{ search_command['text'] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <input type="text" id="search-bar" name="q" placeholder="Search..." value="{{ search_index.query.original }}">
+                <button type="submit" id="search-button">Search</button>
+            </div>
+        </form>
+        <div id="shortcut-section">
+            <!-- Shortcut Links will be dynamically added here -->
+        </div>
+    </div>
+{% if search_index %}
+    {{ render_partial("internal/search/partials/websearch/websearch.html", search_index=search_index) }}
+{% endif %}
+{% endblock %}

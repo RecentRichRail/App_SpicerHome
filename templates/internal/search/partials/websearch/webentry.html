@@ -6,7 +6,7 @@ A individual web entry in the search results
     {% for search_type in search_index.mixed.main %}
         {% if search_type['type'] == "web" %}
             {% set result = search_index.web.results[search_type['index']] %}
-            <div class="p-4">
+            <div class="p-2">
                 <div class="bg-white dark:bg-black p-4 rounded-lg shadow-md border border-gray-600">
                     <div class="web-result-content">
                         <a href="{{ result.url }}" target="_self">
@@ -44,7 +44,7 @@ A individual web entry in the search results
                             <p class="text-gray-600 dark:text-gray-300 mb-2">{{ result.description | safe }}</p>
                             <div class="meta-info flex items-center text-gray-500 dark:text-gray-400">
                                 <img class="favicon w-6 h-6 border border-gray-300 dark:border-gray-600 rounded mr-2" src="{{ result.meta_url.favicon }}" alt="{{ result.meta_url.netloc }} favicon">
-                                <a href="{{ result.meta_url.scheme + "://" + result.meta_url.hostname }}" class="hover:underline">{{ result.meta_url.netloc }}</a> - {{ result.meta_url.path }}
+                                <a href="{{ result.meta_url.scheme + "://" + result.meta_url.hostname }}" class="hover:underline break-words">{{ result.meta_url.netloc }}</a>
                             </div>
                         </div>
                     </div>

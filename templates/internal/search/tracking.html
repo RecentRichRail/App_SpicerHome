@@ -1,56 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
+{% block content %}
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SpicerHome Tracking</title>
-    <link id="theme-stylesheet" rel="stylesheet" href="{{ url_for('static', filename='styles/' + user_theme + '/color.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/pagination_styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/modern_table.css') }}">
 </head>
-<body>
-    {% include 'internal/search/elements/header.html' %}
-    <div class="container">
-        {% include 'internal/search/elements/logo.html' %}
-        <div id="history-section">
-            <h2>Search Tracking Numbers</h2>
-            {% if tracking_requests %}
-            <table id="history-table">
-                <tbody>
-                    {% for user_id, user_tracking in tracking_requests.items() %}
-                        {% for request_id, track_info in user_tracking.items() %}
-                            <tr class="track-row" data-request-id="{{ track_info.track_id }}">
-                                <td data-label="Tracking Number">
-                                    <a href="{{ track_info.query_url }}" class="quick-fix-data-url" target="_blank">{{ track_info.tracking_number }}</a>
-                                </td>
-                                <td data-label="Note" id="note-{{ track_info.id }}" onclick="makeEditable(this, '{{ track_info.track_id }}'); event.stopPropagation();">{{ track_info.note }}</td>
-                                <td>
-                                    <span class="dropdown-arrow" onclick="this.closest('tr').nextElementSibling.id = this.closest('tr').nextElementSibling.id === 'closed' ? 'open' : 'closed';">&#9660;</span>
-                                </td>
-                            </tr>
-                            <tr class="detail-row" data-request-id="{{ track_info.track_id }}" id="closed">
-                                <td data-label="ID">{{ track_info.track_id }}</td>
-                                <td data-label="Courier">{{ track_info.courier_name }}</td>
-                                <td data-label="Tracking Link">
-                                    <a href="{{ track_info.query_url }}" class="quick-fix-data-url" target="_blank">{{ track_info.query_url }}</a>
-                                </td>
-                                <td data-label="Date and Time">{{ track_info.datetime_of_create_on_database }}</td>
-                            </tr>
-                        {% endfor %}
+    {% include 'internal/search/elements/logo.html' %}
+    <div id="history-section">
+        <h2>Search Tracking Numbers</h2>
+        {% if tracking_requests %}
+        <table id="history-table">
+            <tbody>
+                {% for user_id, user_tracking in tracking_requests.items() %}
+                    {% for request_id, track_info in user_tracking.items() %}
+                        <tr class="track-row" data-request-id="{{ track_info.track_id }}">
+                            <td data-label="Tracking Number">
+                                <a href="{{ track_info.query_url }}" class="quick-fix-data-url" target="_blank">{{ track_info.tracking_number }}</a>
+                            </td>
+                            <td data-label="Note" id="note-{{ track_info.id }}" onclick="makeEditable(this, '{{ track_info.track_id }}'); event.stopPropagation();">{{ track_info.note }}</td>
+                            <td>
+                                <span class="dropdown-arrow" onclick="this.closest('tr').nextElementSibling.id = this.closest('tr').nextElementSibling.id === 'closed' ? 'open' : 'closed';">&#9660;</span>
+                            </td>
+                        </tr>
+                        <tr class="detail-row" data-request-id="{{ track_info.track_id }}" id="closed">
+                            <td data-label="ID">{{ track_info.track_id }}</td>
+                            <td data-label="Courier">{{ track_info.courier_name }}</td>
+                            <td data-label="Tracking Link">
+                                <a href="{{ track_info.query_url }}" class="quick-fix-data-url" target="_blank">{{ track_info.query_url }}</a>
+                            </td>
+                            <td data-label="Date and Time">{{ track_info.datetime_of_create_on_database }}</td>
+                        </tr>
                     {% endfor %}
-                </tbody>
-            </table>  
-            <div class="pagination-controls">
-                <button id="prev-page" class="pagination-button" onclick="changePage(-1)">Previous</button>
-                <button id="next-page" class="pagination-button" onclick="changePage(1)">Next</button>
-            </div>
-        {% else %}
-            <p>No search history found.</p>
-        {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>  
+        <div class="pagination-controls">
+            <button id="prev-page" class="pagination-button" onclick="changePage(-1)">Previous</button>
+            <button id="next-page" class="pagination-button" onclick="changePage(1)">Next</button>
         </div>
+    {% else %}
+        <p>No search history found.</p>
+    {% endif %}
     </div>
-    {% include 'internal/search/elements/footer.html' %}
+{% endblock %}
+
+{% block scripts %}
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('{{ url_for('static', filename='service-worker.js') }}')
@@ -233,6 +227,5 @@
                 truncateRequests();
             };
         });
-    </script>        
-</body>
-</html>
+    </script>
+{% endblock %}

@@ -1,18 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
+{% block content %}
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Search Commands</title>
-    <link id="theme-stylesheet" rel="stylesheet" href="{{ url_for('static', filename='styles/' + user_theme + '/color.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>SpicerHome History</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/pagination_styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/modern_table.css') }}">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
-<body>
-    {% include 'internal/search/elements/header.html' %}
-    <div class="container">
-        {% include 'internal/search/elements/logo.html' %}
+    {% include 'internal/search/elements/logo.html' %}
         <div id="history-section">
             <h2>{{ page_title }}</h2>
             {% if commands %}
@@ -38,7 +31,8 @@
                 <p>No search history found.</p>
             {% endif %}
         </div>
-    {% include 'internal/search/elements/footer.html' %}
+{% endblock %}
+{% block script %}
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('{{ url_for('static', filename='service-worker.js') }}')
@@ -83,5 +77,4 @@
             $('#history-table tbody').empty().append(groupedRows);
         });
     </script>
-</body>
-</html>
+{% endblock %}

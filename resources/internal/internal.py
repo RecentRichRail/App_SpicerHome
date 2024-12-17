@@ -139,7 +139,7 @@ def internal_search():
         session['user_default_search_id'] = current_user.default_search_id
         session['user_theme'] = current_user.user_theme
 
-        return render_template('internal/search/websearch.html', **context)
+        return render_template('internal/search/partials/searchbase.html', **context)
     
     else:        
         page_title = "SpicerHome Search"

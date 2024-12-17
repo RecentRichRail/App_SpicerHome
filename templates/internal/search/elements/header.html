@@ -1,30 +1,20 @@
-<header>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/hamburger_styles.css') }}">
-    <div class="header-content">
-        <div class="hamburger-menu" id="hamburger-menu">
+<header class="dark:bg-black bg-white dark:text-white text-black fixed w-full z-50 top-0 border border-gray-700">
+    <div class="flex justify-between items-center p-4">
+        <div class="cursor-pointer text-2xl" id="hamburger-menu">
             &#9776; <!-- Hamburger icon -->
         </div>
-        <div class="page-title" id="page-title" data-title="{{ page_title }}">{{ page_title }}</div>
+        <div class="text-xl" id="page-title" data-title="{{ page_title }}">{{ page_title }}</div>
     </div>
-    <nav class="sidebar" id="sidebar">
-        <ul id="sidebar-links" data-links='{{ sidebar_links | tojson | safe }}'>
+    <nav class="fixed top-0 left-0 h-full w-64 dark:bg-black bg-white dark:text-white text-black transform -translate-x-full transition-transform duration-300 z-40 border border-gray-700" id="sidebar">
+        <ul id="sidebar-links" data-links='{{ sidebar_links | tojson | safe }}' class="list-none p-4">
             {% for link in sidebar_links %}
-            <li><a href="{{ link.href }}" class="tab-link" data-tab="{{ link.data_tab }}">{{ link.text }}</a></li>
+            <li class="p-2"><a href="{{ link.href }}" class="dark:text-white text-black no-underline" data-tab="{{ link.data_tab }}">{{ link.text }}</a></li>
             {% endfor %}
         </ul>
 
-        <!-- New Dropdown for Theme Selection -->
-        <div class="theme-dropdown">
-            <select id="theme-dropdown-select">
-                <option value="coffee" {% if user_theme == 'coffee' %}selected{% endif %}>Coffee</option>
-                <option value="mignight" {% if user_theme == 'mignight' %}selected{% endif %}>Mignight</option>
-                <option value="dark" {% if user_theme == 'dark' %}selected{% endif %}>Dark</option>
-            </select>
-        </div>
-
         <!-- Dropdown for Search Commands -->
-        <div class="sidebar-dropdown">
-            <select id="sidebar-dropdown-select">
+        <div class="absolute bottom-10 left-4 right-4">
+            <select id="sidebar-dropdown-select" class="w-full p-2 rounded dark:bg-black bg-white dark:text-white text-black border border-gray-700">
                 {% for search_command in search_commands %}
                     {% if search_command['id'] == user_default_search_id %}
                         <option value="{{ search_command['id'] }}">{{ search_command['text'] }}</option>
@@ -38,7 +28,7 @@
             </select>
         </div>
     </nav>
-    <div class="overlay" id="overlay"></div>
+    <div class="fixed top-0 left-0 w-full h-full bg-black opacity-50 hidden z-30" id="overlay"></div>
     <script src="{{ url_for('static', filename='scripts/hamburger_script.js') }}" defer></script>
     <script>
         function getCookie(name) {
