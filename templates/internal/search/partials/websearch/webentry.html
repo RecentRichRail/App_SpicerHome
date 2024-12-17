@@ -39,7 +39,11 @@ A individual web entry in the search results
                     {% for result in search_index.videos.results %}
                     <div class="bg-white dark:bg-black p-4 rounded-lg shadow-md mb-4 min-w-[300px] border border-gray-600">
                         <div class="p-4">
-                            <img class="thumbnail w-full h-auto mb-4 rounded aspect-video" src="{{ result.thumbnail.src }}" alt="{{ result.title }} on {{ result.meta_url.netloc }}">
+                            {% if result.thumbnail %}
+                                <img class="thumbnail w-full h-auto mb-4 rounded aspect-video" src="{{ result.thumbnail.src }}" alt="{{ result.title }} on {{ result.meta_url.netloc }}">
+                            {% else %}
+                                <div class="thumbnail w-full h-48 mb-4 bg-gray-300 dark:bg-gray-700 rounded"></div>
+                            {% endif %}
                             <h3 class="text-lg font-semibold mb-2"><a href="{{ result.url }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ result.title }}</a></h3>
                             <p class="text-gray-600 dark:text-gray-300 mb-2">{{ result.description | safe }}</p>
                             <div class="meta-info flex items-center text-gray-500 dark:text-gray-400">
