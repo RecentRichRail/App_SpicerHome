@@ -1,9 +1,29 @@
 <header class="dark:bg-black bg-yellow-800 dark:text-white text-black fixed w-full z-50 top-0 border-b border-gray-700">
-    <div class="flex items-center p-4">
-        <div class="cursor-pointer text-2xl text-white" id="hamburger-menu">
+    <div class="flex items-center justify-between p-4" id="header">
+        <div class="flex items-center">
+          <div class="cursor-pointer text-2xl text-white" id="hamburger-menu">
             &#9776; <!-- Hamburger icon -->
+          </div>
+          <div class="text-xl text-white pl-4" id="page-title" data-title="{{ page_title }}">{{ page_title }}</div>
         </div>
-        <div class="text-xl flex text-white pl-4" id="page-title" data-title="{{ page_title }}">{{ page_title }}</div>
+        <div class="relative">
+          <div class="w-10 h-10 dark:bg-gray-800 bg-yellow-100 dark:text-white text-black flex items-center justify-center rounded-full cursor-pointer" id="user-icon">
+            {% if current_user.name %}
+                {{ current_user.name[0].upper() }}
+            {% else %}
+                {{ current_user.email[0].upper() }}
+            {% endif %}
+          </div>
+          <div class="absolute right-0 mt-2 min-w-max bg-white rounded-md shadow-lg py-2 hidden" id="user-dropdown">
+            <div class="px-4 py-2 text-gray-800">{{ current_user.email }}</div>
+            {% if current_user.get_dollar_amount() %}
+                <a href="{{ url_for("chores.view_points") }}" class="px-4 py-2 text-gray-800">Points: {{ current_user.get_dollar_amount() }}</a>
+            {% endif %}
+            <div class="border-t border-gray-200 my-2"></div>
+            <a href="/settings" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Settings</a>
+            <a href="/internal/search?q=logout" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Logout</a>
+          </div>
+        </div>
     </div>
     <nav class="fixed top-0 left-0 h-full w-64 dark:bg-black bg-yellow-800 dark:text-white text-black transform -translate-x-full transition-transform duration-300 z-40 border-r border-gray-700" id="sidebar">
         <ul id="sidebar-links" data-links='{{ sidebar_links | tojson | safe }}' class="list-none p-4">
@@ -31,43 +51,67 @@
         </div>
     </nav>
     <div class="fixed top-0 left-0 w-full h-full bg-black opacity-50 hidden z-30" id="overlay"></div>
-    <script src="{{ url_for('static', filename='scripts/hamburger_script.js') }}" defer></script>
     <script>
+        document.getElementById('user-icon').addEventListener('click', function(event) {
+            var dropdown = document.getElementById('user-dropdown');
+            dropdown.classList.toggle('hidden');
+            event.stopPropagation();
+        });
+        
+        document.addEventListener('click', function(event) {
+            var dropdown = document.getElementById('user-dropdown');
+            if (!dropdown.classList.contains('hidden')) {
+                dropdown.classList.add('hidden');
+            }
+        });
+        
+        document.getElementById('user-dropdown').addEventListener('click', function(event) {
+            event.stopPropagation();
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const hamburgerMenu = document.getElementById('hamburger-menu');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+        
+            // Toggle sidebar and overlay visibility
+            function toggleSidebar() {
+                sidebar.classList.toggle('translate-x-0');
+                sidebar.classList.toggle('-translate-x-full');
+                overlay.classList.toggle('hidden');
+            }
+        
+            // Close sidebar and overlay when overlay is clicked
+            overlay.addEventListener('click', function () {
+                toggleSidebar();
+            });
+        
+            // Open sidebar when hamburger menu is clicked
+            hamburgerMenu.addEventListener('click', function () {
+                toggleSidebar();
+            });
+        
+            // Update page title
+            const pageTitleElement = document.getElementById('page-title');
+            if (pageTitleElement && pageTitleElement.dataset.title) {
+                document.title = pageTitleElement.dataset.title;
+            }
+        
+            // Render sidebar links dynamically if they are provided
+            const sidebarLinksElement = document.getElementById('sidebar-links');
+            if (sidebarLinksElement && sidebarLinksElement.dataset.links) {
+                const links = JSON.parse(sidebarLinksElement.dataset.links);
+                sidebarLinksElement.innerHTML = links.map(link => 
+                    `<li class="p-2"><a href="${link.href}" class="text-white no-underline" data-tab="${link.data_tab}">${link.text}</a></li>`
+                ).join('');
+            }
+        });
+
         function getCookie(name) {
             let value = `; ${document.cookie}`;
             let parts = value.split(`; ${name}=`);
             if (parts.length === 2) return parts.pop().split(';').shift();
         }
-    
-        document.getElementById('theme-dropdown-select').addEventListener('change', function() {
-            var selectedTheme = this.value;
-            if (selectedTheme) {
-                // Update the stylesheet immediately
-                document.getElementById('theme-stylesheet').href = '/static/styles/' + selectedTheme + '/color.css';
-
-                // Retrieve the JWT token from the cookie
-                var jwtToken = getCookie('{{ cookie_name }}'); // Use the variable passed from Flask
-    
-                fetch('/apiv1/data/user/change_theme', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        theme: selectedTheme,
-                        jwt_token: jwtToken // Include the JWT token in the POST data body
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Theme change success:', data);
-                    // Optionally handle the response here
-                })
-                .catch((error) => {
-                    console.error('Error changing theme:', error);
-                });
-            }
-        });
 
         document.getElementById('sidebar-dropdown-select').addEventListener('change', function() {
             var selectedId = this.value;

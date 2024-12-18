@@ -40,9 +40,6 @@
         <p>No search history found.</p>
     {% endif %}
     </div>
-{% endblock %}
-
-{% block scripts %}
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('{{ url_for('static', filename='service-worker.js') }}')
