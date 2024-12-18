@@ -1,19 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
+{% block content %}
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin Panel</title>
-    <link id="theme-stylesheet" rel="stylesheet" href="{{ url_for('static', filename='styles/' + user_theme + '/color.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/dropdown_styles.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/pagination_styles.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/modern_table.css') }}">
+    <title>SpicerHome Admin</title>
 </head>
-<body>
-    {% include 'internal/search/elements/header.html' %}
-    <div class="container">
-        {% include 'internal/search/elements/logo.html' %}
+    {% include 'internal/search/elements/logo.html' %}
         <form id="admin-form" method="get" action="{{ url_for('admin.admin_history') }}">
             <div id="search-bar-container">
                 <!-- Dropdown for selecting tool -->
@@ -64,8 +54,8 @@
             </div>
             {% endif %}
         </div>
-    </div>
-    {% include 'internal/search/elements/footer.html' %}
+{% endblock %}
+{% block script %}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const formatDate = (dateStr) => {
@@ -163,5 +153,4 @@
             truncateRequests();
         };
     </script>
-</body>
-</html>
+{% endblock %}

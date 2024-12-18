@@ -1,9 +1,9 @@
 <header class="dark:bg-black bg-yellow-800 dark:text-white text-black fixed w-full z-50 top-0 border border-gray-700">
-    <div class="flex justify-between items-center p-4">
+    <div class="flex items-center p-4">
         <div class="cursor-pointer text-2xl text-white" id="hamburger-menu">
             &#9776; <!-- Hamburger icon -->
         </div>
-        <div class="text-xl flex text-white" id="page-title" data-title="{{ page_title }}">{{ page_title }}</div>
+        <div class="text-xl flex text-white pl-4" id="page-title" data-title="{{ page_title }}">{{ page_title }}</div>
     </div>
     <nav class="fixed top-0 left-0 h-full w-64 dark:bg-black bg-yellow-800 dark:text-white text-black transform -translate-x-full transition-transform duration-300 z-40 border border-gray-700" id="sidebar">
         <ul id="sidebar-links" data-links='{{ sidebar_links | tojson | safe }}' class="list-none p-4">

@@ -8,12 +8,20 @@
                 {% endfor %}
             </select>
         </div>
-        {% if search_index %}
-            <input type="text" id="search-bar" name="q" placeholder="Search..." value="{{ search_index.query.original }}" class="text-black border border-gray-700 rounded placeholder:center w-80 h-35">
-        {% else %}
-            <input type="text" id="search-bar" name="q" placeholder="Search..." class="text-black border border-gray-700 rounded placeholder:center w-80 h-35">
-        {% endif %}
-        <button type="submit" class="border border-gray-700 rounded w-32" id="search-button">Search</button>
+        <div id="category-search-bar" class="flex items-center border border-gray-700 rounded-full shadow-lg w-full max-w-lg md:max-w-xl lg:max-w-2xl mx-auto">
+            <div class="relative flex-grow">
+                {% if search_index %}
+                    <input type="text" id="search-bar" name="q" placeholder="Search..." value="{{ search_index.query.original }}" class="pl-4 pr-10 py-2 w-full text-black placeholder-gray-500 rounded-full focus:outline-none">
+                {% else %}
+                    <input type="text" id="search-bar" name="q" placeholder="Search..." class="pl-4 pr-10 py-2 w-full text-black placeholder-gray-500 rounded-full focus:outline-none">
+                {% endif %}
+                <button type="submit" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
     </div>
 </form>
 <div id="shortcut-section" class="flex justify-center items-center">
