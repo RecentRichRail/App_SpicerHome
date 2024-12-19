@@ -7,9 +7,14 @@
         text-shadow: 3px 3px 0 #7a4785, -1px -1px 0 #7a4785, 1px -1px 0 #7a4785, -1px 1px 0 #7a4785, 1px 1px 0 #7a4785;
     }
 </style> -->
-<div class="flex justify-center items-center mt-16 w-auto"> <!-- Added mt-16 for margin-top -->
-    <a href="/internal/search" class="logo-link max-w-max">
-        <link rel="stylesheet" href="{{ url_for('static', filename='styles/logo_styles.css') }}">
+<div class="flex justify-center items-center w-auto">
+    <style>
+        @font-face { 
+            font-family: bebel; 
+            src: url('https://www.1001fonts.com/download/font/evgeny.bold-italic.ttf'); 
+        }
+    </style>
+    <a href="/internal/search" class="font-bold italic" style="font-family: bebel; text-decoration: none; text-align: center;">
         SpicerHome
     </a>
 </div>

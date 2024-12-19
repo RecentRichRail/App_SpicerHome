@@ -1,12 +1,15 @@
 <header class="dark:bg-black bg-yellow-800 dark:text-white text-black fixed w-full z-50 top-0 border-b border-gray-700" style="height: 64px;">
     <div class="flex items-center justify-between p-4" id="header">
         <div class="flex items-center">
-          <div class="cursor-pointer text-2xl text-white" id="hamburger-menu">
+          <div class="cursor-pointer text-2xl text-white z-20" id="hamburger-menu">
             &#9776; <!-- Hamburger icon -->
           </div>
-          <div class="text-xl text-white pl-4" id="page-title" data-title="{{ page_title }}">{{ page_title }}</div>
+          <div class="text-4xl" id="header-logo">
+            {% include 'internal/search/elements/logo.html' %}
+          </div>
+          <!-- <div class="text-xl text-white pl-4" id="page-title" data-title="{{ page_title }}">{{ page_title }}</div> -->
         </div>
-        <div class="relative">
+        <div class="relative z-20">
           <div class="w-10 h-10 dark:bg-gray-800 bg-yellow-100 dark:text-white text-black flex items-center justify-center rounded-full cursor-pointer" id="user-icon">
             {% if current_user.name %}
                 {{ current_user.name[0].upper() }}
@@ -26,7 +29,7 @@
           </div>
         </div>
     </div>
-    <div id="header-search-bar-container" class="hidden justify-center items-center transition-all duration-300 ease-in-out absolute inset-0">
+    <div id="header-search-bar-container" class="hidden justify-center items-center transition-all duration-300 ease-in-out absolute inset-0 z-10">
         <!-- Search bar will be moved here on scroll -->
     </div>
     <nav class="fixed top-0 left-0 h-full w-64 dark:bg-black bg-yellow-800 dark:text-white text-black transform -translate-x-full transition-transform duration-300 z-40 border-r border-gray-700" id="sidebar">
@@ -152,7 +155,7 @@
             const pageTitle = document.getElementById('page-title');
 
             window.addEventListener('scroll', function () {
-                if (window.scrollY > headerHeight) {
+                if (window.scrollY > headerHeight * 2) {
                     if (!headerSearchBarContainer.contains(searchBarContainer)) {
                         headerSearchBarContainer.appendChild(searchBarContainer);
                         headerSearchBarContainer.classList.remove('hidden');
