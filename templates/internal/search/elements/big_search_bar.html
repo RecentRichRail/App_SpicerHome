@@ -1,16 +1,16 @@
 <form class="flex justify-center items-center" id="search-form" onsubmit="return submitForm()">
-    <div id="search-bar-container">
-        <div id="category-dropdown" class="flex justify-center items-center">
+    <div id="search-bar-container" class="search-bar-container transition-all duration-300 ease-in-out">
+        <!-- <div id="category-dropdown" class="flex justify-center items-center">
             <select id="styled-dropdown-select" class="dark:bg-grey-700 bg-white text-black">
                 <option value="">Default</option>
                 {% for search_command in search_commands %}
                     <option value="{{ search_command['prefix'] }}">{{ search_command['text'] }}</option>
                 {% endfor %}
             </select>
-        </div>
+        </div> -->
         <div id="category-search-bar" class="flex items-center border border-gray-700 rounded-full shadow-lg w-full max-w-lg md:max-w-xl lg:max-w-2xl mx-auto">
             <div class="relative flex-grow">
-                {% if search_index %}
+                {% if search_index.query.original %}
                     <input type="text" id="search-bar" name="q" placeholder="Search..." value="{{ search_index.query.original }}" class="pl-4 pr-10 py-2 w-full text-black placeholder-gray-500 rounded-full focus:outline-none">
                 {% else %}
                     <input type="text" id="search-bar" name="q" placeholder="Search..." class="pl-4 pr-10 py-2 w-full text-black placeholder-gray-500 rounded-full focus:outline-none">

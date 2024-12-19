@@ -1,4 +1,4 @@
-<header class="dark:bg-black bg-yellow-800 dark:text-white text-black fixed w-full z-50 top-0 border-b border-gray-700">
+<header class="dark:bg-black bg-yellow-800 dark:text-white text-black fixed w-full z-50 top-0 border-b border-gray-700" style="height: 64px;">
     <div class="flex items-center justify-between p-4" id="header">
         <div class="flex items-center">
           <div class="cursor-pointer text-2xl text-white" id="hamburger-menu">
@@ -15,7 +15,8 @@
             {% endif %}
           </div>
           <div class="absolute right-0 mt-2 min-w-max bg-white rounded-md shadow-lg py-2 hidden" id="user-dropdown">
-            <div class="px-4 py-2 text-gray-800">{{ current_user.email }}</div>
+            <div class="px-4 text-gray-800">{{ current_user.name }}</div>
+            <div class="px-4 pb-2 text-gray-800 text-sm">{{ current_user.email.lower() }}</div>
             {% if current_user.get_dollar_amount() %}
                 <a href="{{ url_for("chores.view_points") }}" class="px-4 py-2 text-gray-800">Points: {{ current_user.get_dollar_amount() }}</a>
             {% endif %}
@@ -24,6 +25,9 @@
             <a href="/internal/search?q=logout" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Logout</a>
           </div>
         </div>
+    </div>
+    <div id="header-search-bar-container" class="hidden justify-center items-center transition-all duration-300 ease-in-out absolute inset-0">
+        <!-- Search bar will be moved here on scroll -->
     </div>
     <nav class="fixed top-0 left-0 h-full w-64 dark:bg-black bg-yellow-800 dark:text-white text-black transform -translate-x-full transition-transform duration-300 z-40 border-r border-gray-700" id="sidebar">
         <ul id="sidebar-links" data-links='{{ sidebar_links | tojson | safe }}' class="list-none p-4">
@@ -138,6 +142,32 @@
                     console.error('Error changing default search:', error);
                 });
             }
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchBarContainer = document.getElementById('search-bar-container');
+            const headerSearchBarContainer = document.getElementById('header-search-bar-container');
+            const header = document.getElementById('header');
+            const headerHeight = header.offsetHeight;
+            const pageTitle = document.getElementById('page-title');
+
+            window.addEventListener('scroll', function () {
+                if (window.scrollY > headerHeight) {
+                    if (!headerSearchBarContainer.contains(searchBarContainer)) {
+                        headerSearchBarContainer.appendChild(searchBarContainer);
+                        headerSearchBarContainer.classList.remove('hidden');
+                        headerSearchBarContainer.classList.add('flex');
+                        pageTitle.classList.add('hidden');
+                    }
+                } else {
+                    if (!document.getElementById('search-form').contains(searchBarContainer)) {
+                        document.getElementById('search-form').appendChild(searchBarContainer);
+                        headerSearchBarContainer.classList.remove('flex');
+                        headerSearchBarContainer.classList.add('hidden');
+                        pageTitle.classList.remove('hidden');
+                    }
+                }
+            });
         });
     </script>
 </header>
