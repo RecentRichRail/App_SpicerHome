@@ -10,7 +10,7 @@
         </div> -->
         <div id="category-search-bar" class="flex items-center border border-gray-700 rounded-full shadow-lg w-full max-w-lg md:max-w-xl lg:max-w-2xl mx-auto">
             <div class="relative flex-grow">
-                {% if search_index.query.original %}
+                {% if search_index %}
                     <input type="text" id="search-bar" name="q" placeholder="Search..." value="{{ search_index.query.original }}" class="pl-4 pr-10 py-2 w-full text-black placeholder-gray-500 rounded-full focus:outline-none">
                 {% else %}
                     <input type="text" id="search-bar" name="q" placeholder="Search..." class="pl-4 pr-10 py-2 w-full text-black placeholder-gray-500 rounded-full focus:outline-none">
