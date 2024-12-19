@@ -26,8 +26,10 @@
 
 <body class="dark:bg-black bg-yellow-100 dark:text-white text-black">
   {% include 'internal/elements/header.html' %}
-  {% block content %}
-  {% endblock %}
+  <div class="mt-16" id="content">
+    {% block content %}
+    {% endblock %}
+  </div>
 
   <!-- {% include "_partials/toasts.html" %} -->
 

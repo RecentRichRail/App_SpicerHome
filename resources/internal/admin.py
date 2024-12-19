@@ -1,4 +1,4 @@
-from flask import Blueprint, request, current_app, render_template
+from flask import Blueprint, request, current_app, render_template, abort
 from models import User, RequestsModel, TrackingNumbersModel, LoginAttemptModel
 from flask_login import login_required, current_user
 
@@ -39,6 +39,7 @@ def admin_history():
                 response = admin_history_query_structured
             else:
                 response = {"message": "No permission for this resource."}
+                abort(404)
         
         history_requests = response
         page_title = f"SpicerHome {user_id} History"
@@ -76,6 +77,7 @@ def admin_history():
                 response = user_track_query_structured
             else:
                 response = {"message - No permission for this resource.": "No permission for this resource."}
+                abort(404)
         
         tracking_requests = response
         page_title = f"SpicerHome {user_id} Tracking"
@@ -103,7 +105,9 @@ def admin_history():
                 response = admin_user_query_structured
             else:
                 response = {"message - No permission for this resource.": "No permission for this resource."}
+                abort(404)
         users_query = response
+        print(f" users = {users_query}")
 
         page_title = f"SpicerHome Admin Portal"
 
@@ -117,4 +121,4 @@ def admin_history():
             'sidebar_links': current_user.json_sidebar_links()
         }
 
-        return render_template('admin/admin_index.html', **context)
+        return render_template('/internal/admin/admin_index.html', **context)
