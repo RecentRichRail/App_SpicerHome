@@ -1,9 +1,9 @@
-{% extends "base.html" %}
+{% extends "internal/base.html" %}
 {% block content %}
 <head>
     <title>SpicerHome Admin</title>
 </head>
-    {% include 'internal/search/elements/logo.html' %}
+    {% include 'internal/elements/logo.html' %}
         <form id="admin-form" method="get" action="{{ url_for('admin.admin_history') }}">
             <div id="search-bar-container">
                 <!-- Dropdown for selecting tool -->

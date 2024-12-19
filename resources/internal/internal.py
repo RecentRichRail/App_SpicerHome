@@ -156,7 +156,7 @@ def internal_search():
                 # 'cookie_name': current_app.short_session_cookie_name
             }
 
-        return render_template('internal/search/index.html', **context)
+        return render_template('internal/index.html', **context)
 
 @blp.route('/search/query=<user_query>')
 @login_required

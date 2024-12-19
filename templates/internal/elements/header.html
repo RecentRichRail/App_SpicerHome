@@ -5,7 +5,7 @@
             &#9776; <!-- Hamburger icon -->
           </div>
           <div class="text-4xl" id="header-logo">
-            {% include 'internal/search/elements/logo.html' %}
+            {% include 'internal/elements/logo.html' %}
           </div>
           <!-- <div class="text-xl text-white pl-4" id="page-title" data-title="{{ page_title }}">{{ page_title }}</div> -->
         </div>
@@ -19,7 +19,8 @@
           </div>
           <div class="absolute right-0 mt-2 min-w-max bg-white rounded-md shadow-lg py-2 hidden" id="user-dropdown">
             <div class="px-4 text-gray-800">{{ current_user.name }}</div>
-            <div class="px-4 pb-2 text-gray-800 text-sm">{{ current_user.email.lower() }}</div>
+            <div class="px-4 text-gray-800 text-sm">{{ current_user.email.lower() }}</div>
+            <div class="px-4 pb-2 text-gray-400 text-xs">{{ current_user.uid }}</div>
             {% if current_user.get_dollar_amount() %}
                 <a href="{{ url_for("chores.view_points") }}" class="px-4 py-2 text-gray-800">Points: {{ current_user.get_dollar_amount() }}</a>
             {% endif %}
@@ -153,14 +154,23 @@
             const header = document.getElementById('header');
             const headerHeight = header.offsetHeight;
             const pageTitle = document.getElementById('page-title');
-
-            window.addEventListener('scroll', function () {
+            const headerLogo = document.getElementById('header-logo');
+        
+            function updateHeader() {
+                const headerWidth = header.offsetWidth;
+                const searchBarWidth = searchBarContainer.offsetWidth;
+                const logoWidth = headerLogo.offsetWidth;
+        
                 if (window.scrollY > headerHeight * 2) {
                     if (!headerSearchBarContainer.contains(searchBarContainer)) {
                         headerSearchBarContainer.appendChild(searchBarContainer);
                         headerSearchBarContainer.classList.remove('hidden');
                         headerSearchBarContainer.classList.add('flex');
                         pageTitle.classList.add('hidden');
+        
+                        if (headerWidth < searchBarWidth + logoWidth) {
+                            headerLogo.classList.add('hidden'); // Hide the logo if not enough space
+                        }
                     }
                 } else {
                     if (!document.getElementById('search-form').contains(searchBarContainer)) {
@@ -168,9 +178,13 @@
                         headerSearchBarContainer.classList.remove('flex');
                         headerSearchBarContainer.classList.add('hidden');
                         pageTitle.classList.remove('hidden');
+                        headerLogo.classList.remove('hidden'); // Show the logo
                     }
                 }
-            });
+            }
+        
+            window.addEventListener('scroll', updateHeader);
+            window.addEventListener('resize', updateHeader); // Update on resize to handle dynamic changes
         });
     </script>
 </header>
