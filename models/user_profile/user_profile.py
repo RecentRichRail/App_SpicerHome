@@ -117,7 +117,15 @@ class User(db.Model):
     def get_dollar_amount(self):
         from models.user_data.chores.chores import ChoresUser
         user_points_model = ChoresUser.query.filter_by(user_id=self.id).first()
-        if user_points_model and user_points_model.dollar_amount != 0:
+        if user_points_model:
             return user_points_model.get_dollar_amount()
+        else:
+            return False
+        
+    def is_household_admin(self):
+        from models.user_data.chores.chores import ChoresUser
+        user_points_model = ChoresUser.query.filter_by(user_id=self.id).first()
+        if user_points_model and user_points_model.household_admin:
+            return True
         else:
             return False

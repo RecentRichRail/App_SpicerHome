@@ -1,0 +1,20 @@
+<div>
+    <p>Points updated successfully:</p>
+    <ul>
+        {% for user in updated_users %}
+            {% if action == 'add' %}
+                {% if amount == 1 %}
+                    <li>{{ user.name }} received 1 point.</li>
+                {% else %}
+                    <li>{{ user.name }} received {{ amount }} points.</li>
+                {% endif %}
+            {% else %}
+                {% if amount == 1 %}
+                    <li>{{ user.name }} lost 1 point.</li>
+                {% else %}
+                    <li>{{ user.name }} lost {{ amount }} points.</li>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </ul>
+</div>

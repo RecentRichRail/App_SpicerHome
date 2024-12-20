@@ -12,6 +12,18 @@ chores_blueprint = Blueprint("chores", __name__, template_folder="templates/inte
 @chores_blueprint.route('/', methods=['GET'])
 @login_required
 def view_points():
+    
+    all_users_points = {}
+    if current_user.is_household_admin():
+        choreusers = ChoresUser.query.filter_by(household_admin=False).all()
+        all_users_points = {}
+        for user in choreusers:
+            user_model = User.query.filter_by(id=user.user_id).first()
+            if user_model and user_model.name:  # Ensure user_model and user_model.name are not None
+                all_users_points[user_model.id] = {"name": user_model.name, "amount": user.dollar_amount}
+    # else:
+    #     user_points = {choreuser.user_id: {"name": current_user.name, "amount": choreuser.dollar_amount}}
+
     page_title = "SpicerHome Points"
 
     context = {
@@ -20,21 +32,21 @@ def view_points():
                 'search_commands': current_user.json_user_search_commands(),
                 'commands': current_user.json_user_commands(),
                 'page_title': page_title,
-                'sidebar_links': current_user.json_sidebar_links()
+                'sidebar_links': current_user.json_sidebar_links(),
+                'all_users_points': all_users_points
                 # 'cookie_name': current_app.short_session_cookie_name
             }
     
-    return render_template('internal/chores/view_points.html', **context)
+    return render_template('internal/chores/choresbase.html', **context)
 
 @chores_blueprint.route('/points', methods=['GET'])
 @login_required
 def points():
-    print('current_user.id:', current_user.id)
     choreuser = ChoresUser.query.filter_by(user_id=current_user.id).first()
     if not choreuser:
         return {"message": "User not found"}, 404
 
-    if choreuser.household_admin:  # Assuming you have a way to check if the user is an admin
+    if current_user.is_household_admin():  # Assuming you have a way to check if the user is an admin
         choreusers = ChoresUser.query.filter_by(household_admin=False).all()
         all_users_points = {}
         for user in choreusers:
@@ -47,24 +59,24 @@ def points():
 
 @chores_blueprint.route('/manage_points', methods=['POST'])
 @login_required
-def manage_points():
-    # if request.method == 'GET':
-    #     return render_template('internal/chores/manage_points.html')
+def update_points():
+
+    if not current_user.is_household_admin():
+        return {"message": "Permission denied"}, 404
+
+    if request.content_type != 'application/json':
+        return {"message": "Content-Type must be application/json"}, 415
 
     data = request.get_json()
     user_ids = data.get('user_ids')
     action = data.get('action')
-    amount = data.get('amount')
+    amount = int(data.get('amount'))
 
     if not user_ids or not isinstance(user_ids, list):
         return {"message": "Invalid user IDs"}, 400
 
-    choreuser = ChoresUser.query.filter_by(user_id=current_user.id).first()
-    if not choreuser or not choreuser.household_admin:
-        return {"message": "Permission denied"}, 403
-
+    updated_users = []
     for user_id in user_ids:
-        print('user_id:', user_id)
         user = ChoresUser.query.filter_by(user_id=user_id).first()
         if not user:
             return {"message": f"User with ID {user_id} not found"}, 404
@@ -75,9 +87,13 @@ def manage_points():
             user.dollar_amount -= amount
         else:
             return {"message": "Invalid action"}, 400
+        
+        user_model = User.query.filter_by(id=user.user_id).first()
+
+        updated_users.append({"id": user_id, "name": user_model.name, "amount": user.dollar_amount})
 
     db.session.commit()
-    return {"message": "Points updated successfully"}, 200
+    return render_template('internal/chores/partials/update_points_feedback.html', updated_users=updated_users, action=action, amount=amount)
 
 # @chores_blueprint.route('/create_household', methods=['GET', 'POST'])
 # @login_required

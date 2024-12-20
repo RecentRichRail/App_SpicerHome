@@ -1,0 +1,62 @@
+<div class="text-2xl mt-5 p-9">
+    <h2 class="text-3xl mb-4 flex flex-col items-center">Manage User Points</h2>
+    <form id="managePointsForm" class="flex flex-col items-center" onsubmit="handleFormSubmit(event)">
+        <div id="usersList" class="mb-4 text-2xl">
+            {% for user_id, user in all_users_points.items() %}
+                <div class="flex items-center mb-2">
+                    <label for="user-{{ user_id }}" class="text-2xl cursor-pointer p-2 border rounded border-grey-600" onclick="toggleHighlight(this)">{{ user.name }} - Points: <span id="points-{{ user_id }}">{{ user.amount }}</span></label>
+                </div>
+            {% endfor %}
+        </div>
+        <div>
+            <div>
+                <label for="action" class="mt-4">Action:</label>
+                <select id="action" name="action" required class="text-black mb-4 max-w-60">
+                    <option value="add">Add</option>
+                    <option value="subtract">Subtract</option>
+                </select>
+            </div>
+            <div>
+                <label for="amount">Amount:</label>
+                <input type="number" id="amount" name="amount" required class="text-black mb-4 max-w-60">
+            </div>
+            <div>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
+            </div>
+        </div>
+    </form>
+    <p id="message" class="mt-4"></p>
+</div>
+
+<script>
+function toggleHighlight(element) {
+    element.classList.toggle('bg-green-600');
+}
+
+function handleFormSubmit(event) {
+    event.preventDefault();
+    
+    const selectedUsers = Array.from(document.querySelectorAll('#usersList .bg-green-600')).map(label => label.getAttribute('for').split('-')[1]);
+    const action = document.getElementById('action').value;
+    const amount = parseInt(document.getElementById('amount').value);
+
+    fetch('/internal/chores/manage_points', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_ids: selectedUsers, action, amount })
+    })
+    .then(response => response.text())
+    .then(data => {
+        document.getElementById('message').innerHTML = data;
+        // Update the selected section after success
+        selectedUsers.forEach(userId => {
+            const pointsElement = document.getElementById(`points-${userId}`);
+            const newPoints = parseInt(pointsElement.innerText) + (action === 'add' ? amount : -amount);
+            pointsElement.innerText = newPoints;
+        });
+        // Deselect the labels
+        document.querySelectorAll('#usersList .bg-green-600').forEach(label => label.classList.remove('bg-green-600'));
+    })
+    .catch(error => console.error('Error:', error));
+}
+</script>
