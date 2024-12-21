@@ -59,7 +59,14 @@
   {% include 'internal/elements/footer.html' %}
 
   <script>
+    let snowflakeCount = 0;
+    const maxSnowflakes = 35; // Set your desired limit here
+
     function createSnowflake() {
+        if (snowflakeCount >= maxSnowflakes) {
+            return;
+        }
+
         const snowflake = document.createElement('div');
         snowflake.classList.add('snowflake');
         const size = Math.random() * 7 + 5; // Snowflake size between 5px and 15px
@@ -77,10 +84,12 @@
         snowflake.style.animationDuration = `${fallDuration}s`;
 
         document.body.appendChild(snowflake);
+        snowflakeCount++;
 
         // Remove snowflake after it falls
         snowflake.addEventListener('animationend', () => {
             snowflake.remove();
+            snowflakeCount--;
         });
     }
 
