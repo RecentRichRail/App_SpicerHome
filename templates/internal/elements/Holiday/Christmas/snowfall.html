@@ -1,0 +1,65 @@
+<head>
+    <style>
+        .snowflake {
+            position: absolute;
+            top: -10px;
+            background: white;
+            border: 1px solid black;
+            border-radius: 50%;
+            opacity: 0.8;
+            pointer-events: none;
+            animation: fall linear infinite;
+            z-index: 0; /* Ensure snowflakes are behind other elements */
+        }
+    
+        @keyframes fall {
+            to {
+                transform: translateY(var(--fall-height));
+            }
+        }
+    
+        #content {
+            position: relative;
+            z-index: 1; /* Ensure main content is above snowflakes */
+        }
+    </style>
+</head>
+<body>
+<script>
+    let snowflakeCount = 0;
+    const maxSnowflakes = 35; // Set your desired limit here
+
+    function createSnowflake() {
+        if (snowflakeCount >= maxSnowflakes) {
+            return;
+        }
+
+        const snowflake = document.createElement('div');
+        snowflake.classList.add('snowflake');
+        const size = Math.random() * 7 + 5; // Snowflake size between 5px and 15px
+        snowflake.style.width = `${size}px`;
+        snowflake.style.height = `${size}px`;
+        snowflake.style.left = `${Math.random() * 100}vw`;
+
+        // Set the fall height to the height of the document
+        const fallHeight = document.documentElement.scrollHeight + 'px';
+        snowflake.style.setProperty('--fall-height', fallHeight);
+
+        // Calculate fall duration based on the height of the viewport
+        const viewportHeight = window.innerHeight;
+        const fallDuration = (document.documentElement.scrollHeight / viewportHeight) * (Math.random() * 2 + 5); // Fall duration between 5s and 7s per 100vh
+        snowflake.style.animationDuration = `${fallDuration}s`;
+
+        document.body.appendChild(snowflake);
+        snowflakeCount++;
+
+        // Remove snowflake after it falls
+        snowflake.addEventListener('animationend', () => {
+            snowflake.remove();
+            snowflakeCount--;
+        });
+    }
+
+    setInterval(createSnowflake, 350);
+</script>
+</body>
