@@ -17,17 +17,17 @@
                 {{ current_user.email[0].upper() }}
             {% endif %}
           </div>
-          <div class="absolute right-0 mt-2 min-w-max bg-white rounded-md shadow-lg py-2 hidden" id="user-dropdown">
+          <div class="absolute right-0 mt-2 min-w-max bg-white rounded-md shadow-lg py-2 hidden" id="user-dropdown" x-data="{ dollarAmount: parseFloat('{{ current_user.get_dollar_amount() }}').toFixed(2) }">
             <div class="px-4 text-gray-800">{{ current_user.name }}</div>
             <div class="px-4 text-gray-800 text-sm">{{ current_user.email.lower() }}</div>
             <div class="px-4 pb-2 text-gray-400 text-xs">{{ current_user.uid }}</div>
             {% if not current_user.is_household_admin() and current_user.is_in_household() %}
                 {% if current_user.get_dollar_amount() < 0 %}
-                <a href="{{ url_for("chores.view_points") }}" class="px-4 py-2 text-gray-800">Points:&nbsp;<span class="text-red-500">${{ current_user.get_dollar_amount().toFixed(2) }}</span></a>
+                <a href="{{ url_for("chores.view_points") }}" class="px-4 py-2 text-gray-800">Points:&nbsp;<span class="text-red-500" x-text="'$' + dollarAmount"></span></a>
                 {% elif current_user.get_dollar_amount() > 4.99 %}
-                <a href="{{ url_for("chores.view_points") }}" class="px-4 py-2 text-gray-800">Points:&nbsp;<span class="text-green-500">${{ current_user.get_dollar_amount().toFixed(2) }}</span></a>
+                <a href="{{ url_for("chores.view_points") }}" class="px-4 py-2 text-gray-800">Points:&nbsp;<span class="text-green-500" x-text="'$' + dollarAmount"></span></a>
                 {% else %}
-                <a href="{{ url_for("chores.view_points") }}" class="px-4 py-2 text-gray-800">Points:&nbsp;<span class="text-gray-800">${{ current_user.get_dollar_amount().toFixed(2) }}</span></a>
+                <a href="{{ url_for("chores.view_points") }}" class="px-4 py-2 text-gray-800">Points:&nbsp;<span class="text-gray-800" x-text="'$' + dollarAmount"></span></a>
                 {% endif %}
             {% endif %}
             <div class="border-t border-gray-200 my-2"></div>
