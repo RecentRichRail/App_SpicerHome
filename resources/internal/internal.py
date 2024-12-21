@@ -126,14 +126,8 @@ def internal_search():
 
 
         context = {
-            'user_default_search_id': current_user.default_search_id,
-            'user_theme': current_user.user_theme,
             'search_index': search_index,
-            'search_commands': current_user.json_user_search_commands(),
-            'commands': current_user.json_user_commands(),
-            'page_title': page_title,
-            'sidebar_links': current_user.json_sidebar_links()
-            # 'cookie_name': current_app.short_session_cookie_name
+            'page_title': page_title
         }
 
         session['user_default_search_id'] = current_user.default_search_id
@@ -147,13 +141,7 @@ def internal_search():
         # print(current_user.json_sidebar_links())
 
         context = {
-                'user_default_search_id': current_user.default_search_id,
-                'user_theme': current_user.user_theme,
-                'search_commands': current_user.json_user_search_commands(),
-                'commands': current_user.json_user_commands(),
-                'page_title': page_title,
-                'sidebar_links': current_user.json_sidebar_links()
-                # 'cookie_name': current_app.short_session_cookie_name
+                'page_title': page_title
             }
 
         return render_template('internal/index.html', **context)
@@ -199,12 +187,7 @@ def history():
     page_title = "SpicerHome History"
 
     context = {
-                'user_default_search_id': current_user.default_search_id,
-                'user_theme': current_user.user_theme,
-                'search_commands': current_user.json_user_search_commands(),
-                'commands': current_user.json_user_commands(),
                 'page_title': page_title,
-                'sidebar_links': current_user.json_sidebar_links(),
                 'history_requests': user_history_query_structured
             }
 
@@ -234,12 +217,7 @@ def tracking():
     page_title = "SpicerHome Tracking"
 
     context = {
-                'user_default_search_id': current_user.default_search_id,
-                'user_theme': current_user.user_theme,
-                'search_commands': current_user.json_user_search_commands(),
-                'commands': current_user.json_user_commands(),
                 'page_title': page_title,
-                'sidebar_links': current_user.json_sidebar_links(),
                 'tracking_requests': user_track_query_structured
             }
 
@@ -251,12 +229,7 @@ def commands():
     page_title = "SpicerHome Commands"
 
     context = {
-                'user_default_search_id': current_user.default_search_id,
-                'user_theme': current_user.user_theme,
-                'search_commands': current_user.json_user_search_commands(),
-                'commands': current_user.json_user_commands(),
-                'page_title': page_title,
-                'sidebar_links': current_user.json_sidebar_links()
+                'page_title': page_title
             }
 
     return render_template('/internal/search/commands.html', **context)

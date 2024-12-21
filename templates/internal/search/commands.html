@@ -8,10 +8,10 @@
     </div>
         <div id="history-section">
             <h2>{{ page_title }}</h2>
-            {% if commands %}
+            {% if current_user.json_user_commands() %}
             <table id="history-table">
                 <tbody>
-                    {% for command in commands %}
+                    {% for command in current_user.json_user_commands() %}
                         <tr class="track-row">
                             <td data-label="Category">{{ command.category }}</td>
                             <td data-label="Prefix">{{ command.prefix }}</td>

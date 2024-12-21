@@ -20,8 +20,6 @@ def admin_history():
         abort(404)
     if selected_info == "history":
 
-
-
         admin_history_query = RequestsModel.query.filter_by(user_id=user_id).order_by(RequestsModel.id.desc()).all()
 
         admin_history_query_structured = {user_id: {}}
@@ -47,12 +45,7 @@ def admin_history():
 
         context = {
                 'history_requests': history_requests,
-                'user_default_search_id': current_user.default_search_id,
-                'user_theme': current_user.user_theme,
-                'search_commands': current_user.json_user_search_commands(),
-                'commands': current_user.json_user_commands(),
-                'page_title': page_title,
-                'sidebar_links': current_user.json_sidebar_links()
+                'page_title': page_title
             }
 
         return render_template('internal/search/history.html', **context)
@@ -81,13 +74,7 @@ def admin_history():
 
         context = {
                 'tracking_requests': tracking_requests,
-                # 'users_query': users_query,
-                'user_default_search_id': current_user.default_search_id,
-                'user_theme': current_user.user_theme,
-                'search_commands': current_user.json_user_search_commands(),
-                'commands': current_user.json_user_commands(),
-                'page_title': page_title,
-                'sidebar_links': current_user.json_sidebar_links()
+                'page_title': page_title
             }
 
         return render_template('internal/search/tracking.html', **context)
@@ -105,12 +92,7 @@ def admin_history():
 
         context = {
             'users_query': users_query,
-            'user_default_search_id': current_user.default_search_id,
-            'user_theme': current_user.user_theme,
-            'search_commands': current_user.json_user_search_commands(),
-            'commands': current_user.json_user_commands(),
-            'page_title': page_title,
-            'sidebar_links': current_user.json_sidebar_links()
+            'page_title': page_title
         }
 
         return render_template('/internal/admin/admin_index.html', **context)
