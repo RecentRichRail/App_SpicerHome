@@ -13,4 +13,4 @@ class ChoresUser(db.Model):
         return f'<User {self.name}>'
     
     def get_dollar_amount(self):
-        return f"${self.dollar_amount / 100:.2f}"
+        return float(f"{self.dollar_amount / 100:.2f}")

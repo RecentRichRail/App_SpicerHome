@@ -1,1 +1,7 @@
-<p class="flex justify-center items-center py-4">You have {{ current_user.get_dollar_amount() }} worth of points.</p>
+{% if current_user.get_dollar_amount() < 0 %}
+    <p class="flex justify-center py-4">You have &nbsp;<span class="text-red-500">${{ current_user.get_dollar_amount() }}</span>&nbsp;worth of points.</p>
+{% elif current_user.get_dollar_amount() > 5.00 %}
+    <p class="flex justify-center py-4">You have&nbsp;<span class="text-green-500">${{ current_user.get_dollar_amount() }}</span>&nbsp;worth of points.</p>
+{% else %}
+    <p class="flex justify-center py-4">You have&nbsp;<span>${{ current_user.get_dollar_amount() }}</span>&nbsp;worth of points.</p>
+{% endif %}

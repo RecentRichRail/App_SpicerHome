@@ -4,7 +4,7 @@
         <div id="usersList" class="mb-4 text-2xl">
             {% for user_id, user in all_users_points.items() %}
                 <div class="flex items-center mb-2">
-                    <label for="user-{{ user_id }}" class="text-2xl cursor-pointer p-2 border rounded border-grey-600" onclick="toggleHighlight(this)">{{ user.name }} - Points: <span id="points-{{ user_id }}">{{ user.amount }}</span></label>
+                    <label for="user-{{ user_id }}" class="text-2xl cursor-pointer p-2 border rounded border-grey-600" onclick="toggleHighlight(this)">{{ user.name }}: <span id="points-{{ user_id }}">{{ user.amount }}</span></label>
                 </div>
             {% endfor %}
         </div>
