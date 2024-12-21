@@ -6,12 +6,16 @@
     <div class="text-7xl md:text-9xl py-4">
         {% include 'internal/elements/logo.html' %}
     </div>
+    <div class="flex justify-center items-center p-4">
+        <p>Eventually will be able to manage the shortcuts and searches.</p>
+    </div>
+    <div class="flex justify-center items-center p-4">
         <form id="admin-form" method="get" action="{{ url_for('admin.admin_history') }}">
             <div id="search-bar-container">
                 <!-- Dropdown for selecting tool -->
                 <div id="styled-dropdown">
                     <label for="tool-select" class="sr-only">Select Tool:</label>
-                    <select id="styled-dropdown-select" name="info">
+                    <select id="styled-dropdown-select" name="info" class="w-full p-2 rounded dark:bg-black bg-white dark:text-white text-black border border-gray-700">
                         <option value="">None</option>
                         <option value="history">History</option>
                         <option value="track">Track</option>
@@ -21,7 +25,7 @@
                 <!-- Dropdown for selecting user -->
                 <div id="styled-dropdown">
                     <label for="user-select" class="sr-only">Select User:</label>
-                    <select id="styled-dropdown-select" name="q">
+                    <select id="styled-dropdown-select" name="q" class="w-full p-2 rounded dark:bg-black bg-white dark:text-white text-black border border-gray-700">
                         <option value="">None</option>
                         {% for user_id, user_info in users_query.items() %}
                             <option value="{{ user_id }}">{{ user_info.email }}</option>
@@ -32,6 +36,7 @@
                 <button type="submit" id="search-button">Go</button>
             </div>
         </form>
+    </div>
         <div id="history-section">
             {% if login_request_query %}
             <table id="history-table">

@@ -169,12 +169,7 @@ def user_settings():
     page_title = "SpicerHome Settings"
 
     context = {
-                'user_default_search_id': current_user.default_search_id,
-                'user_theme': current_user.user_theme,
-                'search_commands': current_user.json_user_search_commands(),
-                'commands': current_user.json_user_commands(),
-                'page_title': page_title,
-                'sidebar_links': current_user.json_sidebar_links()
+                'page_title': page_title
             }
 
     return render_template('/internal/user_profile/settingsbase.html', **context)

@@ -40,16 +40,16 @@
         <!-- Search bar will be moved here on scroll -->
     </div>
     <nav class="fixed top-0 left-0 h-full w-64 dark:bg-black bg-yellow-800 dark:text-white text-black transform -translate-x-full transition-transform duration-300 z-40 border-r border-gray-700" id="sidebar">
-        <ul id="sidebar-links" data-links='{{ sidebar_links | tojson | safe }}' class="list-none p-4">
+        <ul id="sidebar-links" data-links='{{ current_user.json_sidebar_links() | tojson | safe }}' class="list-none p-4">
             <div class="text-black !text-black dark:text-white">
-                {% for link in sidebar_links %}
+                {% for link in current_user.json_sidebar_links() %}
                 <a href="{{ link.href }}" class="no-underline text-black !text-black dark:text-white" data-tab="{{ link.data_tab }}">{{ link.text }}</a>
                 {% endfor %}
             </div>
         </ul>
 
         <!-- Dropdown for Search Commands -->
-        <div class="absolute bottom-10 left-4 right-4">
+        <!-- <div class="absolute bottom-10 left-4 right-4">
             <select id="sidebar-dropdown-select" class="w-full p-2 rounded dark:bg-black bg-white dark:text-white text-black border border-gray-700">
                 {% for search_command in search_commands %}
                     {% if search_command['id'] == user_default_search_id %}
@@ -62,7 +62,7 @@
                     {% endif %}
                 {% endfor %}
             </select>
-        </div>
+        </div> -->
     </nav>
     <div class="fixed top-0 left-0 w-full h-full bg-black opacity-50 hidden z-30" id="overlay"></div>
     <script>
@@ -118,39 +118,6 @@
                 sidebarLinksElement.innerHTML = links.map(link => 
                     `<li class="p-2"><a href="${link.href}" class="text-white no-underline" data-tab="${link.data_tab}">${link.text}</a></li>`
                 ).join('');
-            }
-        });
-
-        function getCookie(name) {
-            let value = `; ${document.cookie}`;
-            let parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(';').shift();
-        }
-
-        document.getElementById('sidebar-dropdown-select').addEventListener('change', function() {
-            var selectedId = this.value;
-            if (selectedId) {
-                // Retrieve the JWT token from the cookie
-                var jwtToken = getCookie('{{ cookie_name }}'); // Use the variable passed from Flask
-    
-                fetch('/apiv1/data/user/change_default_search', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        search_id: selectedId,
-                        jwt_token: jwtToken // Include the JWT token in the POST data body
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Default search change success:', data);
-                    // Optionally handle the response here
-                })
-                .catch((error) => {
-                    console.error('Error changing default search:', error);
-                });
             }
         });
 

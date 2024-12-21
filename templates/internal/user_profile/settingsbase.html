@@ -23,11 +23,60 @@
     </div>
     <div class="p-4">
         <p>Name: {{ current_user.name }}</p>
-        <p>Name: {{ current_user.username }}</p>
+        <p>Username: {{ current_user.username }}</p>
         <p>Email: {{ current_user.email }}</p>
-        <p>User ID: {{ current_user.uid }}</p>
-        <p>Default Search: {{ current_user.default_search_id }}</p>
         <p>Geography: {{ current_user.geo }}</p>
+        <div class="border border-gray-200 p-2 rounded">
+            <p>Default Search: {{ current_user.default_search_id }}</p>
+            <select id="sidebar-dropdown-select" class="w-full p-2 rounded dark:bg-black bg-white dark:text-white text-black border border-gray-700">
+                {% for search_command in current_user.json_user_search_commands() %}
+                    {% if search_command['id'] == current_user.default_search_id %}
+                        <option value="{{ search_command['id'] }}">{{ search_command['text'] }}</option>
+                    {% endif %}
+                {% endfor %}
+                {% for search_command in current_user.json_user_search_commands() %}
+                    {% if search_command['id'] != current_user.default_search_id %}
+                        <option value="{{ search_command['id'] }}">{{ search_command['text'] }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <p>User ID: {{ current_user.uid }}</p>
         <p>User Created Date: {{ current_user.datetime_of_create_on_database }}</p>
     </div>
+
+    <script>
+        function getCookie(name) {
+            let value = `; ${document.cookie}`;
+            let parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
+        document.getElementById('sidebar-dropdown-select').addEventListener('change', function() {
+            var selectedId = this.value;
+            if (selectedId) {
+                // Retrieve the JWT token from the cookie
+                var jwtToken = getCookie('{{ cookie_name }}'); // Use the variable passed from Flask
+    
+                fetch('/apiv1/data/user/change_default_search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        search_id: selectedId,
+                        jwt_token: jwtToken // Include the JWT token in the POST data body
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Default search change success:', data);
+                    // Optionally handle the response here
+                })
+                .catch((error) => {
+                    console.error('Error changing default search:', error);
+                });
+            }
+        });
+    </script>
 {% endblock %}
