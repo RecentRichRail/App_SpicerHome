@@ -163,6 +163,22 @@ def internal_search():
 def redirect_old1_search_command(user_query):
     return redirect(f"/internal/search?q={user_query}")
 
+@blp.route('/settings')
+@login_required
+def user_settings():
+    page_title = "SpicerHome Settings"
+
+    context = {
+                'user_default_search_id': current_user.default_search_id,
+                'user_theme': current_user.user_theme,
+                'search_commands': current_user.json_user_search_commands(),
+                'commands': current_user.json_user_commands(),
+                'page_title': page_title,
+                'sidebar_links': current_user.json_sidebar_links()
+            }
+
+    return render_template('/internal/user_profile/settingsbase.html', **context)
+
 @blp.route('/search/history')
 def history():
     user_sub = current_user.id

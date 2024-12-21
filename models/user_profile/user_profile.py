@@ -114,6 +114,17 @@ class User(db.Model):
 
         return user_search_commands
     
+    def is_in_household(self):
+        from models.user_data.chores.chores import ChoresUser
+        user_household_model = ChoresUser.query.filter_by(user_id=self.id).first()
+        if user_household_model:
+            if self.is_household_admin():
+                return "admin"
+            else:
+                return "member"
+        else:
+            return False
+    
     def get_dollar_amount(self):
         from models.user_data.chores.chores import ChoresUser
         user_points_model = ChoresUser.query.filter_by(user_id=self.id).first()
