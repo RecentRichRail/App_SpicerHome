@@ -21,13 +21,13 @@
             <div class="px-4 text-gray-800">{{ current_user.name }}</div>
             <div class="px-4 text-gray-800 text-sm">{{ current_user.email.lower() }}</div>
             <div class="px-4 pb-2 text-gray-400 text-xs">{{ current_user.uid }}</div>
-            {% if not current_user.is_household_admin() %}
+            {% if not current_user.is_household_admin() and current_user.is_in_household() %}
                 {% if current_user.get_dollar_amount() < 0 %}
-                <a href="{{ url_for("chores.view_points") }}" class="px-4 py-2 text-gray-800">Points:&nbsp;<span class="text-red-500">${{ current_user.get_dollar_amount() }}</span></a>
+                <a href="{{ url_for("chores.view_points") }}" class="px-4 py-2 text-gray-800">Points:&nbsp;<span class="text-red-500">${{ current_user.get_dollar_amount().toFixed(2) }}</span></a>
                 {% elif current_user.get_dollar_amount() > 4.99 %}
-                <a href="{{ url_for("chores.view_points") }}" class="px-4 py-2 text-gray-800">Points:&nbsp;<span class="text-green-500">${{ current_user.get_dollar_amount() }}</span></a>
+                <a href="{{ url_for("chores.view_points") }}" class="px-4 py-2 text-gray-800">Points:&nbsp;<span class="text-green-500">${{ current_user.get_dollar_amount().toFixed(2) }}</span></a>
                 {% else %}
-                <a href="{{ url_for("chores.view_points") }}" class="px-4 py-2 text-gray-800">Points:&nbsp;<span class="text-gray-800">${{ current_user.get_dollar_amount() }}</span></a>
+                <a href="{{ url_for("chores.view_points") }}" class="px-4 py-2 text-gray-800">Points:&nbsp;<span class="text-gray-800">${{ current_user.get_dollar_amount().toFixed(2) }}</span></a>
                 {% endif %}
             {% endif %}
             <div class="border-t border-gray-200 my-2"></div>
