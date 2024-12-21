@@ -52,7 +52,7 @@ def points():
         for user in choreusers:
             user_model = User.query.filter_by(id=user.user_id).first()
             if user_model and user_model.name:  # Ensure user_model and user_model.name are not None
-                all_users_points[user_model.id] = {"name": user_model.name, "amount": user.dollar_amount}
+                all_users_points[user_model.id] = {"name": user_model.name, "amount": int(user.dollar_amount)}
         return {"message": "success", "points": all_users_points, "is_admin": True}, 200
     else:
         return {"message": "success", "points": {choreuser.user_id: {"name": current_user.name, "amount": choreuser.dollar_amount}}, "is_admin": False}, 200
