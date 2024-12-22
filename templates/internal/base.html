@@ -24,7 +24,7 @@
 
 {% include 'internal/elements/Holiday/Christmas/snowfall.html' %}
 
-<body class="dark:bg-black bg-yellow-100 dark:text-white text-black">
+<body class="dark:bg-black bg-yellow-100 dark:text-white text-black flex flex-col min-h-screen justify-between">
   {% include 'internal/elements/header.html' %}
   <div class="mt-16" id="content">
     {% block content %}
@@ -32,8 +32,9 @@
   </div>
 
   <!-- {% include "_partials/toasts.html" %} -->
-
-  {% include 'internal/elements/footer.html' %}
+  <div id="footer">
+    {% include 'internal/elements/footer.html' %}
+  </div>
 
 </body>
 {% block script %}
