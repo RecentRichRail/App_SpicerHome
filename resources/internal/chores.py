@@ -64,6 +64,7 @@ def update_points():
     user_ids = data.get('user_ids')
     action = data.get('action')
     amount = int(data.get('amount'))
+    reason = data.get('reason')
 
     if not user_ids or not isinstance(user_ids, list):
         return {"message": "Invalid user IDs"}, 400
@@ -77,18 +78,22 @@ def update_points():
 
         user_model = User.query.filter_by(id=user.user_id).first()
 
+        if reason:
+            reason = f", Reason: {reason}"
+        else:
+            reason = "."
         if action == 'add':
             user.dollar_amount += amount
             if amount == 1:
-                request_reason_created=f"{current_user.name} {action}ed {amount} point to {user_model.name}"
+                request_reason_created=f"{current_user.name} {action}ed {amount} point to {user_model.name}{reason}"
             else:
-                request_reason_created=f"{current_user.name} {action}ed {amount} points to {user_model.name}"
+                request_reason_created=f"{current_user.name} {action}ed {amount} points to {user_model.name}{reason}"
         elif action == 'subtract':
             user.dollar_amount -= amount
             if amount == 1:
-                request_reason_created=f"{current_user.name} {action}ed {amount} point from {user_model.name}"
+                request_reason_created=f"{current_user.name} {action}ed {amount} point from {user_model.name}{reason}"
             else:
-                request_reason_created=f"{current_user.name} {action}ed {amount} points from {user_model.name}"
+                request_reason_created=f"{current_user.name} {action}ed {amount} points from {user_model.name}{reason}"
         else:
             return {"message": "Invalid action"}, 400
 

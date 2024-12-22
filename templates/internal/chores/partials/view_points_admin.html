@@ -22,6 +22,9 @@
                 <input type="number" id="amount" name="amount" required class="text-black mb-4 max-w-60">
             </div>
             <div>
+                <label for="reason">Reason:</label>
+                <input type="text" id="reason" name="reason" class="text-black mb-4 max-w-60">
+            <div>
                 <button type="submit" class="border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded">Submit</button>
             </div>
         </div>
@@ -40,11 +43,12 @@ function handleFormSubmit(event) {
     const selectedUsers = Array.from(document.querySelectorAll('#usersList .bg-green-600')).map(label => label.getAttribute('for').split('-')[1]);
     const action = document.getElementById('action').value;
     const amount = parseInt(document.getElementById('amount').value);
+    const reason = document.getElementById('reason').value;
 
     fetch('/internal/chores/manage_points', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_ids: selectedUsers, action, amount })
+        body: JSON.stringify({ user_ids: selectedUsers, action, amount, reason })
     })
     .then(response => response.text())
     .then(data => {
