@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for
 from flask_login import login_required, current_user
-from models import ChoresUser, db, PermissionsModel, Household, User
+from models import ChoresUser, db, PermissionsModel, Household, User, ChoreRequest
+from datetime import datetime
 
 chores_blueprint = Blueprint("chores", __name__, template_folder="templates/internal/chores")
 
@@ -11,17 +12,22 @@ def view_points():
     all_users_points = {}
     if current_user.is_household_admin():
         choreusers = ChoresUser.query.filter_by(household_admin=False).all()
+        last_25_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household()).order_by(ChoreRequest.request_created_at.desc()).limit(25).all()
         all_users_points = {}
         for user in choreusers:
             user_model = User.query.filter_by(id=user.user_id).first()
             if user_model and user_model.name:  # Ensure user_model and user_model.name are not None
                 all_users_points[user_model.id] = {"name": user_model.name, "amount": int(user.dollar_amount)}
+    else:
+        last_25_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household(), request_created_for_user_id=current_user.id).order_by(ChoreRequest.request_created_at.desc()).limit(25).all()
+                
   
     page_title = "SpicerHome Points"
 
     context = {
                 'page_title': page_title,
-                'all_users_points': all_users_points
+                'all_users_points': all_users_points,
+                'last_25_requests': last_25_requests
             }
     
     return render_template('internal/chores/choresbase.html', **context)
@@ -65,19 +71,41 @@ def update_points():
     updated_users = []
     for user_id in user_ids:
         user = ChoresUser.query.filter_by(user_id=user_id).first()
+        user_model = User.query.filter_by(id=user.user_id).first()
         if not user:
             return {"message": f"User with ID {user_id} not found"}, 404
 
-        if action == 'add':
-            user.dollar_amount += amount
-        elif action == 'subtract':
-            user.dollar_amount -= amount
-        else:
-            return {"message": "Invalid action"}, 400
-        
         user_model = User.query.filter_by(id=user.user_id).first()
 
+        if action == 'add':
+            user.dollar_amount += amount
+            if amount == 1:
+                request_reason_created=f"{current_user.name} {action}ed {amount} point to {user_model.name}"
+            else:
+                request_reason_created=f"{current_user.name} {action}ed {amount} points to {user_model.name}"
+        elif action == 'subtract':
+            user.dollar_amount -= amount
+            if amount == 1:
+                request_reason_created=f"{current_user.name} {action}ed {amount} point from {user_model.name}"
+            else:
+                request_reason_created=f"{current_user.name} {action}ed {amount} points from {user_model.name}"
+        else:
+            return {"message": "Invalid action"}, 400
+
         updated_users.append({"id": user_id, "name": user_model.name, "amount": user.dollar_amount})
+
+        # Log the points request
+        chore_request = ChoreRequest(
+            request_created_by_user_id=current_user.id,
+            request_created_for_user_id=user_id,
+            requested_point_amount_requested=amount,
+            household_id=user.household_id,
+            request_reason_created=request_reason_created,
+            is_request_active=False,
+            request_fulfilled_at = datetime.utcnow(),
+            request_fulfilled_by = current_user.id
+        )
+        db.session.add(chore_request)
 
     db.session.commit()
     return render_template('internal/chores/partials/update_points_feedback.html', updated_users=updated_users, action=action, amount=amount)

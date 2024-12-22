@@ -19,3 +19,4 @@ from models.user_data.banana_game.banana_game_user_bananas_lifetime import Banan
 
 from models.user_data.chores.chores import ChoresUser
 from models.user_data.chores.households import Household
+from models.user_data.chores.requests import ChoreRequest

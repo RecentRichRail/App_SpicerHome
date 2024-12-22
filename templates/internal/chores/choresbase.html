@@ -4,8 +4,8 @@
         {% include 'internal/elements/logo.html' %}
     </div>
     {% if current_user.is_household_admin() %}
-        {{ render_partial("internal/chores/partials/view_points_admin.html", all_users_points=all_users_points) }}
+        {{ render_partial("internal/chores/partials/view_points_admin.html", all_users_points=all_users_points, last_25_requests=last_25_requests) }}
     {% else %}
-        {{ render_partial("internal/chores/partials/view_points_user.html", user_points=user_points) }}
+        {{ render_partial("internal/chores/partials/view_points_user.html", user_points=user_points, last_25_requests=last_25_requests) }}
     {% endif %}
 {% endblock %}

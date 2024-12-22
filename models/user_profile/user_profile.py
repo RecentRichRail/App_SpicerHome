@@ -119,9 +119,9 @@ class User(db.Model):
         user_household_model = ChoresUser.query.filter_by(user_id=self.id).first()
         if user_household_model:
             if self.is_household_admin():
-                return "admin"
+                return user_household_model.household_id
             else:
-                return "member"
+                return user_household_model.household_id
         else:
             return False
     
