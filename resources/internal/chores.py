@@ -69,6 +69,11 @@ def update_points():
     if not user_ids or not isinstance(user_ids, list):
         return {"message": "Invalid user IDs"}, 400
 
+    if reason:
+        reason = f", Reason: {reason}"
+    else:
+        reason = "."
+
     updated_users = []
     for user_id in user_ids:
         user = ChoresUser.query.filter_by(user_id=user_id).first()
@@ -78,10 +83,6 @@ def update_points():
 
         user_model = User.query.filter_by(id=user.user_id).first()
 
-        if reason:
-            reason = f", Reason: {reason}"
-        else:
-            reason = "."
         if action == 'add':
             user.dollar_amount += amount
             if amount == 1:
