@@ -1,0 +1,101 @@
+<head>
+    <style>
+        .firework {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background: red;
+            border-radius: 50%;
+            animation: explode 3s ease-out forwards;
+            z-index: -1; /* Ensure fireworks are below other elements */
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: yellow;
+            border-radius: 50%;
+            animation: particle-explode 3s ease-out forwards, trail 3s ease-out forwards;
+            z-index: -1; /* Ensure particles are below other elements */
+        }
+
+        @keyframes explode {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(10);
+                opacity: 0;
+            }
+        }
+
+        @keyframes particle-explode {
+            0% {
+                transform: translate(0, 0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--x), var(--y));
+                opacity: 0;
+            }
+        }
+
+        @keyframes trail {
+            0% {
+                box-shadow: 0 0 10px currentColor;
+            }
+            100% {
+                box-shadow: 0 0 0 currentColor;
+            }
+        }
+
+        #content {
+            position: relative;
+            z-index: 1; /* Ensure main content is above fireworks */
+        }
+        #footer {
+            position: relative;
+            z-index: 1; /* Ensure footer is above fireworks */
+        }
+    </style>
+</head>
+<body>
+<script>
+    function createFirework() {
+        const firework = document.createElement('div');
+        firework.classList.add('firework');
+        firework.style.left = `${Math.random() * 100}vw`;
+        firework.style.top = `${Math.random() * 100}vh`;
+
+        document.getElementById('content').appendChild(firework);
+
+        const colors = ['yellow', 'green', 'blue', 'purple', 'red', 'orange'];
+
+        // Create particles
+        for (let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            particle.style.left = firework.style.left;
+            particle.style.top = firework.style.top;
+            particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.setProperty('--x', `${Math.random() * 200 - 100}px`);
+            particle.style.setProperty('--y', `${Math.random() * 200 - 100}px`);
+            document.getElementById('content').appendChild(particle);
+
+            // Remove particle after animation
+            particle.addEventListener('animationend', () => {
+                particle.remove();
+            });
+        }
+
+        // Remove firework after animation
+        firework.addEventListener('animationend', () => {
+            firework.remove();
+        });
+    }
+
+    setInterval(createFirework, 350);
+</script>
+</body>
