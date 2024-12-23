@@ -1,0 +1,139 @@
+<head>
+    <style>
+        .firework {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            /* background: darkred; */
+            border-radius: 50%;
+            animation: explode 3s ease-out forwards;
+            z-index: -1; /* Ensure fireworks are below other elements */
+        }
+
+        .point {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: darkorange;
+            border-radius: 50%;
+            animation: point-explode 3s ease-out forwards;
+            z-index: -1; /* Ensure points are below other elements */
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: yellow;
+            border-radius: 50%;
+            animation: particle-explode 3s ease-out forwards, trail 3s ease-out forwards;
+            z-index: -1; /* Ensure particles are below other elements */
+        }
+
+        @keyframes explode {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(10);
+                opacity: 0;
+            }
+        }
+
+        @keyframes point-explode {
+            0% {
+                transform: translate(0, 0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--x), var(--y));
+                opacity: 0;
+            }
+        }
+
+        @keyframes particle-explode {
+            0% {
+                transform: translate(0, 0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--x), var(--y));
+                opacity: 0;
+            }
+        }
+
+        @keyframes trail {
+            0% {
+                box-shadow: 0 0 10px currentColor;
+            }
+            100% {
+                box-shadow: 0 0 0 currentColor;
+            }
+        }
+
+        #content {
+            position: relative;
+            z-index: 1; /* Ensure main content is above fireworks */
+        }
+        #footer {
+            position: relative;
+            z-index: 1; /* Ensure footer is above fireworks */
+        }
+    </style>
+</head>
+<body>
+    <script>
+        function createFirework() {
+            const firework = document.createElement('div');
+            firework.classList.add('firework');
+            firework.style.left = `${Math.random() * 100}vw`;
+            firework.style.top = `${Math.random() * 100}vh`;
+    
+            document.getElementById('content').appendChild(firework);
+    
+            const colors = ['yellow', 'green', 'blue', 'purple', 'red', 'orange'];
+    
+            // Create points
+            for (let i = 0; i < 6; i++) {
+                const point = document.createElement('div');
+                point.classList.add('point');
+                point.style.left = firework.style.left;
+                point.style.top = firework.style.top;
+                point.style.background = colors[Math.floor(Math.random() * colors.length)];
+                point.style.setProperty('--x', `${Math.random() * 400 - 200}px`);
+                point.style.setProperty('--y', `${Math.random() * 400 - 200}px`);
+                document.getElementById('content').appendChild(point);
+    
+                // Create particles following the points
+                for (let j = 0; j < 16; j++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    particle.style.left = point.style.left;
+                    particle.style.top = point.style.top;
+                    particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    particle.style.setProperty('--x', `${Math.random() * 100 - 50}px`);
+                    particle.style.setProperty('--y', `${Math.random() * 100 - 50}px`);
+                    document.getElementById('content').appendChild(particle);
+    
+                    // Remove particle after animation
+                    particle.addEventListener('animationend', () => {
+                        particle.remove();
+                    });
+                }
+    
+                // Remove point after animation
+                point.addEventListener('animationend', () => {
+                    point.remove();
+                });
+            }
+    
+            // Remove firework after animation
+            firework.addEventListener('animationend', () => {
+                firework.remove();
+            });
+        }
+    
+        setInterval(createFirework, 350);
+    </script>
+</body>
