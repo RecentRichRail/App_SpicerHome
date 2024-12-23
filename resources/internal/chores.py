@@ -87,12 +87,14 @@ def update_points():
         user_model = User.query.filter_by(id=user.user_id).first()
 
         if action == 'add':
+            display_points = amount
             user.dollar_amount += amount
             if amount == 1:
                 request_reason_created=f"{current_user.name} {action}ed {amount} point to {user_model.name}{reason}"
             else:
                 request_reason_created=f"{current_user.name} {action}ed {amount} points to {user_model.name}{reason}"
         elif action == 'subtract':
+            display_points = -amount
             user.dollar_amount -= amount
             if amount == 1:
                 request_reason_created=f"{current_user.name} {action}ed {amount} point from {user_model.name}{reason}"
@@ -107,7 +109,7 @@ def update_points():
         chore_request = ChoreRequest(
             request_created_by_user_id=current_user.id,
             request_created_for_user_id=user_id,
-            requested_point_amount_requested=amount,
+            requested_point_amount_requested=display_points,
             household_id=user.household_id,
             request_reason_created=request_reason_created,
             is_request_active=False,
