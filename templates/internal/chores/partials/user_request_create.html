@@ -1,6 +1,6 @@
 <div>
     {% for available_request in available_requests %}
-        <button class="border border-gray-600 p-2 mb-2 rounded pb-2 dark:text-white text-black text-lg w-full text-left" onclick="sendRequest('{{ available_request.id }}')">
+        <button id="requestButton-{{ available_request.id }}" class="border border-gray-600 p-2 mb-2 rounded pb-2 dark:text-white text-black text-lg w-full text-left" onclick="sendRequest('{{ available_request.id }}')">
             <div>
                 {{ available_request.request_name }}
             </div>
@@ -11,16 +11,15 @@
 </div>
 
 <script>
-function sendRequest(requestId) {
-    fetch(`/internal/chores/request_points?id=${requestId}`, {
-        method: 'POST',
-    })
-    .then(response => response.text())
-    .then(data => {
-        document.getElementById('response').innerHTML = data;
-        refreshLatestRequestLogs();
-    })
-    .catch(error => console.error('Error:', error));
-    refreshLatestRequestLogs();
+    function sendRequest(requestId) {
+        fetch(`/internal/chores/request_points?id=${requestId}`, {
+            method: 'POST',
+        })
+        .then(response => response.text())
+        .then(data => {
+            const button = document.getElementById(`requestButton-${requestId}`);
+            button.outerHTML = data;
+            refreshLatestRequestLogs();
+        });
 }
 </script>

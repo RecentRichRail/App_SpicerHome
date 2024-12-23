@@ -1,0 +1,17 @@
+{% if status == 'Daily Limit Reached' %}
+    <button id="requestButton-{{ available_request.id }}" class="border border-gray-600 p-2 mb-2 rounded pb-2 dark:text-white text-black text-lg w-full text-left">
+        <div>
+            {{ available_request.request_name }} is disabled, Daily limit reached.
+        </div>
+        <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Daily limit: {{ available_request.daily_limit }}</li>
+        <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Status: Daily Limit Reached</li>
+    </button>
+{% elif status == 'Request Created' %}
+    <button id="requestButton-{{ available_request.id }}" class="border border-gray-600 p-2 mb-2 rounded pb-2 dark:text-white text-black text-lg w-full text-left">
+        <div>
+            {{ available_request.request_name }} request sent.
+        </div>
+        <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Daily limit: {{ available_request.daily_limit }}</li>
+        <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Status: Request Created.</li>
+    </button>
+{% endif %}

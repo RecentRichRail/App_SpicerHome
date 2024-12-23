@@ -175,19 +175,30 @@ def request_points():
     if request.method == 'POST':
         request_id = request.args.get('id')
         request_model = PointsRequest.query.filter_by(household_id=current_user.is_in_household(), is_request_active=True, id=request_id).first()
+        request_reason_created = f"{current_user.name} requested {request_model.points_requested} points for {request_model.request_name}."
+        today = datetime.utcnow().date()
+        todays_similar_requests = ChoreRequest.query.filter(
+            ChoreRequest.household_id == current_user.is_in_household(),
+            ChoreRequest.request_created_by_user_id == current_user.id,
+            ChoreRequest.request_reason_created == request_reason_created,
+            db.func.date(ChoreRequest.request_created_at) == today
+        ).order_by(ChoreRequest.request_created_at.desc()).all()
+
+        if todays_similar_requests and len(todays_similar_requests) >= request_model.daily_limit:
+            status = "Daily Limit Reached"
+            return render_template('internal/chores/partials/user_request_create.html', status=status, available_request=request_model)
         
         chore_request = ChoreRequest(
             request_created_by_user_id=current_user.id,
             request_created_for_user_id=current_user.id,
             requested_point_amount_requested=request_model.points_requested,
             household_id=choreuser.household_id,
-            request_reason_created=f"{current_user.name} requested {request_model.points_requested} points for {request_model.request_name}.",
+            request_reason_created=request_reason_created,
             is_request_active=True
         )
         db.session.add(chore_request)
 
         db.session.commit()
+        status = "Request Created"
         
-        return jsonify({'success': True, 'message': 'Points request logged successfully.'}), 200
-    
-    return render_template('request_points.html')
+        return render_template('internal/chores/partials/user_request_create.html', status=status, available_request=request_model)
