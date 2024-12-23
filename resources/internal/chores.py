@@ -187,9 +187,9 @@ def request_points():
             db.func.date(ChoreRequest.request_created_at) == today
         ).order_by(ChoreRequest.request_created_at.desc()).all()
 
-        if todays_similar_requests and len(todays_similar_requests) >= request_model.daily_limit:
+        if todays_similar_requests and len(todays_similar_requests) > request_model.daily_limit:
             status = "Daily Limit Reached"
-            return render_template('internal/chores/partials/user_request_create.html', status=status, available_request=request_model)
+            return render_template('internal/chores/partials/user_request_feedback.html', status=status, available_request=request_model.to_dict())
         
         chore_request = ChoreRequest(
             request_created_by_user_id=current_user.id,
@@ -204,4 +204,4 @@ def request_points():
         db.session.commit()
         status = "Request Created"
         
-        return render_template('internal/chores/partials/user_request_create.html', status=status, available_request=request_model)
+        return render_template('internal/chores/partials/user_request_feedback.html', status=status, available_request=request_model.to_dict())
