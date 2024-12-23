@@ -24,13 +24,3 @@
         {% endfor %}
     </ul>
 </div>
-<script>
-    function refreshLatestRequestLogs() {
-        fetch('/internal/chores/latest_request_logs')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('latest-request-logs').innerHTML = html;
-            })
-            .catch(error => console.error('Error refreshing latest request logs:', error));
-    }
-</script>

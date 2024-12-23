@@ -11,3 +11,13 @@
     {{ render_partial('internal/chores/partials/user_request_create.html', available_requests=available_requests) }}
 </div>
 {{ render_partial('internal/chores/partials/latest_request_logs.html', last_25_requests=last_25_requests) }}
+<script>
+    function refreshLatestRequestLogs() {
+        fetch('/internal/chores/latest_request_logs')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('latest-request-logs').innerHTML = html;
+            })
+            .catch(error => console.error('Error refreshing latest request logs:', error));
+    }
+</script>

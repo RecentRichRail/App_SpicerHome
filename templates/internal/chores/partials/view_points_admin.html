@@ -1,5 +1,4 @@
 <div class="text-2xl mt-5 p-9 flex flex-col items-center">
-    {{ render_partial('internal/chores/partials/open_requests_for_admin.html', open_requests=open_requests) }}
     <p id="message" class="mt-4 flex flex-col items-center"></p>
     <h2 class="text-3xl mb-4 flex flex-col items-center">Manage User Points</h2>
     <form id="managePointsForm" class="flex flex-col items-center" onsubmit="handleFormSubmit(event)">
@@ -30,6 +29,7 @@
             </div>
         </div>
     </form>
+    {{ render_partial('internal/chores/partials/open_requests_for_admin.html', open_requests=open_requests) }}
     {{ render_partial('internal/chores/partials/latest_request_logs.html', last_25_requests=last_25_requests) }}
 </div>
 
@@ -65,5 +65,14 @@
             refreshLatestRequestLogs();
         })
         .catch(error => console.error('Error:', error));
+    }
+
+    function refreshLatestRequestLogs() {
+        fetch('/internal/chores/latest_request_logs')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('latest-request-logs').innerHTML = html;
+            })
+            .catch(error => console.error('Error refreshing latest request logs:', error));
     }
 </script>

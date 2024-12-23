@@ -129,7 +129,7 @@ def update_points():
 @login_required
 def latest_request_logs_partial():
     if current_user.is_household_admin():
-        last_25_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household(), is_request_active=False, request_cancelled_at=None).order_by(ChoreRequest.request_created_at.desc()).limit(25).all()
+        last_25_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household()).order_by(ChoreRequest.request_created_at.desc()).limit(25).all()
     else:
         last_25_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household(), request_created_for_user_id=current_user.id).order_by(ChoreRequest.request_created_at.desc()).limit(25).all()
 
