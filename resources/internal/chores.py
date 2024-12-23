@@ -139,12 +139,15 @@ def latest_request_logs_partial():
 @login_required
 def approve_request(request_id):
     chore_request = ChoreRequest.query.get(request_id)
+    chore_user_model = ChoresUser.query.filter_by(user_id=chore_request.request_created_for_user_id).first()
     if not chore_request or not current_user.is_household_admin():
         return {"message": "Request not found or permission denied"}, 404
 
     chore_request.is_request_active = False
     chore_request.request_fulfilled_at = datetime.utcnow()
     chore_request.request_fulfilled_by = current_user.id
+
+    chore_user_model.dollar_amount += chore_request.requested_point_amount_requested
 
     db.session.commit()
 
