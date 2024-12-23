@@ -116,6 +116,8 @@ def update_points():
     db.session.commit()
     
     response = render_template('internal/chores/partials/update_points_feedback.html', updated_users=updated_users, action=action, amount=amount)
+    response += '<script>refreshLatestRequestLogs();</script>'
+    
     return response
 
 @chores_blueprint.route('/latest_request_logs', methods=['GET'])

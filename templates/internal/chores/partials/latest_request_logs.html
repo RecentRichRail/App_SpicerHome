@@ -10,9 +10,6 @@
     </ul>
 </div>
 <script>
-    refreshLatestRequestLogs();
-    setInterval(refreshLatestRequestLogs, 2000);
-
     function refreshLatestRequestLogs() {
         fetch('/internal/chores/latest_request_logs')
             .then(response => response.text())

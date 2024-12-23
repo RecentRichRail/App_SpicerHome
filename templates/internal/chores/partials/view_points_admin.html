@@ -61,6 +61,7 @@
             });
             // Deselect the labels
             document.querySelectorAll('#usersList .bg-green-600').forEach(label => label.classList.remove('bg-green-600'));
+            refreshLatestRequestLogs();
         })
         .catch(error => console.error('Error:', error));
     }
