@@ -1,0 +1,26 @@
+<div>
+    {% for available_request in available_requests %}
+        <button class="border border-gray-600 p-2 mb-2 rounded pb-2 dark:text-white text-black text-lg w-full text-left" onclick="sendRequest('{{ available_request.id }}')">
+            <div>
+                {{ available_request.request_name }}
+            </div>
+            <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Points: {{ available_request.points_requested }}</li>
+            <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Daily limit: {{ available_request.daily_limit }}</li>
+        </button>
+    {% endfor %}
+</div>
+
+<script>
+function sendRequest(requestId) {
+    fetch(`/internal/chores/request_points?id=${requestId}`, {
+        method: 'POST',
+    })
+    .then(response => response.text())
+    .then(data => {
+        document.getElementById('response').innerHTML = data;
+        refreshLatestRequestLogs();
+    })
+    .catch(error => console.error('Error:', error));
+    refreshLatestRequestLogs();
+}
+</script>

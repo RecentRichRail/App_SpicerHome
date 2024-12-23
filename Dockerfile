@@ -24,7 +24,8 @@ RUN echo '#!/bin/sh\n' \
          'cd /app\n' \
          'git pull origin master\n' \
          'pip install --no-cache-dir -r requirements.txt\n' \
-         'flask db migrate\n' \
+         'flask db init\n' \
+         'flask db migrate -m "Automated migration."\n' \
          'flask db upgrade\n' \
          'exec "$@"' > /entrypoint.sh
 

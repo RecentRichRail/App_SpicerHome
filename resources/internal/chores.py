@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for
 from flask_login import login_required, current_user
-from models import ChoresUser, db, PermissionsModel, Household, User, ChoreRequest
+from models import ChoresUser, db, PermissionsModel, Household, User, ChoreRequest, PointsRequest
 from datetime import datetime
 
 chores_blueprint = Blueprint("chores", __name__, template_folder="templates/internal/chores")
@@ -13,6 +13,7 @@ def view_points():
     if current_user.is_household_admin():
         choreusers = ChoresUser.query.filter_by(household_admin=False).all()
         last_25_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household()).order_by(ChoreRequest.request_created_at.desc()).limit(25).all()
+        open_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household(), is_request_active=True, request_cancelled_at=None).order_by(ChoreRequest.request_created_at.desc()).all()
         all_users_points = {}
         for user in choreusers:
             user_model = User.query.filter_by(id=user.user_id).first()
@@ -20,6 +21,7 @@ def view_points():
                 all_users_points[user_model.id] = {"name": user_model.name, "amount": int(user.dollar_amount)}
     else:
         last_25_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household(), request_created_for_user_id=current_user.id).order_by(ChoreRequest.request_created_at.desc()).limit(25).all()
+        open_requests = PointsRequest.query.filter_by(household_id=current_user.is_in_household(), is_request_active=True).all()
                 
   
     page_title = "SpicerHome Points"
@@ -27,7 +29,8 @@ def view_points():
     context = {
                 'page_title': page_title,
                 'all_users_points': all_users_points,
-                'last_25_requests': last_25_requests
+                'last_25_requests': last_25_requests,
+                'open_requests': open_requests
             }
     
     return render_template('internal/chores/choresbase.html', **context)
@@ -124,8 +127,65 @@ def update_points():
 @login_required
 def latest_request_logs_partial():
     if current_user.is_household_admin():
-        last_25_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household()).order_by(ChoreRequest.request_created_at.desc()).limit(25).all()
+        last_25_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household(), is_request_active=False, request_cancelled_at=None).order_by(ChoreRequest.request_created_at.desc()).limit(25).all()
     else:
         last_25_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household(), request_created_for_user_id=current_user.id).order_by(ChoreRequest.request_created_at.desc()).limit(25).all()
 
     return render_template('internal/chores/partials/latest_request_logs.html', last_25_requests=last_25_requests)
+
+@chores_blueprint.route('/approve_request/<int:request_id>', methods=['POST'])
+@login_required
+def approve_request(request_id):
+    chore_request = ChoreRequest.query.get(request_id)
+    if not chore_request or not current_user.is_household_admin():
+        return {"message": "Request not found or permission denied"}, 404
+
+    chore_request.is_request_active = False
+    chore_request.request_fulfilled_at = datetime.utcnow()
+    chore_request.request_fulfilled_by = current_user.id
+
+    db.session.commit()
+
+    return render_template('internal/chores/partials/request_approved.html', request=chore_request)
+
+@chores_blueprint.route('/deny_request/<int:request_id>', methods=['POST'])
+@login_required
+def deny_request(request_id):
+    chore_request = ChoreRequest.query.get(request_id)
+    if not chore_request or not current_user.is_household_admin():
+        return {"message": "Request not found or permission denied"}, 404
+
+    chore_request.is_request_active = False
+    chore_request.request_cancelled_at = datetime.utcnow()
+    chore_request.requst_cancelled_by = current_user.id
+
+    db.session.commit()
+
+    return render_template('internal/chores/partials/request_denied.html', request=chore_request)
+
+@chores_blueprint.route('/request_points', methods=['POST'])
+@login_required
+def request_points():
+    choreuser = ChoresUser.query.filter_by(user_id=current_user.id).first()
+    if not choreuser:
+        return {"message": "User not found"}, 404
+    
+    if request.method == 'POST':
+        request_id = request.args.get('id')
+        request_model = PointsRequest.query.filter_by(household_id=current_user.is_in_household(), is_request_active=True, id=request_id).first()
+        
+        chore_request = ChoreRequest(
+            request_created_by_user_id=current_user.id,
+            request_created_for_user_id=current_user.id,
+            requested_point_amount_requested=request_model.points_requested,
+            household_id=choreuser.household_id,
+            request_reason_created=f"{current_user.name} requested {request_model.points_requested} points for {request_model.request_name}.",
+            is_request_active=True
+        )
+        db.session.add(chore_request)
+
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Points request logged successfully.'}), 200
+    
+    return render_template('request_points.html')

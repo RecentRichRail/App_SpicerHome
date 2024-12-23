@@ -1,0 +1,31 @@
+{% if open_requests %}
+    <div id="latest-open-logs">
+        <p class="pb-4 dark:text-white text-black text-xl mt-4">Open Requests:</p>
+        <ul>
+            {% for open_request in open_requests %}
+                <div class="border border-gray-600 p-2 mb-2 rounded w-full" id="open_request_{{ open_request.id }}">
+                    <li class="pb-2 dark:text-white text-black text-lg">{{ open_request.request_reason_created }}</li>
+                    <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs flex justify-between items-center">
+                        <span>Points: {{ open_request.requested_point_amount_requested }}</span>
+                        <div class="pl-10">
+                            <button 
+                                class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded mr-2"
+                                hx-post="{{ url_for('chores.approve_request', request_id=open_request.id) }}"
+                                hx-swap="outerHTML"
+                                hx-target="#open_request_{{ open_request.id }}"
+                            >Approve</button>
+                            <button 
+                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                                hx-post="{{ url_for('chores.deny_request', request_id=open_request.id) }}"
+                                hx-swap="outerHTML"
+                                hx-target="#open_request_{{ open_request.id }}"
+                            >Deny</button>
+                        </div>
+                    </li>
+                    <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Requester: {{ open_request.created_by_name() }}</li>
+                    <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Date: {{ open_request.request_created_at }}</li>
+                </div>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}

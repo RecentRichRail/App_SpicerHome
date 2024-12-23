@@ -7,6 +7,7 @@
         <p class="flex justify-center py-4">You have&nbsp;<span x-text="'$' + dollarAmount"></span>&nbsp;worth of points.</p>
     {% endif %}
 </div>
-<div class="text-2xl mt-5 p-9">
-    {{ render_partial('internal/chores/partials/latest_request_logs.html', last_25_requests=last_25_requests) }}
+<div>
+    {{ render_partial('internal/chores/partials/user_request_create.html', available_requests=available_requests) }}
 </div>
+{{ render_partial('internal/chores/partials/latest_request_logs.html', last_25_requests=last_25_requests) }}
