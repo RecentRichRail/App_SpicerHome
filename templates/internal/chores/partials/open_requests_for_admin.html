@@ -4,8 +4,8 @@
         <ul>
             {% for open_request in open_requests %}
                 <div class="border border-gray-600 p-2 mb-2 rounded w-full" id="open_request_{{ open_request.id }}">
-                    <li class="pb-2 dark:text-white text-black text-lg">{{ open_request.request_reason_created }}</li>
-                    <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs flex justify-between items-center">
+                    <li class="dark:text-white text-black text-lg">{{ open_request.request_reason_created }}</li>
+                    <li class="dark:text-gray-400 text-gray-700 text-xs flex justify-between items-center">
                         <span>Points: {{ open_request.requested_point_amount_requested }}</span>
                         <div class="pl-10">
                             <button 
@@ -22,8 +22,8 @@
                             >Deny</button>
                         </div>
                     </li>
-                    <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Requester: {{ open_request.created_by_name() }}</li>
-                    <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Date: {{ open_request.request_created_at }}</li>
+                    <li class="dark:text-gray-400 text-gray-700 text-xs">Requester: {{ open_request.created_by_name() }}</li>
+                    <li class="dark:text-gray-400 text-gray-700 text-xs">Date: {{ open_request.request_created_at }}</li>
                 </div>
             {% endfor %}
         </ul>

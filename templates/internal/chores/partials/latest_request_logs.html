@@ -4,21 +4,21 @@
         {% for last_request in last_25_requests %}
             <div class="border border-gray-600 p-2 mb-2 rounded">
                 <li class="pb-2 dark:text-white text-black text-lg">{{ last_request.request_reason_created }}</li>
-                <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Created: {{ last_request.request_created_at }}</li>
-                <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Points: {{ last_request.requested_point_amount_requested }}</li>
+                <li class="dark:text-gray-400 text-gray-700 text-xs">Created: {{ last_request.request_created_at }}</li>
+                <li class="dark:text-gray-400 text-gray-700 text-xs">Points: {{ last_request.requested_point_amount_requested }}</li>
                 {% if last_request.request_cancelled_at %}
-                    <li class="pb-2 dark:text-red-500 text-red-500 text-xs">Status: Cancelled</li>
-                    <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Requested by: {{ last_request.created_by_name() }}</li>
-                    <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Cancelled by: {{ last_request.cancelled_by_name() }}</li>
-                    <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Cancelled: {{ last_request.request_cancelled_at }}</li>
+                    <li class="dark:text-red-500 text-red-500 text-xs">Status: Cancelled</li>
+                    <li class="dark:text-gray-400 text-gray-700 text-xs">Requested by: {{ last_request.created_by_name() }}</li>
+                    <li class="dark:text-gray-400 text-gray-700 text-xs">Cancelled by: {{ last_request.cancelled_by_name() }}</li>
+                    <li class="dark:text-gray-400 text-gray-700 text-xs">Cancelled: {{ last_request.request_cancelled_at }}</li>
                 {% elif last_request.request_fulfilled_at %}
-                    <li class="pb-2 dark:text-green-500 text-green-500 text-xs">Status: Approved</li>
-                    <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Requested by: {{ last_request.created_by_name() }}</li>
-                    <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Approved by: {{ last_request.approved_by_name() }}</li>
-                    <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Approved: {{ last_request.request_fulfilled_at }}</li>
+                    <li class="dark:text-green-500 text-green-500 text-xs">Status: Approved</li>
+                    <li class="dark:text-gray-400 text-gray-700 text-xs">Requested by: {{ last_request.created_by_name() }}</li>
+                    <li class="dark:text-gray-400 text-gray-700 text-xs">Approved by: {{ last_request.approved_by_name() }}</li>
+                    <li class="dark:text-gray-400 text-gray-700 text-xs">Approved: {{ last_request.request_fulfilled_at }}</li>
                 {% elif not last_request.request_fulfilled_at and not last_request.request_cancelled_at%}
-                    <li class="pb-2 dark:text-yellow-500 text-yellow-500 text-xs">Status: Pending</li>
-                    <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Requested by: {{ last_request.created_by_name() }}</li>
+                    <li class="dark:text-yellow-500 text-yellow-500 text-xs">Status: Pending</li>
+                    <li class="dark:text-gray-400 text-gray-700 text-xs">Requested by: {{ last_request.created_by_name() }}</li>
                 {% endif %}
             </div>
         {% endfor %}
