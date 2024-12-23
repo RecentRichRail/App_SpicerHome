@@ -2,7 +2,7 @@
     {% for available_request in available_requests %}
         <button id="requestButton-{{ available_request.id }}" class="border border-gray-600 pl-2 pr-2 m-2 rounded pb-2 dark:text-white text-black text-lg w-40 text-left" onclick="sendRequest('{{ available_request.id }}')">
             <div>
-                {{ available_request.request_name }}
+                {{ available_request.request_name|capitalize }}
             </div>
             <li class="dark:text-gray-400 text-gray-700 text-xs">Points: {{ available_request.points_requested }}</li>
             <li class="dark:text-gray-400 text-gray-700 text-xs">Daily limit: {{ available_request.daily_limit }}</li>
