@@ -33,35 +33,35 @@
 </div>
 
 <script>
-function toggleHighlight(element) {
-    element.classList.toggle('bg-green-600');
-}
+    function toggleHighlight(element) {
+        element.classList.toggle('bg-green-600');
+    }
 
-function handleFormSubmit(event) {
-    event.preventDefault();
-    
-    const selectedUsers = Array.from(document.querySelectorAll('#usersList .bg-green-600')).map(label => label.getAttribute('for').split('-')[1]);
-    const action = document.getElementById('action').value;
-    const amount = parseInt(document.getElementById('amount').value);
-    const reason = document.getElementById('reason').value;
+    function handleFormSubmit(event) {
+        event.preventDefault();
+        
+        const selectedUsers = Array.from(document.querySelectorAll('#usersList .bg-green-600')).map(label => label.getAttribute('for').split('-')[1]);
+        const action = document.getElementById('action').value;
+        const amount = parseInt(document.getElementById('amount').value);
+        const reason = document.getElementById('reason').value;
 
-    fetch('/internal/chores/manage_points', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_ids: selectedUsers, action, amount, reason })
-    })
-    .then(response => response.text())
-    .then(data => {
-        document.getElementById('message').innerHTML = data;
-        // Update the selected section after success
-        selectedUsers.forEach(userId => {
-            const pointsElement = document.getElementById(`points-${userId}`);
-            const newPoints = parseInt(pointsElement.innerText) + (action === 'add' ? amount : -amount);
-            pointsElement.innerText = newPoints;
-        });
-        // Deselect the labels
-        document.querySelectorAll('#usersList .bg-green-600').forEach(label => label.classList.remove('bg-green-600'));
-    })
-    .catch(error => console.error('Error:', error));
-}
+        fetch('/internal/chores/manage_points', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_ids: selectedUsers, action, amount, reason })
+        })
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('message').innerHTML = data;
+            // Update the selected section after success
+            selectedUsers.forEach(userId => {
+                const pointsElement = document.getElementById(`points-${userId}`);
+                const newPoints = parseInt(pointsElement.innerText) + (action === 'add' ? amount : -amount);
+                pointsElement.innerText = newPoints;
+            });
+            // Deselect the labels
+            document.querySelectorAll('#usersList .bg-green-600').forEach(label => label.classList.remove('bg-green-600'));
+        })
+        .catch(error => console.error('Error:', error));
+    }
 </script>

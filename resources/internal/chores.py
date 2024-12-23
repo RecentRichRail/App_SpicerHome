@@ -114,4 +114,16 @@ def update_points():
         db.session.add(chore_request)
 
     db.session.commit()
-    return render_template('internal/chores/partials/update_points_feedback.html', updated_users=updated_users, action=action, amount=amount)
+    
+    response = render_template('internal/chores/partials/update_points_feedback.html', updated_users=updated_users, action=action, amount=amount)
+    return response
+
+@chores_blueprint.route('/latest_request_logs', methods=['GET'])
+@login_required
+def latest_request_logs_partial():
+    if current_user.is_household_admin():
+        last_25_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household()).order_by(ChoreRequest.request_created_at.desc()).limit(25).all()
+    else:
+        last_25_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household(), request_created_for_user_id=current_user.id).order_by(ChoreRequest.request_created_at.desc()).limit(25).all()
+
+    return render_template('internal/chores/partials/latest_request_logs.html', last_25_requests=last_25_requests)
