@@ -28,6 +28,11 @@ class ChoreRequest(db.Model):
             return None
         return User.query.filter_by(id=self.request_created_by_user_id).first().name
     
+    def created_for_name(self):
+        if self.request_created_for_user_id is None:
+            return None
+        return User.query.filter_by(id=self.request_created_for_user_id).first().name
+    
     def cancelled_by_name(self):
         if self.requst_cancelled_by is None:
             return None

@@ -4,6 +4,7 @@
         {% for last_request in last_25_requests %}
             <div class="border border-gray-600 p-2 mb-2 rounded">
                 <li class="pb-2 dark:text-white text-black text-lg">{{ last_request.request_reason_created }}</li>
+                <li class="dark:text-gray-400 text-gray-700 text-xs">Requested for: {{ last_request.created_for_name() }}</li>
                 <li class="dark:text-gray-400 text-gray-700 text-xs">Created: {{ last_request.request_created_at }}</li>
                 <li class="dark:text-gray-400 text-gray-700 text-xs">Points: {{ last_request.requested_point_amount_requested }}</li>
                 {% if last_request.request_cancelled_at %}

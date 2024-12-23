@@ -22,7 +22,7 @@
                             >Deny</button>
                         </div>
                     </li>
-                    <li class="dark:text-gray-400 text-gray-700 text-xs">Requester: {{ open_request.created_by_name() }}</li>
+                    <li class="dark:text-gray-400 text-gray-700 text-xs">Requester: {{ open_request.created_for_name() }}</li>
                     <li class="dark:text-gray-400 text-gray-700 text-xs">Date: {{ open_request.request_created_at }}</li>
                 </div>
             {% endfor %}

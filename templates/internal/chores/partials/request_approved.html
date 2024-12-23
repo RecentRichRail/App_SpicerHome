@@ -1,10 +1,10 @@
 <div class="border border-gray-600 p-2 mb-2 rounded">
     <li class="pb-2 dark:text-white text-black text-lg">{{ request.request_reason_created }}</li>
-    <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Created: {{ request.request_created_at }}</li>
-        <li class="pb-2 dark:text-green-500 text-green-500 text-xs">Status: Approved</li>
-        <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Requested by: {{ request.created_by_name() }}</li>
-        <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Approved by: {{ request.approved_by_name() }}</li>
-        <li class="pb-2 dark:text-gray-400 text-gray-700 text-xs">Approved: {{ request.request_fulfilled_at }}</li>
+    <li class="dark:text-gray-400 text-gray-700 text-xs">Created: {{ request.request_created_at }}</li>
+        <li class="dark:text-green-500 text-green-500 text-xs">Status: Approved</li>
+        <li class="dark:text-gray-400 text-gray-700 text-xs">Requested by: {{ request.created_by_name() }}</li>
+        <li class="dark:text-gray-400 text-gray-700 text-xs">Approved by: {{ request.approved_by_name() }}</li>
+        <li class="dark:text-gray-400 text-gray-700 text-xs">Approved: {{ request.request_fulfilled_at }}</li>
 </div>
 <script>
     refreshLatestRequestLogs();
