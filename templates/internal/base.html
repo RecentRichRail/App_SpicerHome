@@ -23,7 +23,7 @@
 </head>
 
 {% include 'internal/elements/holiday/christmas/snowfall.html' %}
-<!-- {% include 'internal/elements/holiday/new_years/fireworks.html' %} -->
+{% include 'internal/elements/holiday/new_years/fireworks.html' %}
 
 <body class="dark:bg-black bg-yellow-100 dark:text-white text-black flex flex-col min-h-screen justify-between">
   {% include 'internal/elements/header.html' %}
@@ -31,6 +31,8 @@
     {% block content %}
     {% endblock %}
   </div>
+
+ {% include 'internal/elements/holiday/new_years/newyears_countdown.html' %}
 
   <!-- {% include "_partials/toasts.html" %} -->
   <div id="footer">

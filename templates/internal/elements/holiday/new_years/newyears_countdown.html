@@ -1,0 +1,44 @@
+<head>
+    <style>
+        @font-face { 
+            font-family: 'neo-sans'; 
+            src: url('/static/styles/fonts/NeonSans.ttf');
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="py-10 bg-white dark:bg-black text-center">
+        <h1 class="text-3xl mb-5 text-yellow-600 dark:text-yellow-400" style="font-family: neo-sans;">New Year's Countdown</h1>
+        <div id="countdown" class="text-2xl text-yellow-600 dark:text-yellow-400" style="font-family: neo-sans;">
+            <div id="days" class="inline-block mx-2"></div>
+            <div id="hours" class="inline-block mx-2"></div>
+            <div id="minutes" class="inline-block mx-2"></div>
+            <div id="seconds" class="inline-block mx-2"></div>
+        </div>
+    </div>
+    <script>
+        function updateCountdown() {
+            const now = new Date();
+            const nextYear = now.getFullYear() + 1;
+            const newYearDate = new Date(nextYear, 0, 1); // January 1st of the next year
+        
+            const timeRemaining = newYearDate - now;
+        
+            const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+            const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+            const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+        
+            document.getElementById("countdown").innerHTML = 
+                days + "d " + hours + "h " + minutes + "m " + seconds + "s";
+        
+            if (timeRemaining < 0 || (now.getMonth() === 0 && now.getDate() === 1)) {
+                clearInterval(countdownInterval);
+                document.getElementById("countdown").innerHTML = "Happy New Year!";
+                fireworks.start();
+            }
+        }
+    
+    const countdownInterval = setInterval(updateCountdown, 1000);</script>
+</body>
