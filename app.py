@@ -473,7 +473,7 @@ def before_request_def():
                 # This will mean that the identity is provided by Cloudflare
                 synchronize_user_with_identity(identity)
                 user = User.query.filter_by(uid=identity["user_uuid"]).first()
-                session['userdata'] = user
+                session['user_id'] = user.id
                 login_user(user)
     else:
         # User is not logged in
