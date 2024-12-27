@@ -9,31 +9,9 @@
     <div id="history-section">
         <h2>Search Tracking Numbers</h2>
         {% if tracking_requests %}
-        <table id="history-table">
-            <tbody>
-                {% for user_id, user_tracking in tracking_requests.items() %}
-                    {% for request_id, track_info in user_tracking.items() %}
-                        <tr class="track-row" data-request-id="{{ track_info.track_id }}">
-                            <td data-label="Tracking Number">
-                                <a href="{{ track_info.query_url }}" class="quick-fix-data-url" target="_blank">{{ track_info.tracking_number }}</a>
-                            </td>
-                            <td data-label="Note" id="note-{{ track_info.id }}" onclick="makeEditable(this, '{{ track_info.track_id }}'); event.stopPropagation();">{{ track_info.note }}</td>
-                            <td>
-                                <span class="dropdown-arrow" onclick="this.closest('tr').nextElementSibling.id = this.closest('tr').nextElementSibling.id === 'closed' ? 'open' : 'closed';">&#9660;</span>
-                            </td>
-                        </tr>
-                        <tr class="detail-row" data-request-id="{{ track_info.track_id }}" id="closed">
-                            <td data-label="ID">{{ track_info.track_id }}</td>
-                            <td data-label="Courier">{{ track_info.courier_name }}</td>
-                            <td data-label="Tracking Link">
-                                <a href="{{ track_info.query_url }}" class="quick-fix-data-url" target="_blank">{{ track_info.query_url }}</a>
-                            </td>
-                            <td data-label="Date and Time">{{ track_info.datetime_of_create_on_database }}</td>
-                        </tr>
-                    {% endfor %}
-                {% endfor %}
-            </tbody>
-        </table>  
+        
+        {{ render_partial('internal/search/partials/tracking/tracking_entry.html', tracking_requests=tracking_requests, user_tracking=user_tracking) }}
+
         <div class="pagination-controls flex justify-evenly items-center">
             <button id="prev-page" class="pagination-button border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded" onclick="changePage(-1)">Previous</button>
             <button id="next-page" class="pagination-button border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded" onclick="changePage(1)">Next</button>
@@ -55,29 +33,29 @@
         
         function makeEditable(td, trackId) {
             if (td.isContentEditable) return;
-    
+        
             td.contentEditable = true;
             setTimeout(() => {
                 td.focus();
                 document.execCommand('selectAll', false, null); // Select all text to ensure the cursor is visible
                 document.getSelection().collapseToEnd(); // Place the cursor at the end
             }, 0);
-    
+        
             function saveNote() {
                 td.contentEditable = false;
                 const updatedNote = td.innerText;
-                const jwtToken = getCookie('{{ cookie_name }}');
-    
+        
+                console.log('Saving note:', updatedNote); // Debug log
+                console.log('Track ID:', trackId); // Debug log
+        
                 fetch('/apiv1/data/user/search/track/update_note', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${jwtToken}`
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         track_id: trackId,
-                        updated_note: updatedNote,
-                        jwt_token: jwtToken
+                        updated_note: updatedNote
                     })
                 })
                 .then(response => response.json())
@@ -92,7 +70,7 @@
                     console.error('Error:', error);
                 });
             }
-    
+        
             td.addEventListener('keydown', function(event) {
                 if (event.key === 'Enter') {
                     event.preventDefault();
@@ -100,7 +78,7 @@
                     saveNote();
                 }
             });
-    
+        
             td.addEventListener('blur', function(event) {
                 event.preventDefault();
                 event.stopPropagation(); // Prevent the detail-row from opening

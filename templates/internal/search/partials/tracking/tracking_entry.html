@@ -1,0 +1,22 @@
+<div id="tracking-info">
+    <p class="pb-4 dark:text-white text-black text-xl mt-4">Stored Tracking Numbers:</p>
+    <ul>
+        {% for user_id, user_tracking in tracking_requests.items() %}
+            {% for request_id, track_info in user_tracking.items() %}
+                <div class="border border-gray-600 p-2 mb-2 rounded">
+                    <li class="pb-2 dark:text-white text-black text-lg" id="note-{{ track_info.id }}" onclick="makeEditable(this, '{{ track_info.track_id }}'); event.stopPropagation();">{{ track_info.note }}</li>
+                    <li class="pb-2 dark:text-white text-black text-sm">
+                        <a href="{{ track_info.query_url }}" class="text-sm">{{ track_info.tracking_number }}</a>
+                    </li>
+                    <li class="dark:text-gray-400 text-gray-700 text-xs">ID: {{ track_info.track_id }}</li>
+                    <li class="dark:text-gray-400 text-gray-700 text-xs">Courier: {{ track_info.courier_name }}</li>
+                    <li class="dark:text-gray-400 text-gray-700 text-xs">Added: {{ track_info.datetime_of_create_on_database }}</li>
+                    <li class="dark:text-gray-400 text-gray-700 text-xs" id="note-{{ track_info.id }}" onclick="makeEditable(this, '{{ track_info.track_id }}'); event.stopPropagation();">{{ track_info.note }}</li>
+                    <li class="dark:text-white text-gray-700 text-xs">
+                        <a href="{{ track_info.query_url }}" class="text-xs">{{ track_info.query_url }}</a>
+                    </li>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </ul>
+</div>
