@@ -10,6 +10,8 @@ import json
 from dotenv import load_dotenv
 import uuid
 import traceback
+from flask_sqlalchemy import SQLAlchemy
+from flask_session import Session
 
 from resources.utils.util import send_email
 from models import db, User, CommandsModel, PermissionsModel, NetworkPasswordModel, ChoresUser
@@ -39,6 +41,7 @@ jinja_partials.register_extensions(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 migrate = Migrate(app, db)
+
 # login_manager.login_view = "external_auth.login"
 
 logging.basicConfig(level=logging.DEBUG)
@@ -92,31 +95,38 @@ app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER")
 app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT"))
 app.config["MAIL_FROM"] = os.getenv("MAIL_FROM")
     
-class CFUser(UserMixin):
-    def __init__(self, identity):
-        self.uid = identity.get("user_uuid")
-        self.user_uuid = identity.get("user_uuid")
-        self.email = identity.get("email")
-        self.idp = identity.get("idp")
-        self.geo = identity.get("geo")
-        self.devicePosture = identity.get("devicePosture")
-        self.account_id = identity.get("account_id")
-        self.iat = identity.get("iat")
-        self.ip = identity.get("ip")
-        self.auth_status = identity.get("auth_status")
-        self.common_name = identity.get("common_name")
-        self.service_token_id = identity.get("service_token_id")
-        self.service_token_status = identity.get("service_token_status")
-        self.is_warp = identity.get("is_warp")
-        self.is_gateway = identity.get("is_gateway")
-        self.gateway_account_id = identity.get("gateway_account_id")
-        self.device_id = identity.get("device_id")
-        self.version = identity.get("version")
-        self.device_sessions = identity.get("device_sessions")
 
-    @staticmethod
-    def from_identity(identity):
-        return CFUser(identity)
+app.config['SESSION_TYPE'] = 'sqlalchemy'
+app.config['SESSION_SQLALCHEMY'] = db
+app.config['SESSION_SQLALCHEMY_TABLE'] = 'user_session_data'
+app.config['SESSION_COOKIE_SECURE'] = True
+
+
+# class CFUser(UserMixin):
+#     def __init__(self, identity):
+#         self.uid = identity.get("user_uuid")
+#         self.user_uuid = identity.get("user_uuid")
+#         self.email = identity.get("email")
+#         self.idp = identity.get("idp")
+#         self.geo = identity.get("geo")
+#         self.devicePosture = identity.get("devicePosture")
+#         self.account_id = identity.get("account_id")
+#         self.iat = identity.get("iat")
+#         self.ip = identity.get("ip")
+#         self.auth_status = identity.get("auth_status")
+#         self.common_name = identity.get("common_name")
+#         self.service_token_id = identity.get("service_token_id")
+#         self.service_token_status = identity.get("service_token_status")
+#         self.is_warp = identity.get("is_warp")
+#         self.is_gateway = identity.get("is_gateway")
+#         self.gateway_account_id = identity.get("gateway_account_id")
+#         self.device_id = identity.get("device_id")
+#         self.version = identity.get("version")
+#         self.device_sessions = identity.get("device_sessions")
+
+#     @staticmethod
+#     def from_identity(identity):
+#         return CFUser(identity)
 
 db.init_app(app)
 with app.app_context():
@@ -125,6 +135,7 @@ with app.app_context():
     # except SQLAlchemyError:
     #     print("Table Exists")
     db.create_all()
+    Session(app)
     print("Creating database.")
 
     try:
@@ -167,6 +178,7 @@ with app.app_context():
 def get_identity_from_cloudflare():
     """Fetch user's identity from Cloudflare."""
     cf_authorization = request.cookies.get("CF_Authorization")
+    session['cf_authorization'] = cf_authorization
     if not cf_authorization:
         logging.error("CF_Authorization cookie missing.")
         return None
@@ -184,110 +196,110 @@ def get_identity_from_cloudflare():
         logging.error(f"Error fetching Cloudflare identity: {e}")
         return None
 
-def create_user():
-    if not current_user:
-        return redirect(url_for("external_auth.login"))
+# def create_user():
+#     if not current_user:
+#         return redirect(url_for("external_auth.login"))
 
-    # Extract form data
-    name = request.form.get("name")
-    username = request.form.get("username")
-    email = request.form.get("email")
+#     # Extract form data
+#     name = request.form.get("name")
+#     username = request.form.get("username")
+#     email = request.form.get("email")
 
-    # Fetch default search command
-    cmd_query = CommandsModel.query.filter_by(category="default_search").first()
-    if not cmd_query:
-        return {"error": "Default search command not found"}, 500
+#     # Fetch default search command
+#     cmd_query = CommandsModel.query.filter_by(category="default_search").first()
+#     if not cmd_query:
+#         return {"error": "Default search command not found"}, 500
 
-    # Create new user instance
-    user = User(
-        uid=current_user.uid,
-        name=name,
-        username=username,
-        email=email,
-        default_search_id=cmd_query.id,
-    )
+#     # Create new user instance
+#     user = User(
+#         uid=current_user.uid,
+#         name=name,
+#         username=username,
+#         email=email,
+#         default_search_id=cmd_query.id,
+#     )
 
-    try:
-        db.session.add(user)
-        db.session.commit()
-    except IntegrityError as e:
-        logging.error(f"Error adding user: {e}")
-        return render_template(
-            "auth/_partials/user_creation_form.html",
-            error="That username or email address is already in use. Please enter a different one.",
-        )
+#     try:
+#         db.session.add(user)
+#         db.session.commit()
+#     except IntegrityError as e:
+#         logging.error(f"Error adding user: {e}")
+#         return render_template(
+#             "auth/_partials/user_creation_form.html",
+#             error="That username or email address is already in use. Please enter a different one.",
+#         )
 
-    # Assign permissions to the newly created user
-    user_model = User.query.filter_by(username=username).first()
-    if not user_model:
-        return {"error": "User creation failed. User not found after creation."}, 500
+#     # Assign permissions to the newly created user
+#     user_model = User.query.filter_by(username=username).first()
+#     if not user_model:
+#         return {"error": "User creation failed. User not found after creation."}, 500
 
-    user_permissions = PermissionsModel(
-        user_id=user_model.id, 
-        permission_name="commands", 
-        permission_level=999
-    )
-    try:
-        db.session.add(user_permissions)
-        db.session.commit()
-    except IntegrityError as e:
-        logging.error(f"Error adding user permissions: {e}")
-        return render_template(
-            "auth/_partials/user_creation_form.html",
-            error="Error creating user account. Please try again later.",
-        )
+#     user_permissions = PermissionsModel(
+#         user_id=user_model.id, 
+#         permission_name="commands", 
+#         permission_level=999
+#     )
+#     try:
+#         db.session.add(user_permissions)
+#         db.session.commit()
+#     except IntegrityError as e:
+#         logging.error(f"Error adding user permissions: {e}")
+#         return render_template(
+#             "auth/_partials/user_creation_form.html",
+#             error="Error creating user account. Please try again later.",
+#         )
 
-    # Handle network password creation and router API interaction
-    try:
-        router_api_key = app.config.get("ROUTER_API_KEY")
-        cf_client_secret = app.config.get("CF_ACCESS_CLIENT_SECRET")
-        cf_client_id = app.config.get("CF_ACCESS_CLIENT_ID")
+#     # Handle network password creation and router API interaction
+#     try:
+#         router_api_key = app.config.get("ROUTER_API_KEY")
+#         cf_client_secret = app.config.get("CF_ACCESS_CLIENT_SECRET")
+#         cf_client_id = app.config.get("CF_ACCESS_CLIENT_ID")
         
-        if not (router_api_key and cf_client_secret and cf_client_id):
-            return {"error": "Missing API credentials for router"}, 500
+#         if not (router_api_key and cf_client_secret and cf_client_id):
+#             return {"error": "Missing API credentials for router"}, 500
 
-        headers = {
-            'x-api-key': router_api_key,
-            'accept': 'application/json',
-            'CF-Access-Client-Secret': cf_client_secret,
-            'CF-Access-Client-Id': cf_client_id,
-        }
+#         headers = {
+#             'x-api-key': router_api_key,
+#             'accept': 'application/json',
+#             'CF-Access-Client-Secret': cf_client_secret,
+#             'CF-Access-Client-Id': cf_client_id,
+#         }
 
-        # Create a new network password entry
-        password_entry = NetworkPasswordModel(user_id=user_model.id, user=user_model)
-        db.session.add(password_entry)
-        db.session.commit()
+#         # Create a new network password entry
+#         password_entry = NetworkPasswordModel(user_id=user_model.id, user=user_model)
+#         db.session.add(password_entry)
+#         db.session.commit()
 
-        # Prepare request body for router API
-        request_body = {
-            "id": user_model.id,
-            "name": user_model.username,
-            "password": password_entry.password,
-            "priv": ["user-services-captiveportal-login"],
-            "disabled": False,
-            "descr": f"{user_model.uid}",
-            "expires": None,
-            "cert": None,
-            "authorizedkeys": None,
-            "ipsecpsk": None,
-        }
+#         # Prepare request body for router API
+#         request_body = {
+#             "id": user_model.id,
+#             "name": user_model.username,
+#             "password": password_entry.password,
+#             "priv": ["user-services-captiveportal-login"],
+#             "disabled": False,
+#             "descr": f"{user_model.uid}",
+#             "expires": None,
+#             "cert": None,
+#             "authorizedkeys": None,
+#             "ipsecpsk": None,
+#         }
 
-        # Send user creation request to router
-        response = requests.post(
-            "https://router.spicerhome.net/api/v2/user",
-            headers=headers,
-            json=request_body,
-            allow_redirects=True
-        )
-        if response.status_code != 200:
-            logging.error(f"Router API error: {response.text}")
-            return {"error": "Failed to create user on router"}, 500
+#         # Send user creation request to router
+#         response = requests.post(
+#             "https://router.spicerhome.net/api/v2/user",
+#             headers=headers,
+#             json=request_body,
+#             allow_redirects=True
+#         )
+#         if response.status_code != 200:
+#             logging.error(f"Router API error: {response.text}")
+#             return {"error": "Failed to create user on router"}, 500
 
-    except Exception as e:
-        logging.error(f"Error during router API interaction: {e}")
-        return {"error": "Error creating user on router"}, 500
+#     except Exception as e:
+#         logging.error(f"Error during router API interaction: {e}")
+#         return {"error": "Error creating user on router"}, 500
 
-    # return redirect(url_for("user.dashboard"))
+#     # return redirect(url_for("user.dashboard"))
 
 def synchronize_user_with_identity(identity):
     """
@@ -430,93 +442,130 @@ def load_user(user_id):
 
 @app.before_request
 def before_request_def():
-    if "first_request" not in session or session["first_request"] == True:
-        if not current_user.is_authenticated:
-            # Fetch identity from Cloudflare
+    cf_authorization = request.cookies.get("CF_Authorization")
+    if cf_authorization:
+        if 'cf_authorization' in session:
+            if session['cf_authorization'] == cf_authorization:
+                # User logged in and userdata is already fetched
+                # No need to get the identity again
+                logging.debug(f"Identity already fetched, User logged in.")
+                logging.debug(f"Session data: {session}")
+                pass
+            else:
+                # This would mean that the user has logged out and logged back in
+                # Delete the session cookie and start a new session
+                logging.debug(f"Session deleted, User logged out.")
+                session.clear()
+        else:
+            # This would mean that the session data was not set
+            # New session, We need to get the userdata
+            session['cloudflare'] = []
+            session['cloudflare']['cf_authorization'] = cf_authorization
             identity = get_identity_from_cloudflare()
-            # session['identity'] = identity
-            if identity:
-                # Synchronize with the database
+            
+            session['cloudflare']['identity'] = identity
+            user = User.query.filter_by(uid=identity["user_uuid"]).first()
+            if user:
+                session['userdata'] = user
+                login_user(user)
+            else:
+                # This will create the user if it does not exist
+                # This will mean that the identity is provided by Cloudflare
+                synchronize_user_with_identity(identity)
                 user = User.query.filter_by(uid=identity["user_uuid"]).first()
-                if not user:
-                    # Just saying.. If it cannot find the user then why does it not create the user?
-                    # This needs to create a user if there is not one.
-                    user = synchronize_user_with_identity(identity)
-                    user = User.query.filter_by(uid=identity["user_uuid"]).first()
-                    login_user(user)
+                session['userdata'] = user
+                login_user(user)
+    else:
+        # User is not logged in
+        # This would be an anonymous user, No support for anonymous users yet
+        return redirect(url_for("external_auth.login"))
 
-                # Log in the user with Flask-Login
-                if user:
-                    login_user(user)
-        session["first_request"] = False
+    # if "first_request" not in session or session["first_request"] == True:
+    #     if not current_user.is_authenticated:
+    #         # Fetch identity from Cloudflare
+    #         identity = get_identity_from_cloudflare()
+    #         # session['identity'] = identity
+    #         if identity:
+    #             # Synchronize with the database
+    #             user = User.query.filter_by(uid=identity["user_uuid"]).first()
+    #             if not user:
+    #                 # Just saying.. If it cannot find the user then why does it not create the user?
+    #                 # This needs to create a user if there is not one.
+    #                 user = synchronize_user_with_identity(identity)
+    #                 user = User.query.filter_by(uid=identity["user_uuid"]).first()
+    #                 login_user(user)
+
+    #             # Log in the user with Flask-Login
+    #             if user:
+    #                 login_user(user)
+    #     session["first_request"] = False
 
     # Log session data for debugging
-    logging.debug(f"Session data: {session}")
+    # logging.debug(f"Session data: {session}")
 
-    """Ensure the user is logged in using Cloudflare identity."""
     # Detect infinite redirects
-    current_url = request.url
-    previous_url = session.get('previous_url')
-    redirect_count = session.get('redirect_count', 0)
-    logging.debug(f"Redirect count: {redirect_count}, Current URL: {current_url}, Previous URL: {previous_url}")
+    # current_url = request.url
+    # previous_url = session.get('previous_url')
+    # redirect_count = session.get('redirect_count', 0)
+    # logging.debug(f"Redirect count: {redirect_count}, Current URL: {current_url}, Previous URL: {previous_url}")
 
-    if previous_url == current_url:
-        redirect_count += 1
-        session['redirect_count'] = redirect_count
-        if redirect_count <= 5:
-            return redirect(current_url)
-        elif redirect_count >= 5:
-            # Handle infinite redirect error
-            error_details = {
-                "previous_url": previous_url,
-                "url": current_url,
-                "redirect_count": redirect_count,
-                "user_id": current_user.id if current_user.is_authenticated else "Anonymous",
-                "user_uid": current_user.uid if current_user.is_authenticated else "Anonymous",
-                "user_email": current_user.email if current_user.is_authenticated else "Anonymous",
-                "user_ip": request.headers.get('X-Forwarded-For', request.remote_addr),
-                "permissions": [perm.permission_name for perm in current_user.permissions] if current_user.is_authenticated else "N/A",
-            }
+    # if previous_url == current_url:
+    #     redirect_count += 1
+    #     session['redirect_count'] = redirect_count
+    #     if redirect_count <= 5:
+    #         return redirect(current_url)
+    #     elif redirect_count >= 5:
+    #         # Handle infinite redirect error
+    #         error_details = {
+    #             "previous_url": previous_url,
+    #             "url": current_url,
+    #             "redirect_count": redirect_count,
+    #             "user_id": current_user.id if current_user.is_authenticated else "Anonymous",
+    #             "user_uid": current_user.uid if current_user.is_authenticated else "Anonymous",
+    #             "user_email": current_user.email if current_user.is_authenticated else "Anonymous",
+    #             "user_ip": request.headers.get('X-Forwarded-For', request.remote_addr),
+    #             "permissions": [perm.permission_name for perm in current_user.permissions] if current_user.is_authenticated else "N/A",
+    #         }
 
-            subject = f"Infinite Redirect Detected - {app.server_env} Enviroment"
-            body_text = (
-                f"An infinite redirect was detected:\n"
-                f"Previous URL: {error_details['previous_url']}\n"
-                f"Current URL: {error_details['url']}\n"
-                f"Redirect Count: {error_details['redirect_count']}\n"
-                f"User ID: {error_details['user id']}\n"
-                f"User UID: {error_details['user uid']}\n"
-                f"User Email: {error_details['user email']}\n"
-                f"User IP: {error_details['user ip']}\n"
-                f"Permissions: {error_details['permissions']}\n"
-            )
-            body_html = (
-                f"<p>An infinite redirect was detected:</p>"
-                f"<p><strong>Previous URL:</strong> {error_details['previous_url']}</p>"
-                f"<p><strong>Current URL:</strong> {error_details['url']}</p>"
-                f"<p><strong>Redirect Count:</strong> {error_details['redirect_count']}</p>"
-                f"<p><strong>User ID:</strong> {error_details['user id']}</p>"
-                f"<p><strong>User UID:</strong> {error_details['user uid']}</p>"
-                f"<p><strong>User Email:</strong> {error_details['user email']}</p>"
-                f"<p><strong>User IP:</strong> {error_details['user ip']}</p>"
-                f"<p><strong>Permissions:</strong> {error_details['permissions']}</p>"
-            )
-            send_email(app.config["DEVELOPER_EMAIL"], subject, body_text, body_html)
-            return render_template('external/error.html', error_details=error_details), 500
-    else:
-        session['redirect_count'] = 0
-        return
+    #         subject = f"Infinite Redirect Detected - {app.server_env} Enviroment"
+    #         body_text = (
+    #             f"An infinite redirect was detected:\n"
+    #             f"Previous URL: {error_details['previous_url']}\n"
+    #             f"Current URL: {error_details['url']}\n"
+    #             f"Redirect Count: {error_details['redirect_count']}\n"
+    #             f"User ID: {error_details['user id']}\n"
+    #             f"User UID: {error_details['user uid']}\n"
+    #             f"User Email: {error_details['user email']}\n"
+    #             f"User IP: {error_details['user ip']}\n"
+    #             f"Permissions: {error_details['permissions']}\n"
+    #         )
+    #         body_html = (
+    #             f"<p>An infinite redirect was detected:</p>"
+    #             f"<p><strong>Previous URL:</strong> {error_details['previous_url']}</p>"
+    #             f"<p><strong>Current URL:</strong> {error_details['url']}</p>"
+    #             f"<p><strong>Redirect Count:</strong> {error_details['redirect_count']}</p>"
+    #             f"<p><strong>User ID:</strong> {error_details['user id']}</p>"
+    #             f"<p><strong>User UID:</strong> {error_details['user uid']}</p>"
+    #             f"<p><strong>User Email:</strong> {error_details['user email']}</p>"
+    #             f"<p><strong>User IP:</strong> {error_details['user ip']}</p>"
+    #             f"<p><strong>Permissions:</strong> {error_details['permissions']}</p>"
+    #         )
+    #         send_email(app.config["DEVELOPER_EMAIL"], subject, body_text, body_html)
+    #         return render_template('external/error.html', error_details=error_details), 500
+    # else:
+    #     session['redirect_count'] = 0
+    #     return
 
-    session['previous_url'] = current_url
-    return
+    # session['previous_url'] = current_url
+    # return
 
 
-@app.context_processor
-def utility_processor():
-    def random_id():
-        return uuid.uuid4().hex
+# @app.context_processor
+# def utility_processor():
+#     def random_id():
+#         return uuid.uuid4().hex
 
-    return dict(random_id=random_id)
+#     return dict(random_id=random_id)
 
 # from flask import Flask, render_template, flash
 # from flask_login import LoginManager

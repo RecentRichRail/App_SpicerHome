@@ -11,3 +11,4 @@ tracking_numbers
 pymysql
 gunicorn
 jinja-partials
+Flask-Session[sqlalchemy]
