@@ -459,7 +459,7 @@ def before_request_def():
         else:
             # This would mean that the session data was not set
             # New session, We need to get the userdata
-            session['cloudflare'] = []
+            session['cloudflare'] = {}
             session['cloudflare']['cf_authorization'] = cf_authorization
             identity = get_identity_from_cloudflare()
             
