@@ -1,7 +1,7 @@
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timezone
 from tracking_numbers import get_tracking_number
-from flask import session, current_app
+from flask import session, current_app, url_for
 from flask_login import current_user
 import urllib.parse
 import logging
@@ -25,15 +25,15 @@ def tracking_number(search_query_prefix):
     #       product=Product(name='UPS'),
     #    )
 
-    track_query = TrackingNumbersModel.query.filter_by(tracking_number=tracking_details.number,user_id=session['user_data'].id).first()
+    track_query = TrackingNumbersModel.query.filter_by(tracking_number=tracking_details.number,user_id=current_user.id).first()
     if track_query:
         print({"message": "Track request previously recorded."})
-        return "/internal/search/track"
+        return url_for('internal.tracking')
 
     else:
 
         request_dict = {
-            "user_id": session['user_data'].id,
+            "user_id": current_user.id,
             "tracking_number": search_query_prefix.upper(),
             "datetime_of_create_on_database": datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
                 }
@@ -46,11 +46,11 @@ def tracking_number(search_query_prefix):
             db.session.add(request_model)
             db.session.commit()
             print("Track request recorded.")
-            return "/internal/search/track"
+            return url_for('internal.tracking')
         except SQLAlchemyError as e:
             print(e)
             print("Failed to record search request.")
-            return "/internal/search/track"
+            return url_for('internal.tracking')
         
 def shortcuts(user_query):
 

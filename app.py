@@ -87,6 +87,10 @@ if app.config["SQLALCHEMY_DB_HOST"] == 'sqlite':
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///data.db"
 else:
     app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{app.config['SQLALCHEMY_DB_USER']}:{app.config['SQLALCHEMY_DB_PASSWORD']}@{app.config['SQLALCHEMY_DB_HOST']}/{app.config['SQLALCHEMY_DB_NAME']}"
+    app.config['SESSION_TYPE'] = 'sqlalchemy'
+    app.config['SESSION_SQLALCHEMY'] = db
+    app.config['SESSION_SQLALCHEMY_TABLE'] = 'user_session_data'
+    app.config['SESSION_COOKIE_SECURE'] = True
 
 app.config["DEVELOPER_EMAIL"] = os.getenv("DEVELOPER_EMAIL")
 app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
@@ -94,13 +98,6 @@ app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
 app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER")
 app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT"))
 app.config["MAIL_FROM"] = os.getenv("MAIL_FROM")
-    
-
-app.config['SESSION_TYPE'] = 'sqlalchemy'
-app.config['SESSION_SQLALCHEMY'] = db
-app.config['SESSION_SQLALCHEMY_TABLE'] = 'user_session_data'
-app.config['SESSION_COOKIE_SECURE'] = True
-
 
 # class CFUser(UserMixin):
 #     def __init__(self, identity):

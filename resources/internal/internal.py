@@ -74,19 +74,24 @@ def internal_search():
         internal_search = False
         tracking_function = functions.tracking_number(search_query_prefix)
         shortcuts_function = functions.shortcuts(user_query)
-        internal_search, search_function = functions.search(user_query, offset, query_source)
+        if not tracking_function and not shortcuts_function:
+            internal_search, search_function = functions.search(user_query, offset, query_source)
 
         try:
-            if internal_search:
+            if not internal_search:
+                if tracking_function:
+                    logging.debug(f"Tracking function = {tracking_function}")
+                    return redirect(tracking_function)
+                elif shortcuts_function:
+                    logging.debug(f"Shortcuts function = {shortcuts_function}")
+                    return redirect(shortcuts_function)
+                elif search_function:
+                    logging.debug(f"Search function = {search_function}")
+                    return redirect(search_function)
+            else:
                 search_index = search_function
                 page_title = "SpicerHome Search"
-            else:
-                if tracking_function:
-                    return redirect(tracking_function)
-                if shortcuts_function:
-                    return redirect(shortcuts_function)
-                if search_function:
-                    return redirect(search_function)
+
         except KeyError as e:
             logging.error(f"KeyError = {e}")
 
