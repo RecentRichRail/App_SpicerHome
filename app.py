@@ -466,7 +466,7 @@ def before_request_def():
             session['cloudflare']['identity'] = identity
             user = User.query.filter_by(uid=identity["user_uuid"]).first()
             if user:
-                session['userdata'] = user
+                session['user_id'] = user.id
                 login_user(user)
             else:
                 # This will create the user if it does not exist
