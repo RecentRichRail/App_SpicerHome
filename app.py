@@ -1,6 +1,6 @@
 import logging
 import requests
-from flask import Flask, render_template, redirect, url_for, request, session
+from flask import Flask, render_template, redirect, url_for, request, session, make_response
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user, UserMixin
 from flask_migrate import Migrate
 import jinja_partials
@@ -178,7 +178,7 @@ with app.app_context():
 def get_identity_from_cloudflare():
     """Fetch user's identity from Cloudflare."""
     cf_authorization = request.cookies.get("CF_Authorization")
-    session['cf_authorization'] = cf_authorization
+    session['cloudflare']['cf_authorization'] = cf_authorization
     if not cf_authorization:
         logging.error("CF_Authorization cookie missing.")
         return None
@@ -444,41 +444,71 @@ def load_user(user_id):
 def before_request_def():
     cf_authorization = request.cookies.get("CF_Authorization")
     if cf_authorization:
-        if 'cf_authorization' in session:
-            if session['cf_authorization'] == cf_authorization:
+        if session.get('cloudflare', {}).get('cf_authorization') and session.get('cloudflare', {}).get('identity'):
+            # Check if the session data is already set
+            # also check for possible session hijacking
+
+            if (session['cloudflare']['cf_authorization'] == cf_authorization and
+                session['cloudflare']['identity'] and
+                session['user_device']['user_agent'] == request.headers.get('User-Agent') and
+                session['user_device']['accept_language'] == request.headers.get('Accept-Language')):
+                
                 # User logged in and userdata is already fetched
                 # No need to get the identity again
+                # Check for session hijacking
+
                 logging.debug(f"Identity already fetched, User logged in.")
-                logging.debug(f"Session data: {session}")
-                pass
+                logging.debug(f"Session hijack check: User-Agent matched.")
+                logging.debug(f"User-Agent: {session['user_device']['user_agent']}")
+                logging.debug(f"Session hijack check: Language matched.")
+                logging.debug(f"Language: {session['user_device']['accept_language']}")
+                logging.debug(f"User passed session hijack check.")
+
+                if session['user_device']['ip_address'] != request.headers.get('X-Forwarded-For', request.remote_addr):
+                    logging.debug(f"User IP address changed, Updating session data.")
+                    session['user_device']['ip_address'] = request.headers.get('X-Forwarded-For', request.remote_addr)
+                # logging.debug(f"Session data: {session}")
             else:
                 # This would mean that the user has logged out and logged back in
+                # or possible session hijacking
                 # Delete the session cookie and start a new session
-                logging.debug(f"Session deleted, User logged out.")
+                logging.debug(f"Session hijack check failed or Session deleted, User logged out.")
                 session.clear()
+                response = make_response(redirect(url_for("internal.internal_search")))
+                # response = make_response(redirect(url_for("internal.internal_search", q="logout")))
+                response.delete_cookie("CF_Authorization")
+                response.delete_cookie("session")
+                return response
+            
         else:
             # This would mean that the session data was not set
             # New session, We need to get the userdata
             session['cloudflare'] = {}
             session['cloudflare']['cf_authorization'] = cf_authorization
             identity = get_identity_from_cloudflare()
-            
             session['cloudflare']['identity'] = identity
+            session['user_device'] = {}
+
+            session['user_device'] = {
+                'user_agent': request.headers.get('User-Agent'),
+                'ip_address': request.headers.get('X-Forwarded-For', request.remote_addr),
+                'accept_language': request.headers.get('Accept-Language')
+            }
             user = User.query.filter_by(uid=identity["user_uuid"]).first()
             if user:
-                session['user_id'] = user.id
+                session['user_data'] = user.to_dict()
                 login_user(user)
             else:
                 # This will create the user if it does not exist
                 # This will mean that the identity is provided by Cloudflare
                 synchronize_user_with_identity(identity)
                 user = User.query.filter_by(uid=identity["user_uuid"]).first()
-                session['user_id'] = user.id
+                session['user_data'] = user.to_dict()
                 login_user(user)
     else:
         # User is not logged in
         # This would be an anonymous user, No support for anonymous users yet
-        return redirect(url_for("external_auth.login"))
+        return redirect(url_for("handle_exception", e="User error, Contact the developer."))
 
     # if "first_request" not in session or session["first_request"] == True:
     #     if not current_user.is_authenticated:
@@ -589,7 +619,7 @@ app.register_blueprint(chores_blueprint, url_prefix="/internal/chores")
 #     return render_template("index.html")
 
 @app.errorhandler(Exception)
-def handle_exception(e):
+def handle_exception(e = 'Request Error'):
     # Log the error
     logging.error(f"An error occurred: {e}")
 

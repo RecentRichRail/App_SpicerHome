@@ -32,7 +32,7 @@ from webauthn.helpers.exceptions import (
 )
 from webauthn.helpers.structs import RegistrationCredential, AuthenticationCredential
 
-from resources.utils import search_utils_old, security_old, util
+from resources.utils import search_utils_old, security_old, util, functions
 
 internal_blueprint = Blueprint("internal", __name__, template_folder="templates")
 
@@ -41,50 +41,8 @@ internal_blueprint = Blueprint("internal", __name__, template_folder="templates"
 
 blp = internal_blueprint
 
-def run_funtion(script_path, data):
-    spec = importlib.util.spec_from_file_location("module.name", script_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module.run(data)
-
 def user_search_query(offset, search_query):
-    # data = request.get_json()
-    # print(f"Data received: {data}")
-    search_query_prefix = search_query.split(' ')[0].lower()
-
-    data = [current_user, search_query_prefix, search_query, offset]
-
-    # Should be how the data looks:
-    # data = {'user_query': {'prefix': 'yellow', 'original_request': 'yellow cab'}, 'user_info': {'user_id': 'ID12345'}}
-    # After tracking.py:
-    # data = {'user_query': {'original_request': 'yellow cab', 'prefix': 'yellow'}, 'user_info': {'user_id': 'ID12345'}, 'tracking_details': None}
-
-    for filename in os.listdir('resources/utils/functions'):
-        if filename.endswith('.py') and filename != 'search.py':
-            print(f"Running {filename}")
-            script_path = os.path.join('resources/utils/functions', filename)
-            try:
-                script_return = run_funtion(script_path, data)
-                if script_return.get("function_triggered"):
-                    logging.info({"Ran": filename, "internal_search": script_return.get("internal_search", False), "function_data": script_return['function_return']})
-                    return {"internal_search": script_return.get("internal_search", False), "function_data": script_return['function_return']}
-            except Exception as e:
-                logging.error(f"Error running {filename}: {e}")
-                return {"error": str(e)}
-            
-    print(f"Running 'search.py'")
-    script_path = os.path.join('resources/utils/functions', 'search.py')
-    try:
-        script_return = run_funtion(script_path, data)
-        # print(f"script_return: {script_return}")
-        if script_return.get("function_triggered"):
-            logging.info({"internal_search": script_return.get("internal_search", False), "function_data": script_return['function_return']})
-            return {"internal_search": script_return.get("internal_search", False), "function_data": script_return['function_return']}
-    except Exception as e:
-                logging.error(f"Error running search.py: {e}")
-                return {"error": str(e)}
-    logging.info({"redirect_url": run_funtion(os.path.join('resources/functions', 'search.py'), data)['function_return']})
-    return {"internal_search": script_return.get("internal_search", False), "function_data": run_funtion(os.path.join('resources/utils/functions', 'search.py'), data)['function_return']}
+    pass
 
 
 @blp.route('/search')
@@ -93,6 +51,7 @@ def internal_search():
     # if request.args.get('query'):
     #     user_query = request.args.get('query')
     user_query = request.args.get('q')
+    query_source = request.args.get('source')
     offset = request.args.get('offset', '0')
     # print(f"user_query = {user_query}")
 
@@ -107,14 +66,27 @@ def internal_search():
             # print(f"No user_query - {user_query}")
             # return redirect('/')
 
-        response = user_search_query(offset, user_query)
+        search_query_prefix = user_query.split(' ')[0].lower()
+
+        # response = user_search_query(offset, user_query)
+
+        # Would be best to make a admin UI to arrange the order of the functions
+        internal_search = False
+        tracking_function = functions.tracking_number(search_query_prefix)
+        shortcuts_function = functions.shortcuts(user_query)
+        internal_search, search_function = functions.search(user_query, offset, query_source)
 
         try:
-            if response['internal_search']:
-                search_index = response['function_data']
+            if internal_search:
+                search_index = search_function
                 page_title = "SpicerHome Search"
             else:
-                return redirect(response['function_data'])
+                if tracking_function:
+                    return redirect(tracking_function)
+                if shortcuts_function:
+                    return redirect(shortcuts_function)
+                if search_function:
+                    return redirect(search_function)
         except KeyError as e:
             logging.error(f"KeyError = {e}")
 
@@ -122,7 +94,7 @@ def internal_search():
         #     return redirect(response['function_data'])
         # elif response['internal_search']:
         #     search_index = response['function_data']
-        #     page_title = "SpicerHome Search"
+        page_title = "SpicerHome Search"
 
 
         context = {
