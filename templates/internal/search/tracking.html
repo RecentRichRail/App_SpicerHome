@@ -7,14 +7,14 @@
         {% include 'internal/elements/logo.html' %}
     </div>
     <div id="history-section">
-        <h2>Search Tracking Numbers</h2>
         {% if tracking_requests %}
-        
-        {{ render_partial('internal/search/partials/tracking/tracking_entry.html', tracking_requests=tracking_requests, user_tracking=user_tracking) }}
+        <div class="flex flex-col items-center">
+            {{ render_partial('internal/search/partials/tracking/tracking_entry.html', tracking_requests=tracking_requests, user_tracking=user_tracking) }}
 
-        <div class="pagination-controls flex justify-evenly items-center">
-            <button id="prev-page" class="pagination-button border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded" onclick="changePage(-1)">Previous</button>
-            <button id="next-page" class="pagination-button border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded" onclick="changePage(1)">Next</button>
+            <div class="pagination-controls flex justify-evenly items-center">
+                <button id="prev-page" class="pagination-button border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded" onclick="changePage(-1)">Previous</button>
+                <button id="next-page" class="pagination-button border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded" onclick="changePage(1)">Next</button>
+            </div>
         </div>
     {% else %}
         <p>No search history found.</p>

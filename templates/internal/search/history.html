@@ -7,12 +7,13 @@
         {% include 'internal/elements/logo.html' %}
     </div>
         <div id="history-section">
-            <h2>{{ page_title }}</h2>
             {% if history_requests %}
-            {{ render_partial('internal/search/partials/history/history_entry.html', history_requests=history_requests, user_requests=user_requests) }}
-            <div class="pagination-controls flex justify-evenly items-center">
-                <button id="prev-page" class="pagination-button border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded" onclick="changePage(-1)">Previous</button>
-                <button id="next-page" class="pagination-button border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded" onclick="changePage(1)">Next</button>
+            <div class="flex flex-col items-center">
+                {{ render_partial('internal/search/partials/history/history_entry.html', history_requests=history_requests, user_requests=user_requests) }}
+                <div class="pagination-controls flex justify-evenly items-center">
+                    <button id="prev-page" class="pagination-button border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded" onclick="changePage(-1)">Previous</button>
+                    <button id="next-page" class="pagination-button border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded" onclick="changePage(1)">Next</button>
+                </div>
             </div>
         {% else %}
             <p>No search history found.</p>

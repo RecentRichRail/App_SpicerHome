@@ -3,7 +3,7 @@
     <ul>
         {% for user_id, user_tracking in tracking_requests.items() %}
             {% for request_id, track_info in user_tracking.items() %}
-                <div class="border border-gray-600 p-2 mb-2 rounded">
+                <div class="border border-gray-600 p-2 mb-2 rounded dark:bg-black bg-white">
                     <li class="pb-2 dark:text-white text-black text-lg" id="note-{{ track_info.id }}" onclick="makeEditable(this, '{{ track_info.track_id }}'); event.stopPropagation();">{{ track_info.note }}</li>
                     <li class="pb-2 dark:text-white text-black text-sm">
                         <a href="{{ track_info.query_url }}" class="text-sm">Tracking Number: {{ track_info.tracking_number }}</a>

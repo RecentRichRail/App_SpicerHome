@@ -61,9 +61,16 @@ app.CF_Access_Client_Secret = os.environ.get('CF-Access-Client-Secret')
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
 if app.server_env == 'dev':
+    import subprocess
     # If current dir is not the same as the script dir, change to the script dir
     if os.getcwd() != os.path.dirname(os.path.realpath(__file__)):
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
+    try:
+        output = subprocess.check_output(['pgrep', '-f', __name__])
+        for pid in output.decode().strip().split('\n'):
+            subprocess.check_call(['kill', '-9', pid])
+    except subprocess.CalledProcessError:
+        pass  # No process found
 
 CLOUDFLARE_TEAM_NAME = "SpicerHome"  # Replace with your team name
 IDENTITY_ENDPOINT = f"https://{CLOUDFLARE_TEAM_NAME}.cloudflareaccess.com/cdn-cgi/access/get-identity"

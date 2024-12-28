@@ -3,7 +3,7 @@
     <ul>
         {% for user_id, user_requests in history_requests.items() %}
             {% for request_id, request_info in user_requests.items() %}
-                <div class="border border-gray-600 p-2 mb-2 rounded">
+                <div class="border border-gray-600 p-2 mb-2 rounded dark:bg-black bg-white">
                     <li class="pb-2 dark:text-white text-black text-lg">{{ request_info.original_request }}</li>
                     <li class="dark:text-gray-400 text-gray-700 text-xs">ID: {{ request_info.request_id }}</li>
                     <li class="dark:text-gray-400 text-gray-700 text-xs">Date logged: {{ request_info.date_and_time }}</li>
