@@ -165,5 +165,5 @@ def search(user_query, user_offset, user_source):
         return True, search_results
 
     else:
-        return True, user_command['search_url'].format(encoded_search_query)
+        return False, user_command['search_url'].format(encoded_search_query)
         # pass
