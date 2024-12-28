@@ -1,5 +1,5 @@
 <div class="text-2xl mt-5 p-9 flex flex-col items-center">
-    <p id="message" class="mt-4 flex flex-col items-center"></p>
+    <p id="message" class="mt-4 mb-4 flex flex-col items-center"></p>
     <h2 class="text-3xl mb-4 flex flex-col items-center">Manage User Points</h2>
     <form id="managePointsForm" class="flex flex-col items-center" onsubmit="handleFormSubmit(event)">
         <div id="usersList" class="mb-4 text-2xl z-1 dark:bg-black">
@@ -30,7 +30,6 @@
                     <input type="text" id="reason" name="reason" placeholder="Optional" class="text-black mb-4 max-w-60 placeholder-gray-500">
                 </div>
             </div>
-            <div id="serverResponse" class="text-yellow-500 mb-4"></div>
             <div>
                 <button type="submit" class="border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded">Submit</button>
             </div>
@@ -67,7 +66,6 @@
         
         // Clear previous messages
         document.getElementById('message').innerHTML = '';
-        document.getElementById('serverResponse').innerHTML = '';
 
         const selectedUsers = Array.from(document.querySelectorAll('#usersList .bg-green-600')).map(label => label.getAttribute('for').split('-')[1]);
         const action = document.getElementById('action').value;
@@ -82,7 +80,8 @@
                 })
                 .then(response => response.text())
                 .then(data => {
-                    document.getElementById('serverResponse').innerHTML += `<p>${data}</p>`;
+                    console.log('Server response:', data);
+                    document.getElementById('message').innerHTML += `<p>${data}</p>`;
                     const button = document.getElementById(`requestButton-${action}`);
                     if (button) {
                         button.outerHTML = data;
@@ -100,6 +99,7 @@
             })
             .then(response => response.text())
             .then(data => {
+                console.log('Server response:', data);
                 document.getElementById('message').innerHTML = data;
                 // Update the selected section after success
                 selectedUsers.forEach(userId => {
