@@ -4,11 +4,11 @@
         {% for user_id, user_requests in history_requests.items() %}
             {% for request_id, request_info in user_requests.items() %}
                 <div class="border border-gray-600 p-2 mb-2 rounded dark:bg-black bg-white">
-                    <li class="pb-2 dark:text-white text-black text-lg">{{ request_info.original_request }}</li>
+                    <li class="pb-2 dark:text-white text-black text-lg text-wrap">{{ request_info.original_request }}</li>
                     <li class="dark:text-gray-400 text-gray-700 text-xs">ID: {{ request_info.request_id }}</li>
                     <li class="dark:text-gray-400 text-gray-700 text-xs">Date logged: {{ request_info.date_and_time }}</li>
                     <li class="dark:text-white text-gray-700 text-xs">
-                        <a href="{{ request_info.query_url }}" class="text-xs">{{ request_info.query_url }}</a>
+                        <a href="{{ request_info.query_url }}" class="text-xs text-wrap">{{ request_info.query_url }}</a>
                     </li>
                 </div>
             {% endfor %}
