@@ -1,14 +1,14 @@
-<div id="history-info" class="max-w-full overflow-x-auto">
+<div id="history-info" class="w-max-full">
     <p class="pb-4 dark:text-white text-black text-xl mt-4">User history:</p>
     <ul>
         {% for user_id, user_requests in history_requests.items() %}
             {% for request_id, request_info in user_requests.items() %}
-                <div class="border border-gray-600 p-2 mb-2 rounded dark:bg-black bg-white">
-                    <li class="pb-2 dark:text-white text-black text-lg text-wrap">{{ request_info.original_request }}</li>
-                    <li class="dark:text-gray-400 text-gray-700 text-xs">ID: {{ request_info.request_id }}</li>
-                    <li class="dark:text-gray-400 text-gray-700 text-xs">Date logged: {{ request_info.date_and_time }}</li>
-                    <li class="dark:text-white text-gray-700 text-xs">
-                        <a href="{{ request_info.query_url }}" class="text-xs text-wrap">{{ request_info.query_url }}</a>
+                <div class="border border-gray-600 p-2 mb-2 rounded dark:bg-black bg-white break-words w-full">
+                    <li class="pb-2 dark:text-white text-black text-lg break-words w-full" style="overflow-wrap: break-word;">{{ request_info.original_request }}</li>
+                    <li class="dark:text-gray-400 text-gray-700 text-xs break-words w-full" style="overflow-wrap: break-word;">ID: {{ request_info.request_id }}</li>
+                    <li class="dark:text-gray-400 text-gray-700 text-xs break-words w-full" style="overflow-wrap: break-word;">Date logged: {{ request_info.date_and_time }}</li>
+                    <li class="dark:text-white text-gray-700 text-xs break-words w-full" style="overflow-wrap: break-word;">
+                        <a href="{{ request_info.query_url }}" class="text-xs break-words w-full" style="overflow-wrap: break-word;">{{ request_info.query_url }}</a>
                     </li>
                 </div>
             {% endfor %}
