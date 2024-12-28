@@ -201,8 +201,10 @@ def request_points():
 
         if todays_similar_requests and len(todays_similar_requests) > request_model.daily_limit:
             status = f"Daily Limit Reached for {request_for_name}"
-            return status
-            # return render_template('internal/chores/partials/user_request_feedback.html', status=status, available_request=request_model.to_dict())
+            if current_user.is_household_admin():
+                return status
+            else:
+                return render_template('internal/chores/partials/user_request_feedback.html', status=status, available_request=request_model.to_dict())
         
         chore_request = ChoreRequest(
             request_created_by_user_id=current_user.id,
@@ -215,7 +217,7 @@ def request_points():
         db.session.add(chore_request)
 
         db.session.commit()
-        status = "Request Created"
+        status = f"Request Created for {request_for_name}"
 
         if current_user.is_household_admin():
             approve_request(chore_request.id)
