@@ -65,6 +65,10 @@
     function handleFormSubmit(event) {
         event.preventDefault();
         
+        // Clear previous messages
+        document.getElementById('message').innerHTML = '';
+        document.getElementById('serverResponse').innerHTML = '';
+
         const selectedUsers = Array.from(document.querySelectorAll('#usersList .bg-green-600')).map(label => label.getAttribute('for').split('-')[1]);
         const action = document.getElementById('action').value;
         const actionId = document.getElementById('action').selectedOptions[0].id;
@@ -78,7 +82,6 @@
                 })
                 .then(response => response.text())
                 .then(data => {
-                    console.log('Server response:', data);
                     document.getElementById('serverResponse').innerHTML += `<p>${data}</p>`;
                     const button = document.getElementById(`requestButton-${action}`);
                     if (button) {
@@ -97,7 +100,6 @@
             })
             .then(response => response.text())
             .then(data => {
-                console.log('Server response:', data);
                 document.getElementById('message').innerHTML = data;
                 // Update the selected section after success
                 selectedUsers.forEach(userId => {

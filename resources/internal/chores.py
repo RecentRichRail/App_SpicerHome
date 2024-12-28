@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, render_template, redirect, url_fo
 from flask_login import login_required, current_user
 from models import ChoresUser, db, PermissionsModel, Household, User, ChoreRequest, PointsRequest
 from datetime import datetime
+import logging
 
 chores_blueprint = Blueprint("chores", __name__, template_folder="templates/internal/chores")
 
@@ -199,12 +200,17 @@ def request_points():
             db.func.date(ChoreRequest.request_created_at) == today
         ).order_by(ChoreRequest.request_created_at.desc()).all()
 
-        if todays_similar_requests and len(todays_similar_requests) > request_model.daily_limit:
+        if todays_similar_requests and len(todays_similar_requests) + 1 > request_model.daily_limit:
+            logging.debug(f"len(todays_similar_requests): {len(todays_similar_requests)}")
+            logging.debug(f"Daily Limit: {request_model.daily_limit}")
             status = f"Daily Limit Reached for {request_for_name}"
             if current_user.is_household_admin():
                 return status
             else:
                 return render_template('internal/chores/partials/user_request_feedback.html', status=status, available_request=request_model.to_dict())
+            
+        logging.debug(f"len(todays_similar_requests): {len(todays_similar_requests)}")
+        logging.debug(f"Daily Limit: {request_model.daily_limit}")
         
         chore_request = ChoreRequest(
             request_created_by_user_id=current_user.id,
