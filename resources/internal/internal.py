@@ -144,8 +144,8 @@ def history():
     user_sub = current_user.id
     user_history_query = current_user.requests
 
-    user_history_query_structured = {user_sub: {}}
-    for history_request in user_history_query:
+    user_history_query_structured = {current_user.id: {}}
+    for history_request in user_history_query[::-1]:
         if history_request.is_search == True:
             try:
                 user_query_url = history_request.command.search_url.format(history_request.encoded_query)
@@ -154,7 +154,7 @@ def history():
         elif history_request.is_search == False:
             user_query_url = history_request.command.url
 
-        user_history_query_structured[user_sub][history_request.id] = {
+        user_history_query_structured[current_user.id][history_request.id] = {
             "request_id": history_request.id,
             "original_request": history_request.original_request,
             "query_url": user_query_url,
