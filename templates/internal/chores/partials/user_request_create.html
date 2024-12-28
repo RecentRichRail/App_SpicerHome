@@ -12,7 +12,8 @@
 
 <script>
     function sendRequest(requestId) {
-        fetch(`/internal/chores/request_points?id=${requestId}`, {
+        const userId = {{ current_user.id }};
+        fetch(`/internal/chores/request_points?id=${requestId}&for=${userId}`, {
             method: 'POST',
         })
         .then(response => response.text())
@@ -21,5 +22,5 @@
             button.outerHTML = data;
             refreshLatestRequestLogs();
         });
-}
+    }
 </script>

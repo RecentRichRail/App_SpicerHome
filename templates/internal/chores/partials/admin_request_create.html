@@ -1,0 +1,23 @@
+<div class="flex justify-evenly items-center flex-wrap">
+    <select id="request-dropdown" class="border border-gray-600 pl-2 pr-2 m-2 rounded pb-2 dark:text-white text-black text-lg w-40 text-left">
+        <option value="">Optional</option>
+        {% for available_request in available_requests %}
+            <option value="{{ available_request.id }}">{{ available_request.request_name|capitalize }} - Points: {{ available_request.points_requested }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<script>
+    function sendRequest(requestId) {
+        const userId = {{ current_user.id }};
+        fetch(`/internal/chores/request_points?id=${requestId}&for=${userId}`, {
+            method: 'POST',
+        })
+        .then(response => response.text())
+        .then(data => {
+            const button = document.getElementById(`requestButton-${requestId}`);
+            button.outerHTML = data;
+            refreshLatestRequestLogs();
+        });
+    }
+</script>

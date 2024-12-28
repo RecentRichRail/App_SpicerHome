@@ -12,18 +12,25 @@
         <div class="z-1 dark:bg-black">
             <div>
                 <label for="action" class="mt-4">Action:</label>
-                <select id="action" name="action" required class="text-black mb-4 max-w-60">
-                    <option value="add">Add</option>
-                    <option value="subtract">Subtract</option>
+                <select id="action" name="action" required class="text-black mb-4 max-w-60" onchange="toggleFields()">
+                    <option id="manage-points" value="add">Add</option>
+                    <option id="manage-points" value="subtract">Subtract</option>
+                    {% for available_request in available_requests %}
+                        <option id="request_points" value="{{ available_request.id }}">{{ available_request.request_name|capitalize }} - Points: {{ available_request.points_requested }}</option>
+                    {% endfor %}
                 </select>
             </div>
-            <div>
-                <label for="amount">Amount:</label>
-                <input type="number" id="amount" name="amount" required class="text-black mb-4 max-w-60">
+            <div id="amountReasonFields">
+                <div>
+                    <label for="amount">Amount:</label>
+                    <input type="number" id="amount" name="amount" class="text-black mb-4 max-w-60">
+                </div>
+                <div>
+                    <label for="reason">Reason:</label>
+                    <input type="text" id="reason" name="reason" placeholder="Optional" class="text-black mb-4 max-w-60 placeholder-gray-500">
+                </div>
             </div>
-            <div>
-                <label for="reason">Reason:</label>
-                <input type="text" id="reason" name="reason" placeholder="Optional" class="text-black mb-4 max-w-60 placeholder-gray-500">
+            <div id="serverResponse" class="text-yellow-500 mb-4"></div>
             <div>
                 <button type="submit" class="border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded">Submit</button>
             </div>
@@ -38,33 +45,72 @@
         element.classList.toggle('bg-green-600');
     }
 
+    function toggleFields() {
+        const action = document.getElementById('action').value;
+        const amountField = document.getElementById('amount');
+        const reasonField = document.getElementById('reason');
+        const amountReasonFields = document.getElementById('amountReasonFields');
+        
+        if (action === 'add' || action === 'subtract') {
+            amountReasonFields.style.display = 'block';
+            amountField.required = true;
+            reasonField.required = false;
+        } else {
+            amountReasonFields.style.display = 'none';
+            amountField.required = false;
+            reasonField.required = false;
+        }
+    }
+
     function handleFormSubmit(event) {
         event.preventDefault();
         
         const selectedUsers = Array.from(document.querySelectorAll('#usersList .bg-green-600')).map(label => label.getAttribute('for').split('-')[1]);
         const action = document.getElementById('action').value;
+        const actionId = document.getElementById('action').selectedOptions[0].id;
         const amount = parseInt(document.getElementById('amount').value);
         const reason = document.getElementById('reason').value;
 
-        fetch('/internal/chores/manage_points', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_ids: selectedUsers, action, amount, reason })
-        })
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('message').innerHTML = data;
-            // Update the selected section after success
+        if (actionId === 'request_points') {
             selectedUsers.forEach(userId => {
-                const pointsElement = document.getElementById(`points-${userId}`);
-                const newPoints = parseInt(pointsElement.innerText) + (action === 'add' ? amount : -amount);
-                pointsElement.innerText = newPoints;
+                fetch(`/internal/chores/request_points?id=${action}&for=${userId}`, {
+                    method: 'POST',
+                })
+                .then(response => response.text())
+                .then(data => {
+                    console.log('Server response:', data);
+                    document.getElementById('serverResponse').innerHTML += `<p>${data}</p>`;
+                    const button = document.getElementById(`requestButton-${action}`);
+                    if (button) {
+                        button.outerHTML = data;
+                    }
+                    document.querySelectorAll('#usersList .bg-green-600').forEach(label => label.classList.remove('bg-green-600'));
+                    refreshLatestRequestLogs();
+                })
+                .catch(error => console.error('Error:', error));
             });
-            // Deselect the labels
-            document.querySelectorAll('#usersList .bg-green-600').forEach(label => label.classList.remove('bg-green-600'));
-            refreshLatestRequestLogs();
-        })
-        .catch(error => console.error('Error:', error));
+        } else if (actionId === 'manage-points') {
+            fetch('/internal/chores/manage_points', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_ids: selectedUsers, action, amount, reason })
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log('Server response:', data);
+                document.getElementById('message').innerHTML = data;
+                // Update the selected section after success
+                selectedUsers.forEach(userId => {
+                    const pointsElement = document.getElementById(`points-${userId}`);
+                    const newPoints = parseInt(pointsElement.innerText) + (action === 'add' ? amount : -amount);
+                    pointsElement.innerText = newPoints;
+                });
+                // Deselect the labels
+                document.querySelectorAll('#usersList .bg-green-600').forEach(label => label.classList.remove('bg-green-600'));
+                refreshLatestRequestLogs();
+            })
+            .catch(error => console.error('Error:', error));
+        }
     }
 
     function refreshLatestRequestLogs() {
@@ -75,4 +121,7 @@
             })
             .catch(error => console.error('Error refreshing latest request logs:', error));
     }
+
+    // Initialize the fields visibility
+    toggleFields();
 </script>

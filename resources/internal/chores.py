@@ -14,6 +14,7 @@ def view_points():
         choreusers = ChoresUser.query.filter_by(household_admin=False).all()
         last_25_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household()).order_by(ChoreRequest.request_created_at.desc()).limit(25).all()
         open_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household(), is_request_active=True, request_cancelled_at=None).order_by(ChoreRequest.request_created_at.desc()).all()
+        available_requests = PointsRequest.query.filter_by(household_id=current_user.is_in_household(), is_request_active=True).all()
         all_users_points = {}
         for user in choreusers:
             user_model = User.query.filter_by(id=user.user_id).first()
@@ -21,17 +22,26 @@ def view_points():
                 all_users_points[user_model.id] = {"name": user_model.name, "amount": int(user.dollar_amount)}
     else:
         last_25_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household(), request_created_for_user_id=current_user.id).order_by(ChoreRequest.request_created_at.desc()).limit(25).all()
-        open_requests = PointsRequest.query.filter_by(household_id=current_user.is_in_household(), is_request_active=True).all()
+        available_requests = PointsRequest.query.filter_by(household_id=current_user.is_in_household(), is_request_active=True).all()
                 
   
     page_title = "SpicerHome Points"
 
-    context = {
-                'page_title': page_title,
-                'all_users_points': all_users_points,
-                'last_25_requests': last_25_requests,
-                'open_requests': open_requests
-            }
+    if current_user.is_household_admin():
+        context = {
+            'page_title': page_title,
+            'all_users_points': all_users_points,
+            'last_25_requests': last_25_requests,
+            'open_requests': open_requests,
+            'available_requests': available_requests
+        }
+    else:
+        context = {
+                    'page_title': page_title,
+                    'all_users_points': all_users_points,
+                    'last_25_requests': last_25_requests,
+                    'available_requests': available_requests
+                }
     
     return render_template('internal/chores/choresbase.html', **context)
 
@@ -177,23 +187,26 @@ def request_points():
     
     if request.method == 'POST':
         request_id = request.args.get('id')
+        request_for = request.args.get('for')
+        request_for_name = User.query.filter_by(id=request_for).first().name
         request_model = PointsRequest.query.filter_by(household_id=current_user.is_in_household(), is_request_active=True, id=request_id).first()
-        request_reason_created = f"{current_user.name} requested {request_model.points_requested} points for {request_model.request_name}."
+        request_reason_created = f"{request_for_name} requested {request_model.points_requested} points for {request_model.request_name}."
         today = datetime.utcnow().date()
         todays_similar_requests = ChoreRequest.query.filter(
             ChoreRequest.household_id == current_user.is_in_household(),
-            ChoreRequest.request_created_by_user_id == current_user.id,
+            ChoreRequest.request_created_for_user_id == request_for,
             ChoreRequest.request_reason_created == request_reason_created,
             db.func.date(ChoreRequest.request_created_at) == today
         ).order_by(ChoreRequest.request_created_at.desc()).all()
 
         if todays_similar_requests and len(todays_similar_requests) > request_model.daily_limit:
-            status = "Daily Limit Reached"
-            return render_template('internal/chores/partials/user_request_feedback.html', status=status, available_request=request_model.to_dict())
+            status = f"Daily Limit Reached for {request_for_name}"
+            return status
+            # return render_template('internal/chores/partials/user_request_feedback.html', status=status, available_request=request_model.to_dict())
         
         chore_request = ChoreRequest(
             request_created_by_user_id=current_user.id,
-            request_created_for_user_id=current_user.id,
+            request_created_for_user_id=request_for,
             requested_point_amount_requested=request_model.points_requested,
             household_id=choreuser.household_id,
             request_reason_created=request_reason_created,
@@ -203,5 +216,9 @@ def request_points():
 
         db.session.commit()
         status = "Request Created"
+
+        if current_user.is_household_admin():
+            approve_request(chore_request.id)
+            return status
         
         return render_template('internal/chores/partials/user_request_feedback.html', status=status, available_request=request_model.to_dict())
