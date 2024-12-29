@@ -54,8 +54,9 @@ def tracking_number(search_query_prefix):
         
 def shortcuts(user_query):
 
-    search_query_prefix = user_query.split(' ')[0].lower()
+    search_query_prefix = user_query.split(' ')[0]
     search_query_suffix = user_query.replace(search_query_prefix, '', 1).strip()
+    search_query_prefix = search_query_prefix.lower()
 
     is_search = bool(search_query_suffix)
 
@@ -100,10 +101,11 @@ def shortcuts(user_query):
 
 def search(user_query, user_offset, user_source):
     # original_request = data[2]
-    user_query_prefix = user_query.split(' ')[0].lower()
+    search_query_prefix = user_query.split(' ')[0]
+    search_query_prefix = search_query_prefix.lower()
     # print(user_query)
 
-    search_query = user_query.replace(user_query_prefix, '', 1).strip()
+    search_query = user_query.replace(search_query_prefix, '', 1).strip()
     if search_query == "":
         search_query = None
         is_search = False
@@ -119,7 +121,7 @@ def search(user_query, user_offset, user_source):
     request_dict_format = {
         "original_request": user_query,
         "user_id": current_user.id,
-        "prefix": user_query_prefix,
+        "prefix": search_query_prefix,
         "search_query": search_query,
         "encoded_query": encoded_search_query,
         "is_search": is_search,
