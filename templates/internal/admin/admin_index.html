@@ -46,17 +46,6 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const formatDate = (dateStr) => {
-                const date = new Date(dateStr);
-                return date.toLocaleString(); // Convert to client's local timezone and format
-            };
-
-            document.querySelectorAll('#history-table td[data-label="Date and Time"]').forEach(cell => {
-                cell.textContent = formatDate(cell.textContent);
-            });
-        });
-
         let currentPage = 1;
         const perPage = 25;
 

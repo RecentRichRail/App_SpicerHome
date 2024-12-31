@@ -117,7 +117,7 @@ def search_user():
 
     results = User.query.filter(
             User.uid.ilike(f'%{query}%') |
-            User.email.ilike(f'%{query}%')
+            User.id.ilike(f'%{query}%')
         ).limit(5).all()
     
     print(f"Search results: {results}")  # Debug print

@@ -1,0 +1,7 @@
+{% extends "internal/base.html" %}
+{% block content %}
+    <div class="text-7xl md:text-9xl pt-4">
+        {% include 'internal/elements/logo.html' %}
+    </div>
+    {{ render_partial("internal/household/partials/view_points_admin.html", all_users_points=all_users_points, last_25_requests=last_25_requests, open_requests=open_requests, available_requests=available_requests) }}
+{% endblock %}

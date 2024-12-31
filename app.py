@@ -30,6 +30,7 @@ from resources.internal.internal import internal_blueprint
 from resources.internal.admin import admin_blueprint
 from resources.api.search import api_blueprint
 from resources.internal.chores import chores_blueprint
+from resources.internal.household import household_blueprint
 
 load_dotenv()
 
@@ -627,6 +628,7 @@ app.register_blueprint(internal_blueprint, url_prefix="/internal")
 app.register_blueprint(admin_blueprint, url_prefix="/internal/admin")
 app.register_blueprint(api_blueprint, url_prefix="/apiv1")
 app.register_blueprint(chores_blueprint, url_prefix="/internal/chores")
+app.register_blueprint(household_blueprint, url_prefix="/internal/household")
 
 # @app.route("/")
 # @login_required
