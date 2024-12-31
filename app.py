@@ -58,7 +58,7 @@ app.CF_Access_Client_Id = os.environ.get('CF-Access-Client-Id')
 app.CF_Access_Client_Secret = os.environ.get('CF-Access-Client-Secret')
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
-if app.server_env == 'dev':
+if app.server_env == 'alpha':
     import subprocess
     # If current dir is not the same as the script dir, change to the script dir
     if os.getcwd() != os.path.dirname(os.path.realpath(__file__)):
