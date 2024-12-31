@@ -1,6 +1,6 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for
+from flask import Blueprint, request, render_template
 from flask_login import login_required, current_user
-from models import ChoresUser, db, PermissionsModel, Household, User, ChoreRequest, PointsRequest
+from models import ChoresUser, db, User, ChoreRequest, PointsRequest
 from datetime import datetime
 import logging
 

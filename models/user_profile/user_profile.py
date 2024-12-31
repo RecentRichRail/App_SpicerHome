@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from resources.utils.util import EncryptedType
 
 from models import db, CommandsModel
 from sqlalchemy.orm import backref
@@ -13,46 +14,34 @@ class User(db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(80), nullable=False)
-    # is_email_valid = db.Column(db.Boolean, unique=False)
+    email = db.Column(EncryptedType(255), nullable=False)
     default_search_id = db.Column(db.Integer, db.ForeignKey("commands.id"), unique=False, nullable=False)
-    user_theme = db.Column(db.String(80), nullable=False, default="coffee")
+    user_theme = db.Column(db.String(255), nullable=False, default="coffee")
     uid = db.Column(db.String(40), nullable=False, unique=True)
-    username = db.Column(db.String(255), unique=True, nullable=False)
-    name = db.Column(db.String(255), nullable=True)
-    geo = db.Column(db.String(255), nullable=True)
+    username = db.Column(EncryptedType(255), unique=True, nullable=False)
+    name = db.Column(EncryptedType(255), nullable=True)
+    geo = db.Column(EncryptedType(255), nullable=True, default="Unknown")
     requests = db.relationship("RequestsModel", back_populates="user", lazy="dynamic")
     permissions = db.relationship("PermissionsModel", back_populates="user", lazy="dynamic")
-    network_password = db.relationship("NetworkPasswordModel", back_populates="user", lazy="dynamic")
+    # network_password = db.relationship("NetworkPasswordModel", back_populates="user", lazy="dynamic")
     datetime_of_create_on_database = db.Column(db.DateTime, unique=False, nullable=True, default=datetime.utcnow)
 
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
-    
-    # credentials = db.relationship(
-    #     "WebAuthnCredential",
-    #     backref=backref("user", cascade="all, delete"),
-    #     lazy=True,
-    # )
 
     def __repr__(self):
         return f"<User {self.username}>"
 
     @property
     def is_authenticated(self):
-        """If we can access this user model from current user, they are authenticated,
-        so this always returns True."""
         return True
 
     @property
     def is_anonymous(self):
-        """An actual user is never anonymous. Always returns False."""
         return False
 
     @property
     def is_active(self):
-        """Returns True for all users for simplicity. This would need to be a column
-        in the database in order to deactivate users."""
         return True
 
     def get_id(self):

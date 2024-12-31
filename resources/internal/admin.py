@@ -1,6 +1,7 @@
 from flask import Blueprint, request, current_app, render_template, abort
-from models import User, RequestsModel, TrackingNumbersModel, LoginAttemptModel
+from models import db, User, RequestsModel, TrackingNumbersModel
 from flask_login import login_required, current_user
+from sqlalchemy import or_
 
 # import requests
 
@@ -14,9 +15,8 @@ def admin_history():
     user_id = request.args.get('q')
     selected_info = request.args.get('info')
     # data = current_app.data
-    admin_permission = next((perm for perm in current_user.json_user_permissions() if perm["permission_name"] == "admin"), None)
-    print(admin_permission["permission_level"])
-    if not admin_permission or admin_permission["permission_level"] != 0:
+    admin_permission = next((perm for perm in current_user.json_user_permissions() if perm["permission_name"] == "admin" and perm["permission_level"] == 0), None)
+    if not admin_permission:
         abort(404)
     if selected_info == "history":
 
@@ -95,4 +95,31 @@ def admin_history():
             'page_title': page_title
         }
 
-        return render_template('/internal/admin/admin_index.html', **context)
+        return render_template('/internal/admin/adminbase.html', **context)
+
+@admin_blueprint.route('/search_user')
+@login_required
+def search_user():
+    query = request.args.get('q', '').lower()
+    print(f"Request args: {request.args}")  # Debug print
+    print(f"Search query: {query}")  # Debug print
+
+    all_users = User.query.all()
+    for user in all_users:
+        print(f"User: uid={user.uid}, email={user.email}")  # Debug print
+
+    results = User.query.filter(
+        or_(
+            User.uid.ilike(f'%{query}%'),
+            User.email.ilike(f'%{query}%')
+        )
+    ).limit(5).all()
+
+    results = User.query.filter(
+            User.uid.ilike(f'%{query}%') |
+            User.email.ilike(f'%{query}%')
+        ).limit(5).all()
+    
+    print(f"Search results: {results}")  # Debug print
+    
+    return render_template('/internal/admin/partials/admin_user_search_suggestions.html', results=results)

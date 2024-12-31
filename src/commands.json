@@ -40,12 +40,6 @@
       },
       {
         "category": "shortcut",
-        "prefix": ["banana", "bananas"],
-        "url": "/internal/banana/",
-        "permission_level": 999
-      },
-      {
-        "category": "shortcut",
         "prefix": ["history"],
         "url": "/internal/search/history",
         "permission_level": 999

@@ -2,8 +2,6 @@
 const CACHE_NAME = 'spicerhome_cache_v1';
 const urlsToCache = [
   '/',
-  '/static/styles.css',
-  '/static/scripts.js',
   '/internal/chores/',
   '/internal/search/',
   '/internal/admin/',

@@ -1,11 +1,3 @@
-{% extends "internal/base.html" %}
-{% block content %}
-<head>
-    <title>SpicerHome Admin</title>
-</head>
-    <div class="text-7xl md:text-9xl py-4">
-        {% include 'internal/elements/logo.html' %}
-    </div>
     <div class="flex justify-center items-center p-4">
         <p>Eventually will be able to manage users and the global shortcuts and searches.</p>
     </div>
@@ -22,47 +14,37 @@
                     </select>
                 </div>
                 
-                <!-- Dropdown for selecting user -->
-                <div id="styled-dropdown">
-                    <label for="user-select" class="sr-only">Select User:</label>
-                    <select id="styled-dropdown-select" name="q" class="w-full p-2 rounded dark:bg-black bg-white dark:text-white text-black border border-gray-700">
-                        <option value="">None</option>
-                        {% for user_id, user_info in users_query.items() %}
-                            <option value="{{ user_id }}">{{ user_info.email }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+                {{ render_partial("internal/admin/partials/admin_user_search.html") }}
                 
                 <button type="submit" id="search-button" class="border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded">Go</button>
             </div>
         </form>
     </div>
-        <div id="history-section">
-            {% if login_request_query %}
-            <table id="history-table">
-                <tbody>
-                    {% for login_request in login_request_query %}
-                        <tr class="track-row" data-request-id="{{ login_request_query[login_request]['login_attempt_id'] }}">
-                            <td data-label="Login ID">{{ login_request_query[login_request]['login_attempt_id'] }}</td>
-                            <td data-label="User ID">{{ login_request_query[login_request]['user_id'] }}</td>
-                            <td data-label="User Auth">{{ login_request_query[login_request]['is_authenticated'] }}</td>
-                            <td data-label="Requested Resource">
-                                <a href="{{ login_request_query[login_request]['requested_resource'] }}" class="quick-fix-data-url" target="_blank">{{ login_request_query[login_request]['requested_resource'] }}</a>
-                            </td>
-                            <td data-label="Source IP">{{ login_request_query[login_request]['request_ip_source'] }}</td>
-                            <td data-label="Date and Time">{{ login_request_query[login_request]['datetime_of_login_attempt'] }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <div class="pagination-controls">
-                <button id="prev-page" class="pagination-button" onclick="changePage(-1)">Previous</button>
-                <button id="next-page" class="pagination-button" onclick="changePage(1)">Next</button>
-            </div>
-            {% endif %}
+    <div id="history-section">
+        {% if login_request_query %}
+        <table id="history-table">
+            <tbody>
+                {% for login_request in login_request_query %}
+                    <tr class="track-row" data-request-id="{{ login_request_query[login_request]['login_attempt_id'] }}">
+                        <td data-label="Login ID">{{ login_request_query[login_request]['login_attempt_id'] }}</td>
+                        <td data-label="User ID">{{ login_request_query[login_request]['user_id'] }}</td>
+                        <td data-label="User Auth">{{ login_request_query[login_request]['is_authenticated'] }}</td>
+                        <td data-label="Requested Resource">
+                            <a href="{{ login_request_query[login_request]['requested_resource'] }}" class="quick-fix-data-url" target="_blank">{{ login_request_query[login_request]['requested_resource'] }}</a>
+                        </td>
+                        <td data-label="Source IP">{{ login_request_query[login_request]['request_ip_source'] }}</td>
+                        <td data-label="Date and Time">{{ login_request_query[login_request]['datetime_of_login_attempt'] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="pagination-controls">
+            <button id="prev-page" class="pagination-button" onclick="changePage(-1)">Previous</button>
+            <button id="next-page" class="pagination-button" onclick="changePage(1)">Next</button>
         </div>
-{% endblock %}
-{% block script %}
+        {% endif %}
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const formatDate = (dateStr) => {
@@ -160,4 +142,3 @@
             truncateRequests();
         };
     </script>
-{% endblock %}

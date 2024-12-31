@@ -1,11 +1,12 @@
 from models import db, User
 from datetime import datetime
+from resources.utils.util import EncryptedType
 
 class PointsRequest(db.Model):
-    __tablename__ = "pointsrequests"
+    __tablename__ = "points_requests"
 
     id = db.Column(db.Integer, primary_key=True)
-    request_name = db.Column(db.String(999), nullable=False)
+    request_name = db.Column(EncryptedType(255), nullable=False)
     created_by_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     household_id = db.Column(db.Integer, db.ForeignKey('households.id'), nullable=False)
     is_request_active = db.Column(db.Boolean, default=True)

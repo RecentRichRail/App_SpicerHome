@@ -1,38 +1,10 @@
-from flask import Blueprint, render_template, current_app, redirect, request
-from flask_login import login_required, current_user, logout_user
-import requests
-import importlib
-import os
+from flask import Blueprint, render_template, redirect, request, session
+from flask_login import login_required, current_user
 import logging
 from tracking_numbers import get_tracking_number
+from models import TrackingNumbersModel
 
-import datetime
-
-from models import TrackingNumbersModel, RequestsModel
-
-from flask import (
-    Blueprint,
-    render_template,
-    request,
-    make_response,
-    session,
-    abort,
-    url_for,
-    redirect,
-    flash,
-)
-import base64
-# import Response
-from flask_login import login_required, current_user, logout_user
-from sqlalchemy import or_, func
-from sqlalchemy.exc import IntegrityError
-from webauthn.helpers.exceptions import (
-    InvalidRegistrationResponse,
-    InvalidAuthenticationResponse,
-)
-from webauthn.helpers.structs import RegistrationCredential, AuthenticationCredential
-
-from resources.utils import search_utils_old, security_old, util, functions
+from resources.utils import functions
 
 internal_blueprint = Blueprint("internal", __name__, template_folder="templates")
 

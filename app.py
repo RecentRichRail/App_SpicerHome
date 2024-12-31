@@ -1,20 +1,22 @@
 import logging
 import requests
 from flask import Flask, render_template, redirect, url_for, request, session, make_response
-from flask_login import LoginManager, login_user, login_required, current_user, logout_user, UserMixin
+from flask_login import LoginManager, login_user, login_required, current_user, logout_user
 from flask_migrate import Migrate
 import jinja_partials
 import os
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 import json
 from dotenv import load_dotenv
-import uuid
 import traceback
-from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
 
+# Encrypt and Decrypt functions
+from resources.utils.util import encrypt, decrypt, EncryptedType
+
 from resources.utils.util import send_email
-from models import db, User, CommandsModel, PermissionsModel, NetworkPasswordModel, ChoresUser
+from resources.utils.script_first_run import create_commands
+from models import db, User, CommandsModel, PermissionsModel
 # from resources.utils import util
 # from db import db
 # CommandsModel.__table__.create(db.engine)
@@ -28,10 +30,6 @@ from resources.internal.internal import internal_blueprint
 from resources.internal.admin import admin_blueprint
 from resources.api.search import api_blueprint
 from resources.internal.chores import chores_blueprint
-
-# from sqlalchemy.exc import SQLAlchemyError
-
-from sqlalchemy.pool import QueuePool
 
 load_dotenv()
 
@@ -49,9 +47,9 @@ logging.basicConfig(level=logging.DEBUG)
 # short_session_cookie_name = os.environ.get('short_session_cookie_name')
 host_port = os.environ.get('host_port')
 # app.authentication_server = os.environ.get('authentication_server')
-app.mysql_database_api = os.environ.get('mysql_database_api')
-app.allow_logging = os.environ.get('allow_logging')
-app.public_verification_key = os.environ.get('public_verification_key')
+# app.mysql_database_api = os.environ.get('mysql_database_api')
+# app.allow_logging = os.environ.get('allow_logging')
+# app.public_verification_key = os.environ.get('public_verification_key')
 app.BRAVE_API_KEY = os.environ.get('BRAVE_API_KEY')
 app.dev_server = os.environ.get('dev_server')
 app.server_env = os.environ.get('server_env')
@@ -141,32 +139,33 @@ with app.app_context():
     db.create_all()
     Session(app)
     print("Creating database.")
+    create_commands()
 
-    try:
-        with open('src/commands.json', 'r') as file:
-            commands_data = json.load(file)
-            logging.error(f"commands.json file was loaded.")
-    except FileNotFoundError:
-        logging.error(f"{os.system('pwd')} - Could not find commands.json file.")
-        commands_data = {'commands': []}
+    # try:
+    #     with open('src/commands.json', 'r') as file:
+    #         commands_data = json.load(file)
+    #         logging.error(f"commands.json file was loaded.")
+    # except FileNotFoundError:
+    #     logging.error(f"{os.system('pwd')} - Could not find commands.json file.")
+    #     commands_data = {'commands': []}
 
-    for single_command in commands_data['commands']:
-        for single_command_single_prefix in single_command['prefix']:
-            command_for_data = single_command
-            command_for_data['prefix'] = single_command_single_prefix
-            cmd_query = CommandsModel.query.filter_by(prefix=command_for_data['prefix']).first()
-            command_model = CommandsModel(category=command_for_data['category'], prefix=command_for_data['prefix'], url=command_for_data['url'], search_url=command_for_data.get('search_url'), permission_level=command_for_data.get('permission_level'))
-            if not cmd_query:
-                try:
-                    if not cmd_query:
-                        db.session.add(command_model)
-                        db.session.commit()
-                        single_command_single_category = command_for_data['category']
-                        print(f"Command created successfully - {single_command_single_category} - {single_command_single_prefix}")
-                except SQLAlchemyError as e:
-                    print(e)
-            else:
-                print("Command already exists")
+    # for single_command in commands_data['commands']:
+    #     for single_command_single_prefix in single_command['prefix']:
+    #         command_for_data = single_command
+    #         command_for_data['prefix'] = single_command_single_prefix
+    #         cmd_query = CommandsModel.query.filter_by(prefix=command_for_data['prefix']).first()
+    #         command_model = CommandsModel(category=command_for_data['category'], prefix=command_for_data['prefix'], url=command_for_data['url'], search_url=command_for_data.get('search_url'), permission_level=command_for_data.get('permission_level'))
+    #         if not cmd_query:
+    #             try:
+    #                 if not cmd_query:
+    #                     db.session.add(command_model)
+    #                     db.session.commit()
+    #                     single_command_single_category = command_for_data['category']
+    #                     print(f"Command created successfully - {single_command_single_category} - {single_command_single_prefix}")
+    #             except SQLAlchemyError as e:
+    #                 print(e)
+    #         else:
+    #             print("Command already exists")
 
 # def get_user():
 #     """
@@ -195,6 +194,7 @@ def get_identity_from_cloudflare():
         response.raise_for_status()
         identity = response.json()
         logging.info(f"Fetched identity for user: {identity.get('email')}")
+        # logging.debug(f"Identity: {identity}")
         return identity
     except requests.RequestException as e:
         logging.error(f"Error fetching Cloudflare identity: {e}")
@@ -317,8 +317,8 @@ def synchronize_user_with_identity(identity):
 
     try:
         # Check if user exists
+        logging.debug(f"Fetching user by UID: {uid}")
         user = User.query.filter_by(uid=identity.get("user_uuid")).first()
-        logging.info(f"Fetching user by UID: {uid}")
         if user:
             logging.info(f"User already exists: {email}")
             return None
@@ -448,14 +448,14 @@ def load_user(user_id):
 def before_request_def():
     cf_authorization = request.cookies.get("CF_Authorization")
     if cf_authorization:
-        if session.get('cloudflare', {}).get('cf_authorization') and session.get('cloudflare', {}).get('identity'):
+        if session.get('cloudflare', {}).get('cf_authorization') and session.get('cloudflare', {}).get('user_uuid'):
             # Check if the session data is already set
             # also check for possible session hijacking
 
             if (session['cloudflare']['cf_authorization'] == cf_authorization and
-                session['cloudflare']['identity'] and
-                session['user_device']['user_agent'] == request.headers.get('User-Agent') and
-                session['user_device']['accept_language'] == request.headers.get('Accept-Language')):
+                session['cloudflare']['user_uuid'] and
+                decrypt(session['user_device']['user_agent']) == request.headers.get('User-Agent') and
+                decrypt(session['user_device']['accept_language']) == request.headers.get('Accept-Language')):
                 
                 # User logged in and userdata is already fetched
                 # No need to get the identity again
@@ -468,9 +468,9 @@ def before_request_def():
                 logging.debug(f"Language: {session['user_device']['accept_language']}")
                 logging.debug(f"User passed session hijack check.")
 
-                if session['user_device']['ip_address'] != request.headers.get('X-Forwarded-For', request.remote_addr):
+                if decrypt(session['user_device']['ip_address']) != request.headers.get('X-Forwarded-For', request.remote_addr):
                     logging.debug(f"User IP address changed, Updating session data.")
-                    session['user_device']['ip_address'] = request.headers.get('X-Forwarded-For', request.remote_addr)
+                    session['user_device']['ip_address'] = encrypt(request.headers.get('X-Forwarded-For', request.remote_addr))
                 # logging.debug(f"Session data: {session}")
             else:
                 # This would mean that the user has logged out and logged back in
@@ -478,8 +478,8 @@ def before_request_def():
                 # Delete the session cookie and start a new session
                 logging.debug(f"Session hijack check failed or Session deleted, User logged out.")
                 session.clear()
-                response = make_response(redirect(url_for("internal.internal_search")))
-                # response = make_response(redirect(url_for("internal.internal_search", q="logout")))
+                # response = make_response(redirect(url_for("internal.internal_search")))
+                response = make_response(redirect(url_for("internal.internal_search", q="logout")))
                 response.delete_cookie("CF_Authorization")
                 response.delete_cookie("session")
                 return response
@@ -490,28 +490,40 @@ def before_request_def():
             session['cloudflare'] = {}
             session['cloudflare']['cf_authorization'] = cf_authorization
             identity = get_identity_from_cloudflare()
-            session['cloudflare']['identity'] = identity
+            logging.debug(f"Identity Set from 'get_identity_from_cloudflare'")
+            session['cloudflare']['user_uuid'] = identity["user_uuid"]
             session['user_device'] = {}
 
             session['user_device'] = {
-                'user_agent': request.headers.get('User-Agent'),
-                'ip_address': request.headers.get('X-Forwarded-For', request.remote_addr),
-                'accept_language': request.headers.get('Accept-Language')
+                'user_agent': encrypt(request.headers.get('User-Agent')),
+                'ip_address': encrypt(request.headers.get('X-Forwarded-For', request.remote_addr)),
+                'accept_language': encrypt(request.headers.get('Accept-Language'))
             }
-            user = User.query.filter_by(uid=identity["user_uuid"]).first()
-            if user:
-                session['user_data'] = user.to_dict()
-                login_user(user)
-            else:
+            user_uid_for_logging = identity["user_uuid"]
+            logging.debug(f"Fetching user by UID: {user_uid_for_logging}")
+            try:
+                user = User.query.filter_by(uid=identity["user_uuid"]).first()
+                logging.info(f"Fetched identity for user: {user.email}")
+                if user:
+                    session['user_data'] = user.to_dict()
+                    logging.debug(f"User email: {user.email}")
+                    login_user(user)
+            except:
                 # This will create the user if it does not exist
                 # This will mean that the identity is provided by Cloudflare
+                logging.debug(f"Syncronizing user object with identity.")
                 synchronize_user_with_identity(identity)
                 user = User.query.filter_by(uid=identity["user_uuid"]).first()
+                logging.debug(f"User email: {user.email}")
                 session['user_data'] = user.to_dict()
-                login_user(user)
+                if user:
+                    login_user(user)
+                else:
+                    logging.debug(f"User not found.")
     else:
         # User is not logged in
         # This would be an anonymous user, No support for anonymous users yet
+        logging.debug(f"This would be an anonymous user, No support for anonymous users yet.")
         return redirect(url_for("handle_exception", e="User error, Contact the developer."))
 
     # if "first_request" not in session or session["first_request"] == True:
@@ -674,7 +686,6 @@ def handle_exception(e = 'Request Error'):
 @app.route('/')
 @login_required
 def redirect_to_url():
-    print()
     return redirect(url_for("internal.internal_search"))
 
 @app.route('/search=<user_query>')

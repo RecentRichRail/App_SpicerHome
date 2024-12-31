@@ -41,4 +41,17 @@
 </body>
 {% block script %}
 {% endblock script %}
+<script>
+  // if 'id="TimeAndDate"' exists, format the date and time to the client's local timezone
+  document.addEventListener('DOMContentLoaded', function () {
+    const formatDate = (dateStr) => {
+        const date = new Date(dateStr);
+        return date.toLocaleString();
+    };
+
+    document.querySelectorAll('#TimeAndDate').forEach(cell => {
+        cell.textContent = formatDate(cell.textContent);
+    });
+  });
+</script>
 </html>

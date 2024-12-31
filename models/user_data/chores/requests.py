@@ -1,8 +1,9 @@
 from models import db, User
 from datetime import datetime
+from resources.utils.util import EncryptedType
 
 class ChoreRequest(db.Model):
-    __tablename__ = "chorerequests"
+    __tablename__ = "chore_requests"
 
     id = db.Column(db.Integer, primary_key=True)
     request_created_by_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -13,7 +14,7 @@ class ChoreRequest(db.Model):
     request_created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     request_fulfilled_at = db.Column(db.DateTime, nullable=True)
     request_fulfilled_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    request_reason_created = db.Column(db.String(999), nullable=True)
+    request_reason_created = db.Column(EncryptedType(500), nullable=True)
     request_cancelled_at = db.Column(db.DateTime, nullable=True)
     requst_cancelled_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
 

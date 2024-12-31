@@ -1,7 +1,7 @@
 from models import db
 
 class ChoresUser(db.Model):
-    __tablename__ = "chores"
+    __tablename__ = "chore_users"
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False)
