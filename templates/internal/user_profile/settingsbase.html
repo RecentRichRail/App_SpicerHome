@@ -7,9 +7,9 @@
         {% include 'internal/elements/logo.html' %}
     </div>
     <div class="flex justify-center items-center p-4">
-        {% if current_user.is_in_household() == "member" %}
+        {% if current_user.is_in_household() and not current_user.is_household_admin() %}
             <p>You are already in a household!</p>
-        {% elif current_user.is_in_household() == "admin" %}
+        {% elif current_user.is_in_household() and current_user.is_household_admin() %}
             <p>Manage your household.</p>
         {% elif not current_user.is_in_household() %}
         <div id="household-response" class="mt-4">

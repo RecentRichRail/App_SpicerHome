@@ -478,7 +478,7 @@ def before_request_def():
                 # or possible session hijacking
                 # Delete the session cookie and start a new session
                 logging.debug(f"Session hijack check failed or Session deleted, User logged out.")
-                session.clear()
+                # session.clear()
                 # response = make_response(redirect(url_for("internal.internal_search")))
                 response = make_response(redirect(url_for("internal.internal_search", q="logout")))
                 response.delete_cookie("CF_Authorization")
