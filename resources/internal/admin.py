@@ -101,12 +101,6 @@ def admin_history():
 @login_required
 def search_user():
     query = request.args.get('q', '').lower()
-    print(f"Request args: {request.args}")  # Debug print
-    print(f"Search query: {query}")  # Debug print
-
-    all_users = User.query.all()
-    for user in all_users:
-        print(f"User: uid={user.uid}, email={user.email}")  # Debug print
 
     results = User.query.filter(
         or_(
@@ -114,12 +108,5 @@ def search_user():
             User.email.ilike(f'%{query}%')
         )
     ).limit(5).all()
-
-    results = User.query.filter(
-            User.uid.ilike(f'%{query}%') |
-            User.id.ilike(f'%{query}%')
-        ).limit(5).all()
-    
-    print(f"Search results: {results}")  # Debug print
     
     return render_template('/internal/admin/partials/admin_user_search_suggestions.html', results=results)

@@ -2,6 +2,7 @@ from flask import Blueprint, request, render_template, redirect, url_for
 from flask_login import login_required, current_user
 from models import ChoresUser, db, User, ChoreRequest, PointsRequest, Household
 from datetime import datetime
+from sqlalchemy import or_
 import logging
 
 household_blueprint = Blueprint("household", __name__, template_folder="templates/internal/household")
@@ -31,7 +32,19 @@ def manage_household():
         if household_member:
             return "You are not a household admin.", 400
         else:
-            return redirect(url_for('internal.settings'))
+            return redirect(url_for('internal.user_settings'))
     
     household = Household.query.filter_by(owner_id=current_user.id).first()
-    return render_template('internal/household/manage_household.html', household=household)
+    return render_template('internal/household/householdbase.html', household=household)
+
+@household_blueprint.route('/search_user')
+@login_required
+def household_search_user():
+    if current_user.is_household_admin():
+        query = request.args.get('q', '').lower()
+
+        user_result = User.query.filter(User.uid.ilike(f"%{query}%")).filter(~User.household.any()).limit(5).all()
+
+        return render_template('/internal/household/partials/household_user_search_suggestions.html', results=user_result)
+    else:
+        return redirect(url_for('household.manage_household'))

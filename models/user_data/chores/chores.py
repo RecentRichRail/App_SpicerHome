@@ -5,6 +5,7 @@ class ChoresUser(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False)
+    user = db.relationship("User", back_populates="household")
     dollar_amount = db.Column(db.Integer, nullable=False, default=0)
     household_id = db.Column(db.Integer, db.ForeignKey('households.id'), nullable=False)
     household_admin = db.Column(db.Boolean, default=False)

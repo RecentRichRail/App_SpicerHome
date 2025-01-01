@@ -1,0 +1,20 @@
+<div>
+    <label for="user-search" class="sr-only">Search User:</label>
+    <input type="text" id="user-search" name="q" placeholder="Search by UID or Email" class="w-full p-2 rounded dark:bg-black bg-white dark:text-white text-black border border-gray-700" hx-get="/internal/household/search_user" hx-trigger="keyup changed delay:500ms" hx-target="#user-suggestions" hx-indicator="#loading-indicator" autocomplete="off">
+    <div id="loading-indicator" class="hidden">Loading...</div>
+    <ul id="user-suggestions" class="mt-2 bg-white dark:bg-black border border-gray-700 rounded shadow-lg"></ul>
+</div>
+
+<script>
+    document.addEventListener('htmx:afterSwap', (event) => {
+        if (event.detail.target.id === 'user-suggestions') {
+            document.querySelectorAll('#user-suggestions li').forEach(item => {
+                item.addEventListener('click', () => {
+                    document.getElementById('user-search').value = item.dataset.userId;
+                    document.getElementById('styled-dropdown-select').value = item.dataset.userId;
+                    document.getElementById('user-suggestions').innerHTML = '';
+                });
+            });
+        }
+    });
+</script>

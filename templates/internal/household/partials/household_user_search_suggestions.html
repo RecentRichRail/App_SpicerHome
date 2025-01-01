@@ -1,0 +1,6 @@
+{% for user in results %}
+    <li class="p-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700" data-user-id="{{ user.id }}" data-email="{{ user.email }}">
+        {{ user.email }} ({{ user.id }})
+        <div class="text-gray-400 text-xs">{{ user.uid }}</div>
+    </li>
+{% endfor %}

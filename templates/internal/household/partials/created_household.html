@@ -2,4 +2,5 @@
     <h1 class="text-2xl font-bold mb-4">Household Created</h1>
     <p class="mb-2">Your household has been successfully created!</p>
     <p class="mb-4">Household Name: <strong>{{ household.name }}</strong></p>
+    <a href="{{ url_for('household.manage_household') }}" class="border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded">Manage your household</a>
 </div>

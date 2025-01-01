@@ -10,13 +10,13 @@
         {% if current_user.is_in_household() and not current_user.is_household_admin() %}
             <p>You are already in a household!</p>
         {% elif current_user.is_in_household() and current_user.is_household_admin() %}
-            <p>Manage your household.</p>
+            <a href="{{ url_for('household.manage_household') }}" class="border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded">Manage your household</a>
         {% elif not current_user.is_in_household() %}
         <div id="household-response" class="mt-4">
             <p class="flex justify-center items-center pb-4">Create a new household!</p>
             <form id="create-household-form" method="POST" action="{{ url_for('household.create_household') }}" hx-post="{{ url_for('household.create_household') }}" hx-target="#household-response" hx-swap="innerHTML">
                 <input type="text" name="household_name" required class="border text-black rounded p-2" placeholder="Household Name">
-                <button type="submit" class="bg-blue-500 text-white rounded p-2">Create</button>
+                <button type="submit" class="border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded">Create</button>
             </form>
         </div>
         {% endif %}

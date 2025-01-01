@@ -23,6 +23,7 @@ class User(db.Model):
     geo = db.Column(EncryptedType(255), nullable=True, default="Unknown")
     requests = db.relationship("RequestsModel", back_populates="user", lazy="dynamic")
     permissions = db.relationship("PermissionsModel", back_populates="user", lazy="dynamic")
+    household = db.relationship("ChoresUser", back_populates="user", lazy="dynamic")
     # network_password = db.relationship("NetworkPasswordModel", back_populates="user", lazy="dynamic")
     datetime_of_create_on_database = db.Column(db.DateTime, unique=False, nullable=True, default=datetime.utcnow)
 
