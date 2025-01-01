@@ -58,30 +58,51 @@ class User(db.Model):
     
     def json_user_commands(self):
         user_commands = []
-        json_user_permissions = self.json_user_permissions()
-        for permission in json_user_permissions:
-            if permission['permission_name'] == "commands":
-                # Retrieve all commands
-                commands_model = CommandsModel.query.all()
+        json_user_permissions = {perm['permission_name']: perm['permission_level'] for perm in self.json_user_permissions()}
+        json_public_user_commands = CommandsModel.query.filter_by(is_command_hidden=False, is_command_public=True).all()
+        json_private_user_commands = CommandsModel.query.filter_by(is_command_hidden=False, is_command_public=False, owner_id=self.id).all()
+        if self.is_in_household():
+            json_household_commands = CommandsModel.query.filter_by(is_command_hidden=False, is_command_household=True, household_id=self.is_in_household()).all()
+        else:
+            json_household_commands = []
+        for command_list in (json_public_user_commands, json_private_user_commands, json_household_commands):
+            for command in command_list:
+                if command:
+                    command = command.to_dict()
+                if command["permission_name"] in json_user_permissions and command["permission_level"] >= json_user_permissions[command["permission_name"]]:
+                    user_commands.append(command)
+
+        # for permission in json_user_permissions:
+        #     if permission['permission_name'] == "commands":
                 
-                for command in commands_model:
-                    command_dict = command.to_dict()
+        #         for command in commands_model:
+        #             command_dict = command.to_dict()
                     
-                    # Filter commands based on permission level
-                    if command_dict['permission_level'] is None or command_dict['permission_level'] >= permission['permission_level']:
-                        user_commands.append(command_dict)
-                    # else:
-                    #     print(f"No permission to {command.prefix}")
+        #             # Filter commands based on permission level
+        #             if command_dict['permission_level'] is None or command_dict['permission_level'] >= permission['permission_level']:
+        #                 user_commands.append(command_dict)
+        #             # else:
+        #             #     print(f"No permission to {command.prefix}")
         return user_commands
     
     def json_sidebar_links(self):
         sidebar_links = []
         added_urls = []
-        json_user_commands = self.json_user_commands()
-        for command in json_user_commands:
-            if command["category"] == "shortcut" and command["url"].startswith("/internal/") and command["url"] not in added_urls:
-                sidebar_links.append({"href": command["url"], "text": command["prefix"].capitalize(), "data_tab": command["prefix"]})
-                added_urls.append(command["url"])
+        # json_user_commands = self.json_user_commands()
+        json_user_permissions = {perm['permission_name']: perm['permission_level'] for perm in self.json_user_permissions()}
+        json_public_user_commands = CommandsModel.query.filter_by(is_command_hidden=False, is_command_for_sidebar=True, is_command_public=True).all()
+        json_private_user_commands = CommandsModel.query.filter_by(is_command_hidden=False, is_command_for_sidebar=True, is_command_public=False, owner_id=self.id).all()
+        if self.is_in_household():
+            json_household_commands = CommandsModel.query.filter_by(is_command_hidden=False, is_command_for_sidebar=True, is_command_household=True, household_id=self.is_in_household()).all()
+        else:
+            json_household_commands = []
+        for command_list in (json_public_user_commands, json_private_user_commands, json_household_commands):
+            for command in command_list:
+                if command:
+                    command = command.to_dict()
+                if command["url"] not in added_urls and (command["permission_name"] in json_user_permissions and command["permission_level"] >= json_user_permissions[command["permission_name"]]):
+                    sidebar_links.append({"href": command["url"], "text": command["prefix"].capitalize(), "data_tab": command["prefix"]})
+                    added_urls.append(command["url"])
 
         return sidebar_links
 

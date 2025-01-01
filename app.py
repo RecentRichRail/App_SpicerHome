@@ -462,12 +462,12 @@ def before_request_def():
                 # No need to get the identity again
                 # Check for session hijacking
 
-                logging.debug(f"Identity already fetched, User logged in.")
-                logging.debug(f"Session hijack check: User-Agent matched.")
-                logging.debug(f"User-Agent: {session['user_device']['user_agent']}")
-                logging.debug(f"Session hijack check: Language matched.")
-                logging.debug(f"Language: {session['user_device']['accept_language']}")
-                logging.debug(f"User passed session hijack check.")
+                # logging.debug(f"Identity already fetched, User logged in.")
+                # logging.debug(f"Session hijack check: User-Agent matched.")
+                # logging.debug(f"User-Agent: {session['user_device']['user_agent']}")
+                # logging.debug(f"Session hijack check: Language matched.")
+                # logging.debug(f"Language: {session['user_device']['accept_language']}")
+                # logging.debug(f"User passed session hijack check.")
 
                 if decrypt(session['user_device']['ip_address']) != request.headers.get('X-Forwarded-For', request.remote_addr):
                     logging.debug(f"User IP address changed, Updating session data.")

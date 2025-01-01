@@ -34,7 +34,9 @@ def create_commands():
                     prefix=single_command_single_prefix,
                     url=single_command['url'],
                     search_url=single_command.get('search_url'),
+                    permission_name=single_command.get('permission_name', 'commands'),
                     permission_level=single_command.get('permission_level'),
+                    is_command_for_sidebar=single_command.get('for_sidebar', False),
                     is_command_public=True
                 )
                 logging.info(f"Command created successfully - {single_command_single_prefix}")

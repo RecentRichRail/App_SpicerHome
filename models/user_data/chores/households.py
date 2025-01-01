@@ -1,4 +1,4 @@
-from models import db
+from models import db, CommandsModel
 from resources.utils.util import EncryptedType
 from datetime import datetime
 import logging
@@ -36,6 +36,7 @@ class Household(db.Model):
             return None
         
         new_user = ChoresUser(user_id=user_id, household_id=self.id, household_admin=household_admin)
-        db.session.add(new_user)
+        points_command = CommandsModel.create_command(category="shortcut", prefix=f"points", url=f"/internal/chores/", permission_level=999, is_command_for_sidebar=True, is_command_public=False, is_command_household=False, household_id=self.id, owner_id=user_id)
+        db.session.add_all([new_user, points_command])
         db.session.commit()
         return new_user
