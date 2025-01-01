@@ -16,6 +16,7 @@ def create_household():
 
     household = Household.create_household(str(household_name), current_user.id)
     if household:
+        household.add_user_to_household(current_user.id, True)
         return render_template('internal/household/partials/created_household.html', household=household)
     else:
         return "Household creation failed.", 500

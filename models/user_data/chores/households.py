@@ -23,17 +23,19 @@ class Household(db.Model):
         if cls.query.filter_by(owner_id=owner_id).first():
             return None
         
-        new_household = Household(name=name, owner_id=owner_id)
-        new_choreuser = ChoresUser(user_id=owner_id, household_id=new_household.id, household_admin=True)
-        db.session.add_all([new_household, new_choreuser])
-        db.session.commit()
-        return new_household
+        try:
+            new_household = Household(name=name, owner_id=owner_id)
+            db.session.add(new_household)
+            db.session.commit()
+            return new_household
+        except:
+            return None
     
-    def add_user_to_household(self, user_id):
+    def add_user_to_household(self, user_id, household_admin = False):
         if ChoresUser.query.filter_by(user_id=user_id).first():
             return None
         
-        new_user = ChoresUser(user_id=user_id, household_id=self.id)
+        new_user = ChoresUser(user_id=user_id, household_id=self.id, household_admin=household_admin)
         db.session.add(new_user)
         db.session.commit()
         return new_user
