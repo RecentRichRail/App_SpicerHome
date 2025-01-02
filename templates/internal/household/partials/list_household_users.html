@@ -1,7 +1,9 @@
 {% if users %}
     {% for user in users %}
         <div class="flex items-center mb-2">
-            <label for="user-{{ user.id }}" class="text-2xl cursor-pointer p-2 border rounded border-grey-600" onclick="toggleHighlight(this)">{{ user.name }}: <span id="points-{{ user.id }}">{{ user.name }}</span></label>
+            <label for="user-{{ user.id }}" class="text-2xl cursor-pointer p-2 border rounded border-grey-600" onclick="toggleHighlight(this)">{{ user.get_user_name() }}
+                <p class="text-sm text-grey-700">{{ user.get_user_uid() }}</p>
+            </label>
         </div>
 
         <script>

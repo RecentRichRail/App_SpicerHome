@@ -4,6 +4,9 @@ from resources.utils.util import EncryptedType
 
 from models import db, CommandsModel
 from sqlalchemy.orm import backref
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from flask import request, session, current_app
+import requests
 
 def _str_uuid():
     return str(uuid.uuid4())
@@ -166,3 +169,120 @@ class User(db.Model):
             return True
         else:
             return False
+        
+    @classmethod
+    def get_user_identity_from_cloudflare(cls):
+        logging.debug(f"Syncronizing user object with identity.")
+        cf_authorization = request.cookies.get("CF_Authorization")
+        session['cloudflare']['cf_authorization'] = cf_authorization
+        if not cf_authorization:
+            logging.error("CF_Authorization cookie missing.")
+            return None
+
+        try:
+            response = requests.get(
+                current_app.config['IDENTITY_ENDPOINT'],
+                headers={"cookie": f"CF_Authorization={cf_authorization}"}
+            )
+            response.raise_for_status()
+            identity = response.json()
+            logging.info(f"Fetched identity for user: {identity.get('email')}")
+            # logging.debug(f"Identity: {identity}")
+            return identity
+        except requests.RequestException as e:
+            logging.error(f"Error fetching Cloudflare identity: {e}")
+            return None
+        
+    @classmethod
+    def get_user_from_cloudflare_cookie(cls):
+        cf_authorization = request.cookies.get("CF_Authorization")
+        if not cf_authorization:
+            # No cookie found
+            logging.error("CF_Authorization cookie missing.")
+            return None
+
+        # Fetch user identity from Cloudflare
+        user_identity = cls.get_user_identity_from_cloudflare()
+        if user_identity:
+            # Check if user exists in database
+            user = User.query.filter_by(uid=user_identity.get("user_uuid")).first()
+            if user:
+                # If the user exists, return the user object
+                logging.info(f"User found in database: {user_identity.get('email')}")
+                return user
+            else:
+                # If the user does not exist, create a new user
+                logging.info(f"User not found in database: {user_identity.get('email')}")
+                return cls.create_user(user_identity)
+        else:
+            # If the user identity is not found, return None
+            logging.error("User identity not found.")
+            return None
+
+
+    @classmethod
+    def create_user(cls, identity = None):
+        if identity is None:
+            logging.error("Identity not provided")
+            identity = cls.get_user_identity_from_cloudflare()
+            if identity is None:
+                logging.error("Identity not found, aborting user creation.")
+                return None
+
+        from models import PermissionsModel
+        email = identity.get("email")
+        uid = identity.get("user_uuid")
+        geo = identity.get("country")
+        name = identity.get("name", email.split('@')[0])  # Fallback to email prefix if name is not provided
+        username = identity.get("username", email.split('@')[0])  # Fallback to email prefix if username is not provided
+
+        try:
+            # Check if user exists
+            logging.debug(f"Fetching user by UID: {uid}")
+            user = User.query.filter_by(uid=identity.get("user_uuid")).first()
+            if user:
+                logging.info(f"User already exists: {email}")
+                return None
+
+            # Fetch default search command
+            cmd_query = CommandsModel.query.filter_by(category="default_search").first()
+            logging.info(f"Fetching default search command")
+            if not cmd_query:
+                logging.error("Default search command not found")
+                raise ValueError("Default search command is required but not available")
+
+            # Create new user
+            user = User(
+                uid=uid,
+                name=name,
+                geo=geo,
+                username=username,
+                email=email,
+                default_search_id=cmd_query.id,
+            )
+
+            logging.info(f"Creating new user: {email}")
+            db.session.add(user)
+            db.session.commit()
+            logging.info(f"User created successfully: {email}")
+
+            # Assign permissions
+            logging.info(f"Assigning permissions to user: {email}")
+            user_permissions = PermissionsModel(
+                user_id=user.id,
+                permission_name="commands",
+                permission_level=999
+            )
+            logging.info(f"Adding permissions to user: {email}")
+            db.session.add(user_permissions)
+            db.session.commit()
+            logging.info(f"Permissions added successfully: {email}")
+            logging.info(f"User created successfully: {email}")
+            return user
+
+        except IntegrityError as e:
+            logging.error(f"Database integrity error: {e}")
+            db.session.rollback()
+        except Exception as e:
+            logging.error(f"Error synchronizing user: {e}")
+            db.session.rollback()

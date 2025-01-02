@@ -1,0 +1,106 @@
+<div class="max-w-3xl mx-auto p-8 ">
+    <h1 class="text-2xl font-bold mb-6">Create Command</h1>
+    <form id="create-command-form">
+        <div class="mb-4">
+            <label for="category" class="block text-gray-700">Category</label>
+            <select id="category" name="category" class="w-full p-2 rounded dark:bg-black bg-white dark:text-white text-black border border-gray-700" onchange="toggleSearchUrl()">
+                <option value="search">Search</option>
+                <option value="shortcut">Shortcut</option>
+            </select>
+        </div>
+        <div class="mb-4" id="search-url-container">
+            <label for="search_url" class="block text-gray-700">Search URL</label>
+            <input type="text" id="search_url" name="search_url" class="w-full p-2 rounded dark:bg-black bg-white dark:text-white text-black border border-gray-700">
+        </div>
+        <div class="mb-4">
+            <label for="prefix" class="block text-gray-700">Prefix</label>
+            <input type="text" id="prefix" name="prefix" class="w-full p-2 rounded dark:bg-black bg-white dark:text-white text-black border border-gray-700" required>
+        </div>
+        <div class="mb-4">
+            <label for="url" class="block text-gray-700">URL</label>
+            <input type="text" id="url" name="url" class="w-full p-2 rounded dark:bg-black bg-white dark:text-white text-black border border-gray-700" required>
+        </div>
+        <div class="mb-4">
+            <label for="permission_name" class="block text-gray-700">Permission Name</label>
+            <input type="text" id="permission_name" name="permission_name" class="w-full p-2 rounded dark:bg-black bg-white dark:text-white text-black border border-gray-700" placeholder="commands">
+        </div>
+        <div class="mb-4">
+            <label for="permission_level" class="block text-gray-700">Permission Level</label>
+            <label for="permission_level" class="block text-gray-700">0 = Site admin, 999 = All users with permission.</label>
+            <input type="number" id="permission_level" name="permission_level" class="w-full p-2 rounded dark:bg-black bg-white dark:text-white text-black border border-gray-700" placeholder="999">
+        </div>
+        <div class="mb-4">
+            <label for="is_command_for_sidebar" class="block text-gray-700">Is Command for Sidebar</label>
+            <input type="checkbox" id="is_command_for_sidebar" name="is_command_for_sidebar" class="mt-1 block">
+        </div>
+        <div class="mb-4">
+            <label for="is_command_public" class="block text-gray-700">Is Command Public</label>
+            <input type="checkbox" id="is_command_public" name="is_command_public" class="mt-1 block" checked>
+        </div>
+        <div class="mb-4">
+            <label for="is_command_household" class="block text-gray-700">Is Command Household</label>
+            <input type="checkbox" id="is_command_household" name="is_command_household" class="mt-1 block">
+        </div>
+        <div class="mb-4">
+            <label for="is_command_hidden" class="block text-gray-700">Is Command Hidden</label>
+            <input type="checkbox" id="is_command_hidden" name="is_command_hidden" class="mt-1 block">
+        </div>
+        <div class="mb-4">
+            <label for="household_id" class="block text-gray-700">Household ID</label>
+            <input type="text" id="household_id" name="household_id" class="w-full p-2 rounded dark:bg-black bg-white dark:text-white text-black border border-gray-700" placeholder="None">
+        </div>
+        <div class="mb-4">
+            <label for="owner_id" class="block text-gray-700">Owner ID</label>
+            <input type="text" id="owner_id" name="owner_id" class="w-full p-2 rounded dark:bg-black bg-white dark:text-white text-black border border-gray-700" placeholder="None">
+        </div>
+        <div class="flex justify-end">
+            <button type="submit" class="border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded">Create Command</button>
+        </div>
+    </form>
+    <div id="response" class="mt-4"></div>
+</div>
+
+<script>
+    function toggleSearchUrl() {
+        var category = document.getElementById('category').value;
+        var searchUrlContainer = document.getElementById('search-url-container');
+        if (category === 'search') {
+            searchUrlContainer.style.display = 'block';
+        } else {
+            searchUrlContainer.style.display = 'none';
+        }
+    }
+
+    // Initial call to set the correct visibility on page load
+    toggleSearchUrl();
+
+    document.getElementById('create-command-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        var formData = new FormData(this);
+        var data = {};
+        formData.forEach((value, key) => {
+            if (key.startsWith('is_command_')) {
+                data[key] = value === 'on' ? 'True' : 'False';
+            } else {
+                data[key] = value;
+            }
+        });
+
+        fetch('/internal/admin/create_command', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('response').innerHTML = '<p>Command created successfully!</p>';
+        })
+        .catch(error => {
+            document.getElementById('response').innerHTML = '<p>Error creating command.</p>';
+            console.error('Error:', error);
+        });
+    });
+</script>

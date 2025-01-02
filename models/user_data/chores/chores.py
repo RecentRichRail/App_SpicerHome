@@ -23,3 +23,6 @@ class ChoresUser(db.Model):
             return self.user.username
         else:
             return self.user.email
+        
+    def get_user_uid(self):
+        return self.user.uid

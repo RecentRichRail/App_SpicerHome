@@ -3,7 +3,7 @@
     </div>
     <div class="flex justify-center items-center p-4">
         <form id="admin-form" method="get" action="{{ url_for('admin.admin_history') }}">
-            <div id="search-bar-container">
+            <div id="search-bar">
                 <!-- Dropdown for selecting tool -->
                 <div id="styled-dropdown">
                     <label for="tool-select" class="sr-only">Select Tool:</label>
@@ -20,6 +20,7 @@
             </div>
         </form>
     </div>
+    {{ render_partial("internal/admin/partials/create_command.html") }}
     <div id="history-section">
         {% if login_request_query %}
         <table id="history-table">
