@@ -34,8 +34,8 @@ def manage_household():
         else:
             return redirect(url_for('internal.user_settings'))
     
-    household = Household.query.filter_by(owner_id=current_user.id).first()
-    users = ChoresUser.query.filter(and_(ChoresUser.household_id == household.id, ChoresUser.user_id != current_user.id)).all()
+    household = Household.query.filter_by(id=current_user.is_in_household()).first()
+    users = ChoresUser.query.filter(and_(ChoresUser.household_id == current_user.is_in_household(), ChoresUser.user_id != current_user.id)).all()
     return render_template('internal/household/householdbase.html', household=household, users=users)
 
 @household_blueprint.route('/search_user')
@@ -88,6 +88,19 @@ def request_user_to_household():
         db.session.add(join_request)
         db.session.commit()
         return "User added to household.", 200
+    else:
+        return redirect(url_for('household.manage_household'))
+    
+@household_blueprint.route('/make_household_admin', methods=['POST'])
+@login_required
+def make_household_admin():
+    if current_user.is_household_admin():
+        user_id = request.json.get('user_id')
+        user = ChoresUser.query.filter_by(user_id=user_id).first()
+        if not user:
+            return "User not found.", 404
+        user.make_household_admin()
+        return "User is now a household admin.", 200
     else:
         return redirect(url_for('household.manage_household'))
     

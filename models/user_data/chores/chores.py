@@ -26,3 +26,7 @@ class ChoresUser(db.Model):
         
     def get_user_uid(self):
         return self.user.uid
+
+    def make_household_admin(self):
+        self.household_admin = True
+        db.session.commit()
