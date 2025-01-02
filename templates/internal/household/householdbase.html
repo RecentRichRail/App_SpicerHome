@@ -3,7 +3,10 @@
     <div class="text-7xl md:text-9xl pt-4">
         {% include 'internal/elements/logo.html' %}
     </div>
+    <div class="w-max-full flex flex-col items-center">
     {% if current_user.is_household_admin() %}
+        {{ render_partial("internal/household/partials/list_household_users.html", users=users) }}
         {{ render_partial("internal/household/partials/household_user_search.html") }}
     {% endif %}
+    </div>
 {% endblock %}

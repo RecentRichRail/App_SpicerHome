@@ -1,4 +1,4 @@
-import uuid
+import uuid, logging
 from datetime import datetime
 from resources.utils.util import EncryptedType
 
@@ -125,6 +125,13 @@ class User(db.Model):
 
         return user_search_commands
     
+    def pending_household_request(self):
+            from models import HouseholdJoinRequest
+            pending_request = HouseholdJoinRequest.query.filter_by(request_created_for_user_id=self.id, is_request_active=True).first()
+            if pending_request:
+                logging.info(f"Pending request found for user {self.id}")
+                return pending_request
+
     def is_in_household(self):
         from models.user_data.chores.chores import ChoresUser
         user_household_model = ChoresUser.query.filter_by(user_id=self.id).first()

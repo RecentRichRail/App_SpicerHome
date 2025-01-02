@@ -11,6 +11,8 @@
             <p>You are already in a household!</p>
         {% elif current_user.is_in_household() and current_user.is_household_admin() %}
             <a href="{{ url_for('household.manage_household') }}" class="border border-gray-600 dark:bg-black bg-yellow-800 text-white px-4 py-2 rounded">Manage your household</a>
+        {% elif not current_user.is_in_household() and current_user.pending_household_request() %}
+            {{ render_partial('internal/user_profile/partials/pending_household_request.html') }}
         {% elif not current_user.is_in_household() %}
         <div id="household-response" class="mt-4">
             <p class="flex justify-center items-center pb-4">Create a new household!</p>

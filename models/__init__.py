@@ -21,3 +21,4 @@ from models.user_data.chores.chores import ChoresUser
 from models.user_data.chores.households import Household
 from models.user_data.chores.requests import ChoreRequest
 from models.user_data.chores.points_request import PointsRequest
+from models.user_data.chores.join_household_request import HouseholdJoinRequest

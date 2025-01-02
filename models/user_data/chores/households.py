@@ -40,3 +40,6 @@ class Household(db.Model):
         db.session.add_all([new_user, points_command])
         db.session.commit()
         return new_user
+    
+    def get_household_name_from_id(self, household_id):
+        return Household.query.filter_by(id=household_id).first().name

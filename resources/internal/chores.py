@@ -12,7 +12,7 @@ def view_points():
     
     all_users_points = {}
     if current_user.is_household_admin():
-        choreusers = ChoresUser.query.filter_by(household_admin=False).all()
+        choreusers = ChoresUser.query.filter_by(household_id=current_user.is_in_household(), household_admin=False).all()
         last_25_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household()).order_by(ChoreRequest.request_created_at.desc()).limit(25).all()
         open_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household(), is_request_active=True, request_cancelled_at=None).order_by(ChoreRequest.request_created_at.desc()).all()
         available_requests = PointsRequest.query.filter_by(household_id=current_user.is_in_household(), is_request_active=True).all()
@@ -54,7 +54,7 @@ def points():
         return {"message": "User not found"}, 404
 
     if current_user.is_household_admin():  # Assuming you have a way to check if the user is an admin
-        choreusers = ChoresUser.query.filter_by(household_admin=False).all()
+        choreusers = ChoresUser.query.filter_by(household_id=current_user.is_in_household(), household_admin=False).all()
         all_users_points = {}
         for user in choreusers:
             user_model = User.query.filter_by(id=user.user_id).first()
