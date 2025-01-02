@@ -1,6 +1,6 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for
+from flask import Blueprint, request, render_template
 from flask_login import login_required, current_user
-from models import ChoresUser, db, PermissionsModel, Household, User, ChoreRequest, PointsRequest
+from models import ChoresUser, db, User, ChoreRequest, PointsRequest
 from datetime import datetime
 import logging
 
@@ -12,15 +12,15 @@ def view_points():
     
     all_users_points = {}
     if current_user.is_household_admin():
-        choreusers = ChoresUser.query.filter_by(household_admin=False).all()
+        choreusers = ChoresUser.query.filter_by(household_id=current_user.is_in_household(), household_admin=False).all()
         last_25_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household()).order_by(ChoreRequest.request_created_at.desc()).limit(25).all()
         open_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household(), is_request_active=True, request_cancelled_at=None).order_by(ChoreRequest.request_created_at.desc()).all()
         available_requests = PointsRequest.query.filter_by(household_id=current_user.is_in_household(), is_request_active=True).all()
-        all_users_points = {}
-        for user in choreusers:
-            user_model = User.query.filter_by(id=user.user_id).first()
-            if user_model and user_model.name:  # Ensure user_model and user_model.name are not None
-                all_users_points[user_model.id] = {"name": user_model.name, "amount": int(user.dollar_amount)}
+        # all_users_points = {}
+        # for user in choreusers:
+            # all_users_points = User.query.filter_by(id=user.user_id).first()
+            # if user_model and user_model.name:  # Ensure user_model and user_model.name are not None
+            #     all_users_points[user_model.id] = {"name": user_model.name, "amount": int(user.dollar_amount)}
     else:
         last_25_requests = ChoreRequest.query.filter_by(household_id=current_user.is_in_household(), request_created_for_user_id=current_user.id).order_by(ChoreRequest.request_created_at.desc()).limit(25).all()
         available_requests = PointsRequest.query.filter_by(household_id=current_user.is_in_household(), is_request_active=True).all()
@@ -31,7 +31,7 @@ def view_points():
     if current_user.is_household_admin():
         context = {
             'page_title': page_title,
-            'all_users_points': all_users_points,
+            'chore_users': choreusers,
             'last_25_requests': last_25_requests,
             'open_requests': open_requests,
             'available_requests': available_requests
@@ -54,7 +54,7 @@ def points():
         return {"message": "User not found"}, 404
 
     if current_user.is_household_admin():  # Assuming you have a way to check if the user is an admin
-        choreusers = ChoresUser.query.filter_by(household_admin=False).all()
+        choreusers = ChoresUser.query.filter_by(household_id=current_user.is_in_household(), household_admin=False).all()
         all_users_points = {}
         for user in choreusers:
             user_model = User.query.filter_by(id=user.user_id).first()

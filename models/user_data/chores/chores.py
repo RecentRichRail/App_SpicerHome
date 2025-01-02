@@ -1,12 +1,13 @@
 from models import db
 
 class ChoresUser(db.Model):
-    __tablename__ = "chores"
+    __tablename__ = "chore_users"
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False)
+    user = db.relationship("User", back_populates="household")
     dollar_amount = db.Column(db.Integer, nullable=False, default=0)
-    household_id = db.Column(db.Integer, db.ForeignKey('households.id'), nullable=True)
+    household_id = db.Column(db.Integer, db.ForeignKey('households.id'), nullable=False)
     household_admin = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
@@ -14,3 +15,18 @@ class ChoresUser(db.Model):
     
     def get_dollar_amount(self):
         return float(f"{self.dollar_amount / 100:.2f}")
+    
+    def get_user_name(self):
+        if self.user.name:
+            return self.user.name
+        elif self.user.username:
+            return self.user.username
+        else:
+            return self.user.email
+        
+    def get_user_uid(self):
+        return self.user.uid
+
+    def make_household_admin(self):
+        self.household_admin = True
+        db.session.commit()

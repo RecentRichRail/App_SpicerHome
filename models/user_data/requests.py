@@ -1,15 +1,16 @@
 from models import db
 from models.user_data.commands import CommandsModel
 from models.user_profile.user_profile import User
+from resources.utils.util import EncryptedType
 
 class RequestsModel(db.Model):
     __tablename__ = "requests"
 
     id = db.Column(db.Integer, primary_key=True, unique=False, nullable=False, autoincrement=True)
-    original_request = db.Column(db.String(500), nullable=False)
-    prefix = db.Column(db.String(500), unique=False)
-    search_query = db.Column(db.String(500), unique=False)
-    encoded_query = db.Column(db.String(500), unique=False)
+    original_request = db.Column(EncryptedType(1500), nullable=False)
+    prefix = db.Column(EncryptedType(500), unique=False)
+    search_query = db.Column(EncryptedType(1500), unique=False)
+    encoded_query = db.Column(EncryptedType(1500), unique=False)
     is_search = db.Column(db.Boolean, unique=False, nullable=False)
     command_id = db.Column(db.Integer, db.ForeignKey("commands.id"), unique=False, nullable=False)
     command = db.relationship("CommandsModel", back_populates="requests")

@@ -1,0 +1,6 @@
+{% for user in results %}
+    <li class="p-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700" data-user-id="{{ user.uid }}">
+        {{ user.uid }}
+        <div class="text-gray-400 text-xs">Not in a household.</div>
+    </li>
+{% endfor %}

@@ -1,0 +1,49 @@
+<div>
+    <div id="response-message" class="mt-2 text-sm text-gray-700"></div>
+    <div class="text-lg p-4">Add a user using their full User ID. User ID can be found in settings.</div>
+    <label for="user-search" class="sr-only">Search User:</label>
+    <input type="text" id="user-search" name="q" placeholder="Search by User ID" class="w-full p-2 rounded dark:bg-black bg-white dark:text-white text-black border border-gray-700" hx-get="/internal/household/search_user" hx-trigger="keyup changed delay:500ms" hx-target="#user-suggestions" hx-indicator="#loading-indicator" autocomplete="off">
+    <div id="loading-indicator" class="hidden">Loading...</div>
+    <ul id="user-suggestions" class="mt-2 bg-white dark:bg-black border border-gray-700 rounded shadow-lg hidden"></ul>
+    <div id="response-message" class="mt-2 text-sm text-gray-700"></div>
+</div>
+<script>
+    document.getElementById('user-search').addEventListener('click', () => {
+        const suggestions = document.getElementById('user-suggestions');
+        suggestions.classList.remove('hidden');
+        suggestions.style.display = ''; // Reset display property
+    });
+
+    document.addEventListener('htmx:afterSwap', (event) => {
+        if (event.detail.target.id === 'user-suggestions') {
+            document.querySelectorAll('#user-suggestions li').forEach(item => {
+                item.addEventListener('click', () => {
+                    console.log('Item clicked:', item.dataset.userId); // Debug log
+                    document.getElementById('user-search').value = item.dataset.userId;
+                    document.getElementById('user-suggestions').innerHTML = '';
+                    document.getElementById('user-suggestions').classList.add('hidden');
+                    document.getElementById('user-suggestions').style.display = 'none'; // Ensure it is hidden
+
+                    // Send POST request using Fetch API
+                    fetch('/internal/household/request_user_to_household', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            user_uid: item.dataset.userId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        const responseMessage = document.getElementById('response-message');
+                        responseMessage.textContent = data.message;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                });
+            });
+        }
+    });
+</script>

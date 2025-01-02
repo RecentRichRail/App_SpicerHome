@@ -1,6 +1,8 @@
 from flask import Blueprint, request, current_app, render_template, abort
-from models import User, RequestsModel, TrackingNumbersModel, LoginAttemptModel
+from models import db, User, RequestsModel, TrackingNumbersModel, CommandsModel
 from flask_login import login_required, current_user
+from sqlalchemy import or_
+import logging
 
 # import requests
 
@@ -14,9 +16,8 @@ def admin_history():
     user_id = request.args.get('q')
     selected_info = request.args.get('info')
     # data = current_app.data
-    admin_permission = next((perm for perm in current_user.json_user_permissions() if perm["permission_name"] == "admin"), None)
-    print(admin_permission["permission_level"])
-    if not admin_permission or admin_permission["permission_level"] != 0:
+    admin_permission = next((perm for perm in current_user.json_user_permissions() if perm["permission_name"] == "admin" and perm["permission_level"] == 0), None)
+    if not admin_permission:
         abort(404)
     if selected_info == "history":
 
@@ -95,4 +96,95 @@ def admin_history():
             'page_title': page_title
         }
 
-        return render_template('/internal/admin/admin_index.html', **context)
+        return render_template('/internal/admin/adminbase.html', **context)
+
+@admin_blueprint.route('/search_user')
+@login_required
+def search_user():
+    admin_permission = next((perm for perm in current_user.json_user_permissions() if perm["permission_name"] == "admin" and perm["permission_level"] == 0), None)
+    if not admin_permission:
+        abort(404)
+    query = request.args.get('q', '').lower()
+    logging.info(f"search_user query = {query}")
+
+    results = User.query.filter(
+        or_(
+            User.username.ilike(f'%{query}%'),
+            User.name.ilike(f'%{query}%'),
+            User.uid.ilike(f'%{query}%'),
+            User.id.ilike(f'%{query}%'),
+            User.email.ilike(f'%{query}%')
+        )
+    ).limit(5).all()
+    
+    return render_template('/internal/admin/partials/admin_user_search_suggestions.html', results=results)
+
+@admin_blueprint.route('/create_command', methods=['POST'])
+@login_required
+def create_command():
+    admin_permission = next((perm for perm in current_user.json_user_permissions() if perm["permission_name"] == "admin" and perm["permission_level"] == 0), None)
+    if not admin_permission:
+        abort(404)
+    category = request.json.get('category')
+    if category == "":
+        abort(400)
+    prefix = request.json.get('prefix')
+    if prefix == "":
+        abort(400)
+    url = request.json.get('url')
+    if url == "":
+        abort(400)
+    search_url = request.json.get('search_url', None)
+    if search_url == "":
+        search_url = None
+    permission_name = request.json.get('permission_name', 'commands')
+    if permission_name == "":
+        permission_name = 'commands'
+    permission_level = request.json.get('permission_level', 999)
+    if permission_level == "":
+        permission_level = 999
+    is_command_for_sidebar = request.json.get('is_command_for_sidebar', False)
+    if is_command_for_sidebar == 'True' or is_command_for_sidebar == 'on':
+        is_command_for_sidebar = True
+    else:
+        is_command_for_sidebar = False
+    is_command_public = request.json.get('is_command_public', True)
+    if is_command_public == 'True' or is_command_public == 'on':
+        is_command_public = True
+    else:
+        is_command_public = False
+    is_command_household = request.json.get('is_command_household', False)
+    if is_command_household == 'True' or is_command_household == 'on':
+        is_command_household = True
+    else:
+        is_command_household = False
+    is_command_hidden = request.json.get('is_command_hidden', False)
+    if is_command_hidden == 'True' or is_command_hidden == 'on':
+        is_command_hidden = True
+    else:
+        is_command_hidden = False
+    household_id = request.json.get('household_id', None)
+    if household_id == "":
+        household_id = None
+    owner_id = request.json.get('owner_id', current_user.id)
+    if owner_id == "":
+        owner_id = None
+    
+    new_command = CommandsModel.create_command(
+        category=category,
+        prefix=prefix,
+        url=url,
+        search_url=search_url,
+        permission_name=permission_name,
+        permission_level=permission_level,
+        is_command_for_sidebar=is_command_for_sidebar,
+        is_command_public=is_command_public,
+        is_command_household=is_command_household,
+        is_command_hidden=is_command_hidden,
+        household_id=household_id,
+        owner_id=owner_id
+    )
+    if new_command:
+        return new_command.to_dict(), 201
+    
+    return "Command failed to create.", abort(500)

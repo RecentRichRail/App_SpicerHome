@@ -1,50 +1,36 @@
-from flask import Blueprint, request, jsonify, current_app, render_template
-import os
-import requests
-from models import User, NetworkPasswordModel, CommandsModel, BananaGameUserBananasModel, BananaGameLifetimeBananasModel, BananaGameButtonPressModel, RequestsModel, TrackingNumbersModel, PermissionsModel
-from models import ChoresUser
+from flask import Blueprint, request
+from models import TrackingNumbersModel
 from models import db
 from sqlalchemy.exc import SQLAlchemyError
-from datetime import datetime
-from tracking_numbers import get_tracking_number
-from flask_login import login_required, current_user, logout_user
-from sqlalchemy import or_, func
-import logging
+from flask_login import current_user
 
-import hmac
-import hashlib
-import base64
-
-import importlib
-
-from resources.utils import security_old, util
 
 api_blueprint = Blueprint("apiv1", __name__, template_folder="templates")
 
-def run_funtion(script_path, data):
-    spec = importlib.util.spec_from_file_location("module.name", script_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module.run(data)
+# def run_funtion(script_path, data):
+#     spec = importlib.util.spec_from_file_location("module.name", script_path)
+#     module = importlib.util.module_from_spec(spec)
+#     spec.loader.exec_module(module)
+#     return module.run(data)
 
-@api_blueprint.route('/data/user/change_theme', methods=['POST'])
-def change_theme():
-    print(current_user)
-    selected_theme = request.json.get('theme')
+# @api_blueprint.route('/data/user/change_theme', methods=['POST'])
+# def change_theme():
+#     print(current_user)
+#     selected_theme = request.json.get('theme')
 
-    if current_user:
+#     if current_user:
 
-        current_user.user_theme = selected_theme
+#         current_user.user_theme = selected_theme
 
-        try:
-            db.session.commit()
-            print(selected_theme)
-            return {'message': 'success', 'theme': selected_theme}, 200
-        except SQLAlchemyError as e:
-            print(e)
-            return {"message": "Error"}
-    else:
-        return {"message": "Error"}
+#         try:
+#             db.session.commit()
+#             print(selected_theme)
+#             return {'message': 'success', 'theme': selected_theme}, 200
+#         except SQLAlchemyError as e:
+#             print(e)
+#             return {"message": "Error"}
+#     else:
+#         return {"message": "Error"}
     
 @api_blueprint.route("/data/user/change_default_search", methods=['POST'])
 def change_user_default_command():
@@ -90,38 +76,38 @@ def tracking_update_note():
 
 
 
-@api_blueprint.route('/captive/send_email', methods=['POST'])
-def captive_send_email():
-    username_or_email = request.json.get('username')
-    print(username_or_email)
-    user = User.query.filter(
-        or_(
-            func.lower(User.username) == username_or_email,
-            func.lower(User.email) == username_or_email,
-        )
-    ).first()
-    if user:
-        router_API_Key = current_app.router_API_Key
-        if not router_API_Key:
-            return {"message": "API key not found"}, 500
+# @api_blueprint.route('/captive/send_email', methods=['POST'])
+# def captive_send_email():
+#     username_or_email = request.json.get('username')
+#     print(username_or_email)
+#     user = User.query.filter(
+#         or_(
+#             func.lower(User.username) == username_or_email,
+#             func.lower(User.email) == username_or_email,
+#         )
+#     ).first()
+#     if user:
+#         router_API_Key = current_app.router_API_Key
+#         if not router_API_Key:
+#             return {"message": "API key not found"}, 500
 
-        headers = {'x-api-key': router_API_Key, 'accept': 'application/json', 'CF-Access-Client-Secret': current_app.CF_Access_Client_Secret, 'CF-Access-Client-Id': current_app.CF_Access_Client_Id}
+#         headers = {'x-api-key': router_API_Key, 'accept': 'application/json', 'CF-Access-Client-Secret': current_app.CF_Access_Client_Secret, 'CF-Access-Client-Id': current_app.CF_Access_Client_Id}
 
-        # Check if the user has a password in the NetworkPasswordModel
-        password_entry = NetworkPasswordModel.query.filter_by(user_id=user.id).first()
+#         # Check if the user has a password in the NetworkPasswordModel
+#         password_entry = NetworkPasswordModel.query.filter_by(user_id=user.id).first()
 
-        # Send email with encrypted password
-        util.send_email(
-            user.email,
-            "Flask WebAuthn Login",
-            f"Your password is: {password_entry.password}",
-            render_template(
-                "auth/email/login_captive.html", username=user.username, password=password_entry.password
-            ),
-        )
-        return {'message': 'success'}, 200
+#         # Send email with encrypted password
+#         util.send_email(
+#             user.email,
+#             "Flask WebAuthn Login",
+#             f"Your password is: {password_entry.password}",
+#             render_template(
+#                 "auth/email/login_captive.html", username=user.username, password=password_entry.password
+#             ),
+#         )
+#         return {'message': 'success'}, 200
 
-    return {"message": "User data not found in response"}, 500
+#     return {"message": "User data not found in response"}, 500
 
 # @api_blueprint.route('/chores/points', methods=['POST'])
 # def chores_test():

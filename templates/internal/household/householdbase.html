@@ -1,0 +1,16 @@
+{% extends "internal/base.html" %}
+{% block content %}
+    <div class="text-7xl md:text-9xl pt-4">
+        {% include 'internal/elements/logo.html' %}
+    </div>
+    <div class="w-max-full flex flex-col items-center">
+    {% if current_user.is_household_admin() %}
+        {{ render_partial("internal/household/partials/list_household_users.html", users=users) }}
+        <form id="make-admin-form" method="POST" action="{{ url_for('household.make_household_admin') }}">
+            <input type="hidden" name="user_id" id="selected-user-id">
+            <button type="submit" class="btn btn-primary mt-4">Make Household Admin</button>
+        </form>
+        {{ render_partial("internal/household/partials/household_user_search.html") }}
+    {% endif %}
+    </div>
+{% endblock %}

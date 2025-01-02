@@ -1,10 +1,53 @@
-import json
+import json, logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from urllib.parse import urlparse, urljoin
 
+from sqlalchemy.types import TypeDecorator, String
+from cryptography.fernet import Fernet, InvalidToken
+import base64
+
 from flask import make_response, request, current_app
+
+class EncryptedType(TypeDecorator):
+    impl = String
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            return encrypt(value)
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            return decrypt(value)
+
+def encrypt(value):
+    try:
+        secret = current_app.config["SECRET_KEY"]
+        key = base64.urlsafe_b64encode(secret.encode('utf-8'))
+        cipher_suite = Fernet(key)
+        value = value.encode('utf-8')
+        encrypted_value = cipher_suite.encrypt(value)
+        return base64.b64encode(encrypted_value).decode('utf-8')
+    except Exception as e:
+        logging.error(f"Encryption error: {e}")
+        raise
+
+def decrypt(value):
+    try:
+        secret = current_app.config["SECRET_KEY"]
+        key = base64.urlsafe_b64encode(secret.encode('utf-8'))
+        cipher_suite = Fernet(key)
+        encrypted_value = base64.b64decode(value.encode('utf-8'))
+        decrypted_value = cipher_suite.decrypt(encrypted_value)
+        return decrypted_value.decode('utf-8')
+    except InvalidToken:
+        logging.error("InvalidToken error: Decryption failed for value: %s", value)
+        return None  # or handle it in a way that suits your application
+    except Exception as e:
+        logging.error(f"Decryption error: {e}")
+        return None  # or handle it in a way that suits your application
 
 
 def make_json_response(body, status=200):

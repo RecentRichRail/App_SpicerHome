@@ -18,6 +18,7 @@
         "category": "shortcut",
         "prefix": ["commands", "cmds", "cmd"],
         "url": "/internal/search/commands",
+        "for_sidebar": true,
         "permission_level": 999
       },
       {
@@ -34,19 +35,8 @@
       },
       {
         "category": "shortcut",
-        "prefix": ["profile"],
-        "url": "/profile",
-        "permission_level": 999
-      },
-      {
-        "category": "shortcut",
-        "prefix": ["banana", "bananas"],
-        "url": "/internal/banana/",
-        "permission_level": 999
-      },
-      {
-        "category": "shortcut",
         "prefix": ["history"],
+        "for_sidebar": true,
         "url": "/internal/search/history",
         "permission_level": 999
       },
@@ -117,19 +107,16 @@
         "category": "shortcut",
         "prefix": ["track", "tracking", "packages"],
         "url": "/internal/search/track",
+        "for_sidebar": true,
         "permission_level": 999
       },
       {
         "category": "shortcut",
         "prefix": ["admin"],
         "url": "/internal/admin",
+        "for_sidebar": true,
+        "permission_name": "admin",
         "permission_level": 0
-      },
-      {
-        "category": "shortcut",
-        "prefix": ["Create User"],
-        "url": "/internal/auth/register",
-        "permission_level": 900
       },
       {
         "category": "default_search",
@@ -142,12 +129,6 @@
         "category": "shortcut",
         "prefix": ["logout"],
         "url": "https://spicerhome.cloudflareaccess.com/cdn-cgi/access/logout",
-        "permission_level": 999
-      },
-      {
-        "category": "shortcut",
-        "prefix": ["points"],
-        "url": "/internal/chores/",
         "permission_level": 999
       }
     ]

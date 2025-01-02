@@ -1,0 +1,41 @@
+{% if users %}
+    {% for user in users %}
+        <div class="flex items-center mb-2">
+            <label for="user-{{ user.id }}" class="text-2xl cursor-pointer p-2 border rounded border-grey-600" onclick="toggleHighlight(this)">
+                {{ user.get_user_name() }}
+                <p class="text-sm text-grey-700">{{ user.get_user_uid() }}</p>
+            </label>
+            <button class="btn btn-primary ml-4" onclick="makeAdmin('{{ user.id }}')">Make Household Admin</button>
+        </div>
+    {% endfor %}
+{% else %}
+    <div class="text-lg p-4">No users in household. Add users below.</div>
+{% endif %}
+
+<script>
+    function toggleHighlight(element) {
+        element.classList.toggle('bg-red-600');
+    }
+
+    function makeAdmin(userId) {
+        fetch('{{ url_for("household.make_household_admin") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ user_id: userId })
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('User is now a household admin.');
+                location.reload();
+            } else {
+                alert('Failed to make user an admin.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred.');
+        });
+    }
+</script>

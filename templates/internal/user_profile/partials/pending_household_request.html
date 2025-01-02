@@ -1,0 +1,48 @@
+{% if current_user.pending_household_request() %}
+    <div id="latest-open-logs">
+        <p class="pb-4 dark:text-white text-black text-xl mt-4">Household join requests:</p>
+        <ul>
+            <div class="border border-gray-600 p-2 mb-2 rounded w-full" id="open_request_{{ current_user.pending_household_request().id }}">
+                <li class="dark:text-white text-black text-lg">Request from: {{ current_user.pending_household_request().get_household_name_from_id() }}</li>
+                <li class="dark:text-gray-400 text-gray-700 text-xs flex justify-between items-center">
+                    <span>Points:</span>
+                    <div class="pl-10">
+                        <button 
+                            class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded mr-2"
+                            onclick="handleRequest('approve', '{{ current_user.pending_household_request().id }}')"
+                        >Approve</button>
+                        <button 
+                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                            onclick="handleRequest('deny', '{{ current_user.pending_household_request().id }}')"
+                        >Deny</button>
+                    </div>
+                </li>
+                <li class="dark:text-gray-400 text-gray-700 text-xs">Date: {{ current_user.pending_household_request().request_created_at }}</li>
+            </div>
+        </ul>
+    </div>
+{% endif %}
+
+<script>
+    function handleRequest(action, requestId) {
+        const url = action === 'approve' ? '{{ url_for('household.approve_household_request') }}' : '{{ url_for('household.deny_household_request') }}';
+        const data = { request_id: requestId };
+    
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.text())
+        .then(result => {
+            if (result === 'Request approved.' || result === 'Request denied.') {
+                document.getElementById(`open_request_${requestId}`).remove();
+            } else {
+                alert(result);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+    </script>
