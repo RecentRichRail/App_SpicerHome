@@ -15,3 +15,11 @@ class ChoresUser(db.Model):
     
     def get_dollar_amount(self):
         return float(f"{self.dollar_amount / 100:.2f}")
+    
+    def get_user_name(self):
+        if self.user.name:
+            return self.user.name
+        elif self.user.username:
+            return self.user.username
+        else:
+            return self.user.email

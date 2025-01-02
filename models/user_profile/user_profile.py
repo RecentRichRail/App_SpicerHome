@@ -142,6 +142,14 @@ class User(db.Model):
                 return user_household_model.household_id
         else:
             return False
+        
+    def get_points_amount(self):
+        from models.user_data.chores.chores import ChoresUser
+        user_points_model = ChoresUser.query.filter_by(user_id=self.id).first()
+        if user_points_model:
+            return user_points_model.dollar_amount
+        else:
+            return False
     
     def get_dollar_amount(self):
         from models.user_data.chores.chores import ChoresUser
