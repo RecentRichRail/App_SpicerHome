@@ -169,6 +169,14 @@ class User(db.Model):
             return True
         else:
             return False
+    
+    def get_user_name(self):
+        if self.name:
+            return self.name
+        elif self.username:
+            return self.username
+        else:
+            return self.email
         
     @classmethod
     def get_user_identity_from_cloudflare(cls):

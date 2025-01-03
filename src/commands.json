@@ -130,6 +130,12 @@
         "prefix": ["logout"],
         "url": "https://spicerhome.cloudflareaccess.com/cdn-cgi/access/logout",
         "permission_level": 999
+      },
+      {
+        "category": "shortcut",
+        "prefix": ["trace"],
+        "url": "https://cloudflare.com/cdn-cgi/trace",
+        "permission_level": 999
       }
     ]
   }

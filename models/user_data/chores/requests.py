@@ -27,20 +27,24 @@ class ChoreRequest(db.Model):
     def created_by_name(self):
         if self.request_created_by_user_id is None:
             return None
-        return User.query.filter_by(id=self.request_created_by_user_id).first().name
+        user = User.query.filter_by(id=self.request_created_by_user_id).first()
+        return user.get_user_name()
     
     def created_for_name(self):
         if self.request_created_for_user_id is None:
-            return None
-        return User.query.filter_by(id=self.request_created_for_user_id).first().name
+            return "No User"
+        user = User.query.filter_by(id=self.request_created_for_user_id).first()
+        return user.get_user_name()
     
     def cancelled_by_name(self):
         if self.requst_cancelled_by is None:
             return None
-        return User.query.filter_by(id=self.requst_cancelled_by).first().name
+        user = User.query.filter_by(id=self.requst_cancelled_by).first()
+        return user.get_user_name()
     
     def approved_by_name(self):
         if self.request_fulfilled_by is None:
             return None
-        return User.query.filter_by(id=self.request_fulfilled_by).first().name
+        user = User.query.filter_by(id=self.request_fulfilled_by).first()
+        return user.get_user_name()
     
