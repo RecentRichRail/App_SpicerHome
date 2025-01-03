@@ -91,11 +91,11 @@ def update_points():
     updated_users = []
     for user_id in user_ids:
         user = ChoresUser.query.filter_by(user_id=user_id).first()
-        user_model = User.query.filter_by(id=user.user_id).first()
+        # user_model = User.query.filter_by(id=user.user_id).first()
         if not user:
             return {"message": f"User with ID {user_id} not found"}, 404
 
-        user_model = User.query.filter_by(id=user.user_id).first()
+        # user_model = User.query.filter_by(id=user.user_id).first()
 
         if action == 'add':
             display_points = amount
@@ -189,7 +189,7 @@ def request_points():
     if request.method == 'POST':
         request_id = request.args.get('id')
         request_for = request.args.get('for')
-        request_for_name = User.query.filter_by(id=request_for).first().name
+        request_for_name = choreuser.get_user_name()
         request_model = PointsRequest.query.filter_by(household_id=current_user.is_in_household(), is_request_active=True, id=request_id).first()
         request_reason_created = f"{request_for_name} requested {request_model.points_requested} points for {request_model.request_name}."
         today = datetime.utcnow().date()
