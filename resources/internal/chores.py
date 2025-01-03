@@ -58,11 +58,11 @@ def points():
         all_users_points = {}
         for user in choreusers:
             user_model = User.query.filter_by(id=user.user_id).first()
-            if user_model and user_model.name:  # Ensure user_model and user_model.name are not None
-                all_users_points[user_model.id] = {"name": user_model.name, "amount": int(user.dollar_amount)}
+            if user_model and user.get_user_name():  # Ensure user_model and user_model.name are not None
+                all_users_points[user_model.id] = {"name": user.get_user_name(), "amount": int(user.dollar_amount)}
         return {"message": "success", "points": all_users_points, "is_admin": True}, 200
     else:
-        return {"message": "success", "points": {choreuser.user_id: {"name": current_user.name, "amount": int(choreuser.dollar_amount)}}, "is_admin": False}, 200
+        return {"message": "success", "points": {choreuser.user_id: {"name": current_user.get_user_name(), "amount": int(choreuser.dollar_amount)}}, "is_admin": False}, 200
 
 @chores_blueprint.route('/manage_points', methods=['POST'])
 @login_required
@@ -101,20 +101,20 @@ def update_points():
             display_points = amount
             user.dollar_amount += amount
             if amount == 1:
-                request_reason_created=f"{current_user.name} {action}ed {amount} point to {user_model.name}{reason}"
+                request_reason_created=f"{current_user.name} {action}ed {amount} point to {user.get_user_name()}{reason}"
             else:
-                request_reason_created=f"{current_user.name} {action}ed {amount} points to {user_model.name}{reason}"
+                request_reason_created=f"{current_user.name} {action}ed {amount} points to {user.get_user_name()}{reason}"
         elif action == 'subtract':
             display_points = -amount
             user.dollar_amount -= amount
             if amount == 1:
-                request_reason_created=f"{current_user.name} {action}ed {amount} point from {user_model.name}{reason}"
+                request_reason_created=f"{current_user.name} {action}ed {amount} point from {user.get_user_name()}{reason}"
             else:
-                request_reason_created=f"{current_user.name} {action}ed {amount} points from {user_model.name}{reason}"
+                request_reason_created=f"{current_user.name} {action}ed {amount} points from {user.get_user_name()}{reason}"
         else:
             return {"message": "Invalid action"}, 400
 
-        updated_users.append({"id": user_id, "name": user_model.name, "amount": user.dollar_amount})
+        updated_users.append({"id": user_id, "name": user.get_user_name(), "amount": user.dollar_amount})
 
         # Log the points request
         chore_request = ChoreRequest(
