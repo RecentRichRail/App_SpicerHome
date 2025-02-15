@@ -5,7 +5,7 @@
         <div id="usersList" class="mb-4 text-2xl z-1 dark:bg-black">
             {% for user in chore_users %}
                 <div class="flex items-center mb-2">
-                <label for="user-{{ user.id }}" class="text-2xl cursor-pointer p-2 border rounded border-grey-600" onclick="toggleHighlight(this)">{{ user.get_user_name() }}: <span id="points-{{ user_id }}">{{ user.dollar_amount }}</span></label>
+                <label for="user-{{ user.user_id }}" class="text-2xl cursor-pointer p-2 border rounded border-grey-600" onclick="toggleHighlight(this)">{{ user.get_user_name() }}: <span id="points-{{ user.user_id }}">{{ user.dollar_amount }}</span></label>
                 </div>
             {% endfor %}
         </div>
