@@ -243,11 +243,11 @@ def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico')
 
 @app.route('/apple-touch-icon.png')
-def favicon():
+def apple_favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'), 'apple-touch-icon.png')
 
 @app.route('/apple-touch-icon-precomposed.png')
-def favicon():
+def apple_favicon_precomposed():
     return send_from_directory(os.path.join(app.root_path, 'static'), 'apple-touch-icon-precomposed.png')
 
 @app.route('/')
