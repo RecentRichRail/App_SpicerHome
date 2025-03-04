@@ -1,5 +1,5 @@
 import logging
-from flask import Flask, render_template, redirect, url_for, request, session
+from flask import Flask, render_template, redirect, url_for, request, session, send_from_directory
 from flask_login import LoginManager, login_user, login_required, current_user
 from flask_migrate import Migrate
 import jinja_partials
@@ -237,6 +237,10 @@ def handle_exception(e = 'Request Error'):
     )
     send_email(app.config["DEVELOPER_EMAIL"], subject, body_text, body_html)
     return render_template('external/error.html', error_details=error_details)
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico')
 
 @app.route('/')
 @login_required
