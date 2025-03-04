@@ -3,19 +3,19 @@
     <ul>
         {% for user_id, user_tracking in tracking_requests.items() %}
             {% for request_id, track_info in user_tracking.items() %}
-                <div class="border border-gray-600 p-2 mb-2 rounded dark:bg-black bg-white break-words w-full">
-                    <li class="pb-2 dark:text-white text-black text-lg break-words w-full" id="note-{{ track_info.id }}" onclick="makeEditable(this, '{{ track_info.track_id }}'); event.stopPropagation();" style="overflow-wrap: break-word;">{{ track_info.note }}</li>
-                    <li class="pb-2 dark:text-white text-black text-sm break-words w-full" style="overflow-wrap: break-word;">
-                        <a href="{{ track_info.query_url }}" class="text-sm break-words w-full" style="overflow-wrap: break-word;">Tracking Number: {{ track_info.tracking_number }}</a>
-                    </li>
-                    <li class="dark:text-gray-400 text-gray-700 text-xs break-words w-full" style="overflow-wrap: break-word;">ID: {{ track_info.track_id }}</li>
-                    <li class="dark:text-gray-400 text-gray-700 text-xs break-words w-full" style="overflow-wrap: break-word;">Courier: {{ track_info.courier_name }}</li>
-                    <li class="dark:text-gray-400 text-gray-700 text-xs break-words w-full" style="overflow-wrap: break-word;">Status: {{ track_info.is_active }}</li>
-                    <li class="dark:text-gray-400 text-gray-700 text-xs break-words w-full" style="overflow-wrap: break-word;">Added: {{ track_info.datetime_of_create_on_database }}</li>
-                    <li class="dark:text-white text-gray-700 text-xs break-words w-full" style="overflow-wrap: break-word;">
-                        <a href="{{ track_info.query_url }}" class="text-xs break-words w-full" style="overflow-wrap: break-word;">{{ track_info.query_url }}</a>
-                    </li>
-                </div>
+            {% call roundedborder() %}
+                <li class="pb-2 dark:text-white text-black text-lg break-words w-full" id="note-{{ track_info.id }}" onclick="makeEditable(this, '{{ track_info.track_id }}'); event.stopPropagation();" style="overflow-wrap: break-word;">{{ track_info.note }}</li>
+                <li class="pb-2 dark:text-white text-black text-sm break-words w-full" style="overflow-wrap: break-word;">
+                    <a href="{{ track_info.query_url }}" class="text-sm break-words w-full" style="overflow-wrap: break-word;">Tracking Number: {{ track_info.tracking_number }}</a>
+                </li>
+                <li class="dark:text-gray-400 text-gray-700 text-xs break-words w-full" style="overflow-wrap: break-word;">ID: {{ track_info.track_id }}</li>
+                <li class="dark:text-gray-400 text-gray-700 text-xs break-words w-full" style="overflow-wrap: break-word;">Courier: {{ track_info.courier_name }}</li>
+                <li class="dark:text-gray-400 text-gray-700 text-xs break-words w-full" style="overflow-wrap: break-word;">Status: {{ track_info.is_active }}</li>
+                <li class="dark:text-gray-400 text-gray-700 text-xs break-words w-full" style="overflow-wrap: break-word;">Added: {{ track_info.datetime_of_create_on_database }}</li>
+                <li class="dark:text-white text-gray-700 text-xs break-words w-full" style="overflow-wrap: break-word;">
+                    <a href="{{ track_info.query_url }}" class="text-xs break-words w-full" style="overflow-wrap: break-word;">{{ track_info.query_url }}</a>
+                </li>
+            {% endcall %}
             {% endfor %}
         {% endfor %}
     </ul>
