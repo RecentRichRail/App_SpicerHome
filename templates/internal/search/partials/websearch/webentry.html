@@ -1,5 +1,9 @@
 {#
 A individual web entry in the search results
+
+<!-- <div class="meta-info text-gray-500 dark:text-gray-400">
+    <a href="{{ result.url }}" class="hover:underline">{{ result.profile.long_name }}</a> - {{ result.meta_url.path }}
+</div> -->
 #}
 
 {% if search_index.web.results %}
@@ -11,15 +15,15 @@ A individual web entry in the search results
                     <div class="web-result-content">
                         <a href="{{ result.url }}" target="_self">
                             <div class="web-result-content-title-div flex items-center mb-4">
-                                <div class="favicon-container mr-4 p-1 dark:bg-white rounded">
-                                    <img class="favicon w-8 h-8 rounded" src="{{ result.meta_url.favicon }}" alt="{{ result.profile.name }} favicon">
+                                <div class="favicon-container mr-4 p-1 dark:bg-white rounded flex-shrink-0 w-10 h-10">
+                                    <img class="favicon rounded w-8 h-8" src="{{ result.meta_url.favicon }}" alt="{{ result.profile.name }} favicon">
                                 </div>
-                                <div class="web-result-content-title-nav">
+                                <div class="web-result-content-title-nav flex-grow">
                                     <div class="web-result-content-title-nav-info text-lg font-semibold">
                                         <a href="{{ result.url }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ result.profile.name }}</a>
                                     </div>
-                                    <div class="meta-info text-gray-500 dark:text-gray-400">
-                                        <a href="{{ result.url }}" class="hover:underline">{{ result.profile.long_name }}</a> - {{ result.meta_url.path }}
+                                    <div class="meta-info text-gray-500 dark:text-gray-400 break-words w-full">
+                                        <a href="{{ result.url }}" class="hover:underline" style="overflow-wrap: break-word; word-break: break-all; white-space: normal; overflow: hidden; text-overflow: ellipsis; max-width: 25vw;">{{ result.url }}</a>
                                     </div>
                                 </div>
                             </div>
@@ -31,11 +35,10 @@ A individual web entry in the search results
                     </div>
                 </div>
             </div>
-            {% elif search_type['type'] == "videos" %}
-            
+        {% elif search_type['type'] == "videos" %}
             <div class="max-w-full overflow-x-auto p-4">
                 <h2>Videos - <a href="/internal/search?q=yt {{ search_index.query.original }}">See More on YouTube!</a></h2>
-                <div class="flex space-x-4 ">
+                <div class="flex space-x-4">
                     {% for result in search_index.videos.results %}
                     <div class="bg-white dark:bg-black p-4 rounded-lg shadow-md mb-4 min-w-[300px] border border-gray-600">
                         <div class="p-4">
@@ -45,14 +48,14 @@ A individual web entry in the search results
                                 <div class="thumbnail w-full h-48 mb-4 bg-gray-300 dark:bg-gray-700 rounded"></div>
                             {% endif %}
                             <h3 class="text-lg font-semibold mb-2"><a href="{{ result.url }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ result.title }}</a></h3>
-                            <p class="text-gray-600 dark:text-gray-300 mb-2">{{ result.description | safe }}</p>
+                            <p class="text-gray-600 dark:text-gray-300 mb-2" style="overflow-wrap: break-word; word-break: break-all; white-space: normal;">{{ result.description | safe }}</p>
                             <div class="meta-info flex items-center text-gray-500 dark:text-gray-400">
                                 <img class="favicon w-6 h-6 border border-gray-300 dark:border-gray-600 rounded mr-2" src="{{ result.meta_url.favicon }}" alt="{{ result.meta_url.netloc }} favicon">
                                 <a href="{{ result.meta_url.scheme + "://" + result.meta_url.hostname }}" class="hover:underline break-words">{{ result.meta_url.netloc }}</a>
                             </div>
                         </div>
                     </div>
-                {% endfor %}
+                    {% endfor %}
                 </div>
             </div>
         {% endif %}

@@ -1,13 +1,13 @@
-// static/service-worker.js
+z// static/service-worker.js
 const CACHE_NAME = 'spicerhome_cache_v1';
 const urlsToCache = [
   '/',
   '/internal/chores/',
-  '/internal/search/',
+  '/internal/search',
   '/internal/admin/',
-  '/internal/search/track/',
-  '/internal/search/history/',
-  '/internal/search/commands/'
+  '/internal/search/track',
+  '/internal/search/history',
+  '/internal/search/commands'
 ];
 
 self.addEventListener('install', event => {
