@@ -1,8 +1,10 @@
+{% from "internal/elements/webpage-elements/border-grey-600-container.html" import roundedborder %}
+
 <div id="latest-request-logs">
     <p class="pb-4 dark:text-white text-black text-xl mt-4">Last 25 logs for the household:</p>
     <ul>
         {% for last_request in last_25_requests %}
-            <div class="border border-gray-600 p-2 mb-2 rounded">
+            {% call roundedborder() %}
                 <li class="pb-2 dark:text-white text-black text-lg">{{ last_request.request_reason_created }}</li>
                 <li class="dark:text-gray-400 text-gray-700 text-xs">Requested for: {{ last_request.created_for_name() }}</li>
                 <li class="dark:text-gray-400 text-gray-700 text-xs">Created: {{ last_request.request_created_at }}</li>
@@ -21,7 +23,7 @@
                     <li class="dark:text-yellow-500 text-yellow-500 text-xs">Status: Pending</li>
                     <li class="dark:text-gray-400 text-gray-700 text-xs">Requested by: {{ last_request.created_by_name() }}</li>
                 {% endif %}
-            </div>
+            {% endcall %}
         {% endfor %}
     </ul>
 </div>

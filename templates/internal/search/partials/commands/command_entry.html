@@ -1,0 +1,51 @@
+{% from "internal/elements/webpage-elements/border-grey-600-container.html" import roundedborder, scrollborder %}
+
+<div id="latest-request-logs">
+    <h1 class="text-2xl font-bold mb-6">SpicerHome Commands:</h1>
+
+    {% set categorized_commands = {} %}
+    {% for command in current_user.json_user_commands() %}
+        {% set key = (command.url, command.category, command.search_url, command.permission_name, command.permission_level, 
+                     command.is_command_for_sidebar, command.is_command_public, command.is_command_household, 
+                     command.is_command_hidden, command.household_id, command.owner_id) %}
+        {% set _ = categorized_commands.setdefault(command.category, {}).setdefault(key, {
+            'prefixes': [], 'url': command.url, 'category': command.category, 'search_url': command.search_url,
+            'permission_name': command.permission_name, 'permission_level': command.permission_level,
+            'is_command_for_sidebar': command.is_command_for_sidebar, 'is_command_public': command.is_command_public,
+            'is_command_household': command.is_command_household, 'is_command_hidden': command.is_command_hidden,
+            'household_id': command.household_id, 'owner_id': command.owner_id
+        }).prefixes.append(command.prefix) %}
+    {% endfor %}
+
+    {% for category, commands in categorized_commands.items() %}
+        <h2 class="pb-2 dark:text-white text-black text-lg mt-6">{{ category | title }}</h2>
+        <ul>
+            {% for (url, category, search_url, permission_name, permission_level, is_command_for_sidebar, 
+                     is_command_public, is_command_household, is_command_hidden, household_id, owner_id), data in commands.items() %}
+                {% call roundedborder() %}
+                <li class="dark:text-gray-400 text-gray-700 text-xs">
+                    <strong>URL:</strong> <a href="{{ url }}" class="quick-fix-data-url" target="_blank">{{ url }}</a>
+                </li>
+                {% if search_url %}
+                    <li class="dark:text-gray-400 text-gray-700 text-xs">
+                        <strong>Search URL:</strong> <a href="{{ search_url }}" class="quick-fix-data-url" target="_blank">{{ search_url }}</a>
+                    </li>
+                {% endif %}
+                <li class="pb-2 dark:text-white text-black text-lg">
+                    <strong>Prefixes:</strong> {{ data.prefixes | join(", ") }}
+                </li>
+                <li class="dark:text-gray-400 text-gray-700 text-xs">
+                    <strong>Sidebar:</strong> {{ "Yes" if is_command_for_sidebar else "No" }} | 
+                    <strong>Public:</strong> {{ "Yes" if is_command_public else "No" }} | 
+                    <strong>Hidden:</strong> {{ "Yes" if is_command_hidden else "No" }}{% if is_command_household %} | 
+                    <strong>Household ID:</strong> {{ household_id }}{% endif %} | 
+                    <strong>Owner ID:</strong> {{ owner_id }}
+                </li>
+                <li class="dark:text-gray-400 text-gray-700 text-xs">
+                    <strong>Permission:</strong> {{ permission_name }} (Level: {{ permission_level }})
+                </li>
+                {% endcall %}
+            {% endfor %}
+        </ul>
+    {% endfor %}
+</div>

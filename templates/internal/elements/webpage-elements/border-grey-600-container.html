@@ -1,0 +1,14 @@
+{% macro roundedborder(content) %}
+    <div class="pl-4 pr-4 pb-2 pt-2">
+        <div class="bg-white dark:bg-black p-4 rounded-lg shadow-md border border-gray-600 break-words">
+            {{ caller() }}
+        </div>
+    </div>
+{% endmacro %}
+{% macro scrollborder(content) %}
+<div class="bg-white dark:bg-black p-4 rounded-lg shadow-md mb-4 min-w-[300px] border border-gray-600 break-words">
+    <div class="p-4">
+        {{ caller() }}
+    </div>
+</div>
+{% endmacro %}
