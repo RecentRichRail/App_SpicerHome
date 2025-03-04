@@ -7,7 +7,7 @@
         {% include 'internal/elements/logo.html' %}
     </div>
     <div id="history-section">
-        {% if tracking_requests %}
+    {% if tracking_requests %}
         <div class="flex flex-col items-center">
             {{ render_partial('internal/search/partials/tracking/tracking_entry.html', tracking_requests=tracking_requests, user_tracking=user_tracking) }}
 
