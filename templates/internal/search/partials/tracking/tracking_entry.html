@@ -1,6 +1,6 @@
 {% from "internal/elements/webpage-elements/border-grey-600-container.html" import roundedborder, scrollborder %}
 
-<div id="tracking-info" class="w-max-full">
+<div id="tracking-info">
     <p class="pb-4 dark:text-white text-black text-xl mt-4">Stored Tracking Numbers:</p>
     <ul>
         {% for user_id, user_tracking in tracking_requests.items() %}
