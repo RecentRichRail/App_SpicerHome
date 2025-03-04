@@ -36,10 +36,9 @@
                 </li>
                 <li class="dark:text-gray-400 text-gray-700 text-xs">
                     <strong>Sidebar:</strong> {{ "Yes" if is_command_for_sidebar else "No" }} | 
-                    <strong>Public:</strong> {{ "Yes" if is_command_public else "No" }} | 
-                    <strong>Hidden:</strong> {{ "Yes" if is_command_hidden else "No" }}{% if is_command_household %} | 
-                    <strong>Household ID:</strong> {{ household_id }}{% endif %} | 
-                    <strong>Owner ID:</strong> {{ owner_id }}
+                    <strong>Public:</strong> {{ "Yes" if is_command_public else "No" }} | {% if is_command_household %} | 
+                    <strong>Household ID:</strong> {{ household_id }}{% endif %} | {% if owner_id %} | 
+                    <strong>Owner ID:</strong> {{ owner_id }}{% endif %}
                 </li>
                 <li class="dark:text-gray-400 text-gray-700 text-xs">
                     <strong>Permission:</strong> {{ permission_name }} (Level: {{ permission_level }})
