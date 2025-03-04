@@ -20,7 +20,7 @@ A individual web entry in the search results
                                 </div>
                                 <div class="web-result-content-title-nav flex-grow">
                                     <div class="web-result-content-title-nav-info text-lg font-semibold">
-                                        <a href="{{ result.url }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ result.profile.name }}</a>
+                                        <a href="{{ result.url }}" class="text-blue-600 dark:text-blue-400 hover:underline" style="overflow-wrap: break-word; word-break: break-all; white-space: normal;">{{ result.profile.name }}</a>
                                     </div>
                                     <div class="meta-info text-gray-500 dark:text-gray-400 break-words w-full">
                                         <a href="{{ result.url }}" class="hover:underline" style="overflow-wrap: break-word; word-break: break-all; white-space: normal; overflow: hidden; text-overflow: ellipsis; max-width: 25vw;">{{ result.url }}</a>
@@ -29,7 +29,7 @@ A individual web entry in the search results
                             </div>
                         </a>
                         <div class="web-result-content-title mb-2">
-                            <a href="{{ result.url }}" title="{{ result.title }}" class="text-xl font-bold text-gray-800 dark:text-gray-100 hover:underline">{{ result.title }}</a>
+                            <a href="{{ result.url }}" title="{{ result.title }}" class="text-xl font-bold text-gray-800 dark:text-gray-100 hover:underline" style="overflow-wrap: break-word; white-space: normal;">{{ result.title }}</a>
                         </div>
                         <p class="text-gray-600 dark:text-gray-300">{{ result.description | safe }}</p>
                     </div>
