@@ -242,6 +242,14 @@ def handle_exception(e = 'Request Error'):
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico')
 
+@app.route('/apple-touch-icon.png')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'apple-touch-icon.png')
+
+@app.route('/apple-touch-icon-precomposed.png')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'apple-touch-icon-precomposed.png')
+
 @app.route('/')
 @login_required
 def redirect_to_url():
