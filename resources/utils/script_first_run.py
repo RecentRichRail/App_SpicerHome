@@ -1,5 +1,6 @@
-import json, logging
+import json, logging, os
 from models import CommandsModel
+from PIL import Image
 
 def create_commands():
     try:
@@ -31,3 +32,24 @@ def create_commands():
                     is_command_public=True
                 )
                 logging.info(f"Command {new_command.id} created successfully - '{new_command.prefix}' - Permission: {new_command.permission_name} - Level: {new_command.permission_level}")
+
+
+def generate_logo_image(filename, size, icon_path = 'static/icon_rotated.png'):
+    STATIC_FOLDER = os.path.join(os.getcwd(), 'static')
+    if not os.path.exists(STATIC_FOLDER):
+        os.makedirs(STATIC_FOLDER)
+
+    # Open the icon image (your first letter logo "S" or other design)
+    icon = Image.open(icon_path)
+    
+    # Resize the icon to match the desired size
+    icon = icon.resize((size, size))
+    
+    # Create a new blank image with a transparent background
+    img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+    
+    # Paste the icon onto the new blank image
+    img.paste(icon, (0, 0), icon)  # Assuming the icon has transparency
+    
+    # Save the image to the static folder
+    img.save(os.path.join(STATIC_FOLDER, filename))

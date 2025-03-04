@@ -12,3 +12,4 @@ pymysql
 gunicorn
 jinja-partials
 Flask-Session[sqlalchemy]
+Pillow

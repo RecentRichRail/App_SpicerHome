@@ -12,7 +12,7 @@ from flask_session import Session
 from resources.utils.util import encrypt
 
 from resources.utils.util import send_email
-from resources.utils.script_first_run import create_commands
+from resources.utils.script_first_run import create_commands, generate_logo_image
 from models import db, User
 # from resources.utils import util
 # from db import db
@@ -105,6 +105,11 @@ with app.app_context():
     logging.debug("Session created.")
     create_commands()
     logging.debug("Commands created.")
+    generate_logo_image('apple-touch-icon-precomposed.png', 180)
+    generate_logo_image('apple-touch-icon.png', 120)
+    generate_logo_image('favicon-16x16.png', 16)
+    generate_logo_image('favicon-32x32.png', 32)
+    generate_logo_image('favicon.ico', 64)
 
 @login_manager.user_loader
 def load_user(user_id):
