@@ -30,7 +30,7 @@
             width: 0.8em; /* Set to the width of one character */
             height: 0.8em; /* Adjust the height to match the size of the font */
             margin-right: -0.14em; /* Optional: add space after the icon */
-            margin-bottom: 0.1em; /* Optional: adjust the vertical alignment */
+            margin-bottom: 0.135em; /* Optional: adjust the vertical alignment */
             background-image: url('/static/icon_rotated.png');
             background-size: contain;
             background-repeat: no-repeat;
@@ -38,15 +38,23 @@
 
         /* Ensure the rest of the text aligns correctly */
         .logo-text span + span {
-            margin-left: 0.5em; /* Adjust the space between the first letter and the rest */
+            margin-left: 0.4em; /* Adjust the space between the first letter and the rest */
         }
     </style>
 
     <!-- Applying the CSS to split the logo -->
-    <a href="/internal/search" class="logo-text">
+    <a href="/internal/search" class="logo-text" id="logo-text">
         <span></span>picerHome
     </a>
 </div>
+
+<script>
+    document.getElementById('logo-text').addEventListener('copy', function(event) {
+        event.preventDefault();
+        const textToCopy = 'SpicerHome';
+        event.clipboardData.setData('text/plain', textToCopy);
+    });
+</script>
 
 <!-- src: url('/static/styles/fonts/evgeny.bold-italic.ttf'); -->
 <!-- <a href="/internal/search">
